@@ -1,11 +1,9 @@
-import { defineQuery } from "next-sanity";
-import { client } from "@/sanity/client";
+import { defineQuery, stegaClean } from "next-sanity";
+import { cachedSanity, published, type FetchOptions } from "@/sanity/live";
 import { projects as placeholderProjects, site as placeholderSite, type Project, type Site } from "./site";
 
 // Content comes from Sanity. Anything not filled in there yet falls back
 // to the placeholders in ./site, so the site never renders empty.
-
-const fetchOptions = { next: { revalidate: 60 } };
 
 const siteQuery = defineQuery(`*[_id == "siteSettings"][0]{
   name, role, headline, intro, positioning, email, linkedin
@@ -29,17 +27,18 @@ type SanityProject = {
   cover?: { alt?: string; image?: string; video?: string };
 };
 
-async function safeFetch<T>(query: string): Promise<T | null> {
+async function safeFetch<T>(query: string, options: FetchOptions): Promise<T | null> {
   try {
-    return await client.fetch<T>(query, {}, fetchOptions);
+    const { data } = await cachedSanity({ query, ...options });
+    return data as T;
   } catch (error) {
     console.warn("Sanity fetch failed, using placeholders:", error);
     return null;
   }
 }
 
-export async function getSite(): Promise<Site> {
-  const data = await safeFetch<Partial<Site> | null>(siteQuery);
+export async function getSite(options: FetchOptions = published): Promise<Site> {
+  const data = await safeFetch<Partial<Site> | null>(siteQuery, options);
   const filled = Object.fromEntries(Object.entries(data ?? {}).filter(([, value]) => value));
   return { ...placeholderSite, ...filled };
 }
@@ -55,7 +54,7 @@ function toProject(p: SanityProject): Project {
         : "browser";
 
   return {
-    slug: p.slug,
+    slug: stegaClean(p.slug),
     short: p.short ?? p.title,
     kind: p.kind ?? "",
     title: p.title,
@@ -63,18 +62,21 @@ function toProject(p: SanityProject): Project {
     visual,
     stat: p.stat?.value ? { value: p.stat.value, label: p.stat.label ?? "" } : undefined,
     cover: coverSrc ? { src: coverSrc, alt: p.cover?.alt ?? "", video: Boolean(p.cover?.video) } : undefined,
-    url: p.url?.replace(/^https?:\/\//, ""),
+    url: stegaClean(p.url)?.replace(/^https?:\/\//, ""),
     nda: p.nda,
   };
 }
 
-export async function getProjects({ featuredOnly = false } = {}): Promise<Project[]> {
-  const data = await safeFetch<SanityProject[]>(projectsQuery);
+export async function getProjects(
+  options: FetchOptions = published,
+  { featuredOnly = false } = {},
+): Promise<Project[]> {
+  const data = await safeFetch<SanityProject[]>(projectsQuery, options);
   if (!data?.length) return placeholderProjects;
   return data.filter((p) => !featuredOnly || p.featured !== false).map(toProject);
 }
 
-export async function getProject(slug: string): Promise<Project | undefined> {
-  const projects = await getProjects();
+export async function getProject(slug: string, options: FetchOptions = published): Promise<Project | undefined> {
+  const projects = await getProjects(options);
   return projects.find((p) => p.slug === slug);
 }
