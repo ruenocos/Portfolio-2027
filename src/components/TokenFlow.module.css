@@ -1,0 +1,163 @@
+.flow {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.flow[data-paused="true"] * {
+  animation-play-state: paused;
+}
+
+.panel {
+  width: 250px;
+  border: var(--hairline) solid var(--color-line);
+  border-radius: var(--radius-panel);
+  background: var(--color-surface);
+  overflow: hidden;
+}
+
+.code {
+  width: 300px;
+}
+
+.bar {
+  height: 40px;
+  display: flex;
+  align-items: center;
+  padding: 0 var(--space-4);
+  border-bottom: var(--hairline) solid var(--color-line);
+  font-size: 0.8125rem;
+  color: var(--color-muted);
+}
+
+.mono,
+.tokens,
+.lines {
+  font-family: var(--font-mono);
+  font-size: var(--text-code);
+}
+
+.tokens {
+  display: flex;
+  flex-direction: column;
+  padding: var(--space-2);
+}
+
+.token {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-2);
+  border-radius: var(--radius-row);
+}
+
+.swatch {
+  width: 20px;
+  height: 20px;
+  border-radius: 5px;
+  flex-shrink: 0;
+}
+
+.ground {
+  background: #0d0e10;
+  box-shadow: inset 0 0 0 1px var(--color-line);
+}
+
+.aa {
+  width: 20px;
+  font-family: var(--font-sans);
+  font-weight: var(--weight-semibold);
+  font-size: 1.0625rem;
+}
+
+.wire {
+  position: relative;
+  width: 72px;
+  height: 1px;
+  background: var(--color-line);
+}
+
+.pulse {
+  position: absolute;
+  top: -3px;
+  width: 10px;
+  height: 7px;
+  border-radius: 4px;
+  background: var(--color-signal);
+  animation: pulse var(--dur-loop) var(--ease-in-out) infinite;
+}
+
+.lines {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: var(--space-4);
+  line-height: 1.4;
+}
+
+.key {
+  color: var(--color-signal-text);
+}
+
+.comment {
+  color: var(--color-muted);
+}
+
+.t1 { animation: lit var(--dur-loop) ease infinite; }
+.t2 { animation: lit var(--dur-loop) ease 0.25s infinite; }
+.t3 { animation: lit var(--dur-loop) ease 0.5s infinite; }
+.l1 { animation: line var(--dur-loop) var(--ease-out) 0.9s infinite both; }
+.l2 { animation: line var(--dur-loop) var(--ease-out) 1.15s infinite both; }
+.l3 { animation: line var(--dur-loop) var(--ease-out) 1.4s infinite both; }
+.l4 { animation: line var(--dur-loop) var(--ease-out) 1.65s infinite both; }
+
+@keyframes pulse {
+  0% { left: 0; opacity: 0; }
+  12%, 88% { opacity: 1; }
+  100% { left: calc(100% - 10px); opacity: 0; }
+}
+
+@keyframes line {
+  0%, 14% { opacity: 0; transform: translateX(-8px); }
+  22%, 92% { opacity: 1; transform: none; }
+  100% { opacity: 0; }
+}
+
+@keyframes lit {
+  0%, 10% { background: transparent; }
+  22%, 92% { background: rgba(61, 255, 140, 0.1); }
+  100% { background: transparent; }
+}
+
+/* Reduced motion: show the finished state, no loop. */
+@media (prefers-reduced-motion: reduce) {
+  .flow * {
+    animation: none !important;
+  }
+
+  .pulse {
+    display: none;
+  }
+}
+
+@media (max-width: 767px) {
+  .flow {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .panel,
+  .code {
+    width: 100%;
+    max-width: 320px;
+  }
+
+  .wire {
+    width: 1px;
+    height: 40px;
+  }
+
+  .pulse {
+    display: none;
+  }
+}

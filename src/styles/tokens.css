@@ -1,0 +1,105 @@
+/* wessel.cv design tokens, locked 2026-10-22.
+   Archivo (variable: wdth 62..125, wght 400..800) for all reading text.
+   Geist Mono only for code and token names. Dark is the default; light follows the system. */
+
+:root {
+  /* Color: dark */
+  --color-ground: #0D0E10;
+  --color-surface: #15171B;
+  --color-line: rgba(255, 255, 255, 0.10);
+  --color-cell: rgba(255, 255, 255, 0.045);
+  --color-ink: #ECEEF1;
+  --color-muted: #9198A3;
+  --color-signal: #3DFF8C;       /* fills: buttons, active bar, pulse */
+  --color-signal-text: #3DFF8C;  /* green text, code highlights */
+  --color-on-signal: #0D0E10;
+
+  /* Type */
+  --font-sans: var(--font-archivo), system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
+
+  --text-display: clamp(3rem, 6vw + 0.5rem, 5.5rem);   /* 48 to 88 */
+  --text-h1: clamp(2.25rem, 3.5vw + 0.5rem, 3.5rem);   /* 36 to 56 */
+  --text-h2: clamp(1.75rem, 2vw + 0.75rem, 2.25rem);   /* 28 to 36 */
+  --text-h3: 1.5rem;     /* 24 */
+  --text-lead: 1.3125rem;/* 21 */
+  --text-body: 1.0625rem;/* 17 */
+  --text-small: 0.9375rem;/* 15 */
+  --text-code: 0.8125rem;/* 13 */
+
+  --leading-display: 1;
+  --leading-heading: 1.1;
+  --leading-body: 1.6;
+
+  --tracking-display: -0.035em;
+  --tracking-h1: -0.03em;
+  --tracking-h2: -0.025em;
+  --tracking-h3: -0.015em;
+
+  --weight-regular: 400;
+  --weight-medium: 500;
+  --weight-semibold: 600;
+  --weight-bold: 700;
+
+  /* Spacing, 4px base */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-6: 24px;
+  --space-10: 40px;
+  --space-20: 80px;
+  --space-30: 120px;
+
+  /* Grid and lines */
+  --rail-inset: 80px;     /* 24px under 768px */
+  --cell: 56px;
+  --hairline: 1px;
+  --active-bar: 2px;
+
+  /* Radius */
+  --radius-row: 6px;
+  --radius-control: 10px;
+  --radius-panel: 12px;
+  --radius-media: 16px;
+
+  /* Motion */
+  --ease-out: cubic-bezier(.2, .7, .2, 1);
+  --ease-in-out: cubic-bezier(.65, 0, .35, 1);
+  --dur-quick: 120ms;   /* hover color, focus */
+  --dur-state: 200ms;   /* tabs, project switch */
+  --dur-enter: 450ms;   /* rise 12px + fade, 60ms stagger, max 4 items */
+  --dur-stretch: 700ms; /* Archivo width moment: 62% -> 112% -> 100% */
+  --dur-loop: 7s;       /* hero tokens-to-SCSS loop, pauses off screen */
+}
+
+@media (prefers-color-scheme: light) {
+  :root {
+    --color-ground: #F5F6F7;
+    --color-surface: #FFFFFF;
+    --color-line: rgba(13, 14, 16, 0.11);
+    --color-cell: rgba(13, 14, 16, 0.055);
+    --color-ink: #0D0E10;
+    --color-muted: #565D68;
+    --color-signal-text: #0A7F43;
+  }
+}
+
+@media (max-width: 767px) {
+  :root { --rail-inset: 24px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --dur-enter: 150ms;
+    --dur-stretch: 0ms;
+  }
+}
+
+/* Width stretch is only allowed on: hero headline on load, page title on navigation,
+   big stat numbers as they count in. Never on body, nav or buttons. */
+@keyframes stretch-in {
+  0%   { font-variation-settings: "wdth" 62; }
+  55%  { font-variation-settings: "wdth" 112; }
+  100% { font-variation-settings: "wdth" 100; }
+}
