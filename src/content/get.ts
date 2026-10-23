@@ -72,8 +72,10 @@ export async function getProjects(
   { featuredOnly = false } = {},
 ): Promise<Project[]> {
   const data = await safeFetch<SanityProject[]>(projectsQuery, options);
-  if (!data?.length) return placeholderProjects;
-  return data.filter((p) => !featuredOnly || p.featured !== false).map(toProject);
+  const real = (data ?? []).filter((p) => !featuredOnly || p.featured !== false).map(toProject);
+  // Keep placeholders for projects that aren't in Sanity yet, so pages stay full.
+  const missing = placeholderProjects.filter((p) => !real.some((r) => r.slug === p.slug));
+  return [...real, ...missing];
 }
 
 export async function getProject(slug: string, options: FetchOptions = published): Promise<Project | undefined> {
