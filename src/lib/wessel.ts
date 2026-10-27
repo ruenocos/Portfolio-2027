@@ -306,6 +306,8 @@ function home(): XY {
   return [innerWidth - (mobile() ? 64 : 120), innerHeight * 0.74];
 }
 
+let lastT: number | null = null;
+
 function tick(n: number) {
   const el = W.el;
   if (!el) return;
@@ -325,8 +327,12 @@ function tick(n: number) {
   if (!t) t = home();
   const parked = !driving && W.parked && !W.asleep;
 
-  // The page drags him a little; he resists and catches up.
-  if (!still && !parked) W.y -= driving ? d : d * 0.55;
+  // The page drags him a little; he resists and catches up. Not when his
+  // job holds still on screen while you scroll (a sticky panel): then he
+  // stays put with it instead of bobbing up and back.
+  const pinned = driving && lastT !== null && Math.abs(t[1] - lastT) < 0.5;
+  lastT = driving ? t[1] : null;
+  if (!still && !parked && !pinned) W.y -= driving ? d : d * 0.55;
   if (still || parked) {
     W.x = t[0];
     W.y = t[1];

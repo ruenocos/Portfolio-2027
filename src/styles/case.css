@@ -15,7 +15,7 @@
     padding: var(--spacing-section) var(--spacing-inset);
     display: flex;
     flex-direction: column;
-    justify-content: center;
+    justify-content: flex-start;
     gap: 20px;
   }
   .copen h1 {
@@ -30,7 +30,6 @@
     padding: var(--spacing-inset);
   }
 
-  /* ---------- reading progress: 2px under the sticky header ---------- */
   /* ---------- the read: Layers panel | sections ---------- */
   .rd {
     display: grid;
