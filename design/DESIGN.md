@@ -64,7 +64,7 @@ Fonts: **Bricolage Grotesque** (display + text; opsz 12–96), **Geist Mono** (l
 | Statement | Bricolage 500 · 64px (48 mobile) · lh 1.05 · ls -2% | "All work" |
 | Headline | Bricolage 500 · 48px (40 mobile) · lh 1.05 · ls -2% | About title, Focus statement |
 | Email | Bricolage 500 · 32px (fluid to 24 mobile) · lh 1.1 · grape 2px underline | the email address only |
-| Accent | Instrument Serif Italic · 40px (32 mobile) · lh 1.05 | hero role line and single inline accent words at 1.08em (*feel*, *notice*) only. Not on titles or values (review 2026-10-27) |
+| Accent | Instrument Serif Italic · 40px (32 mobile) · lh 1.05 | **Wessel's voice, nothing else** (Wons 2026-10-27): the hero role line, pull quotes, and the one-line takeaway per case. Always a whole line, never single words inside a sans sentence, never titles, values or headings. |
 | Title | Bricolage 500 · 32px · lh 1.125 · −1% | project titles in rows and cards; 24px mobile |
 | Lead | Bricolage 400 · 20px/32 | cell labels (Email, Elsewhere), short leads |
 | Body | Bricolage 400 · 16px/24 | running text |
@@ -104,7 +104,7 @@ Rules:
 |---|---|
 | Home | Locked (this file). |
 | About | Direction picked 2026-10-27: **A1 Version history** (board `references/about-contact/`). Not built. Needs years for Mediacollege, motion and WP Masters. |
-| Case study | Row order since 2026-10-27: crumb → opening (title | lead) → **header video** → facts → read. (Wons 2026-10-27: video under the title.) De Saak v01 built: `web/hifi/case/case-desaak_v01.html`, spec `web/case-study-spec_v02.md`. Title = Statement (56 / 40 mobile), facts and section headings = Accent 36. |
+| Case study | Row order since 2026-10-27: crumb → opening (title | lead) → **header video** → facts → read. (Wons 2026-10-27: video under the title.) De Saak v01 built: `web/hifi/case/case-desaak_v01.html`, spec `web/case-study-spec_v02.md`. Title = Statement (64 / 48 mobile), facts = Lead, section headings = Headline; the case takeaway line = Accent. |
 | Contact | **No page.** Every contact link (header "Contact ↓", CTAs) scrolls to the home footer. |
 | All work | Linked from the archive hand. Not designed yet. |
 
@@ -120,8 +120,8 @@ Header (sticky, 90px) → Hero → `{ About }` → About (story + photo deck) �
 | **Contact pill** | Phones and tablets: grape "Contact ↓" pill docks bottom-right once the hero has gone (stage spring), hides at the footer, in the reel and while the menu is open. |
 | **Hero** | Height `clamp(480px, 80svh − 91px, 720px)`, or `clamp(420px, 72svh − 70px, 620px)` on mobile. Mono meta top-left (Based in / Local time). Name row WESSEL [reel] OUD. Role bottom-right in Accent. Letters are split into spans for the intro. |
 | **Reel** | 1.05em × .6em of the name, radius scales with size. Magnetism toward the pointer. Grape "▶ Reel" pill on hover. Opens a dialog player. |
-| **Project row** | Desktop: equal thirds: title (Accent) + summary + timeline \| portrait media 3:4 at 78% of the column (max 520), magnetism + slight rotation on the side columns, still over the middle \| role + tools + pin note. Media plays at 0.75×. The You tag reads "View case"; without a case page it says "Case study soon". Mobile: one column: title + summary, timeline, media (278 × 370), then role and tools side by side. |
-| **Focus** | Left: sticky statement (Headline with Accent words) + Daily kit (56px tool chips). Right: 3 iso dioramas (UX, Motion, AI). Hovering a card ↔ its chips light up (grape title + chip rings), both ways. Never cut this interplay. Wessel's day beat on a card also applies its hover, so you see that you can hover. Mobile: statement, then Daily kit, then one card per row; tap = hover. |
+| **Project row** | Desktop: equal thirds: title (Title) + summary + timeline \| portrait media 3:4 at 78% of the column (max 520), magnetism + slight rotation on the side columns, still over the middle \| role + tools + pin note. Media plays at 0.75×. The You tag reads "View case"; without a case page it says "Case study soon". Mobile: one column: title + summary, timeline, media (278 × 370), then role and tools side by side. |
+| **Focus** | Left: sticky statement (Headline, no accent words) + Daily kit (56px tool chips). Right: 3 iso dioramas (UX, Motion, AI). Hovering a card ↔ its chips light up (grape title + chip rings), both ways. Never cut this interplay. Wessel's day beat on a card also applies its hover, so you see that you can hover. Mobile: statement, then Daily kit, then one card per row; tap = hover. |
 | **About** | Story text left + shuffle deck of 3 photos right (click, or Wessel once by day, tucks the top photo behind). |
 | **Archive** | A fanned hand of cards resting at .82 scale, with "All work →" in Statement. |
 | **Bookend** | The name again in Display with the smiley in the middle. It starts empty and Wessel copy-pastes it in (⌘C from the header wordmark, then ⌘V three times). Hidden until pasted, with a 3s fallback. |
