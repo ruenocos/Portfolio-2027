@@ -64,6 +64,7 @@ push(":root {");
 for (const [name, e] of Object.entries(motion.easing)) push(`  --dur-${name}: ${e.ms}ms;`);
 push(`  --enter-rise: ${motion.easing["enter-rise"].distance};`);
 push(`  --press-y: ${motion.easing.press.distance};`);
+push(`  --dur-page-out: ${motion.transition.page.out.ms}ms;`, `  --dur-page-in: ${motion.transition.page.in.ms}ms;`);
 for (const [name, t] of Object.entries(tokens.type)) push(`  --type-${name}-size: ${t.$value.fontSize};`);
 push("}", "");
 

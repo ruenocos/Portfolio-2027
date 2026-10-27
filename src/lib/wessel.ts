@@ -374,6 +374,7 @@ export const wessel = {
   /** Lets go: he parks right where he is. */
   free() {
     W.drive = null;
+    W.lean = false;
     wessel.press(false);
     W.anchor = [W.x + scrollX, W.y + scrollY];
   },
@@ -405,6 +406,7 @@ export function setWesselAsleep(asleep: boolean) {
   if (W.asleep === asleep && W.el?.dataset.asleep === String(asleep)) return;
   W.asleep = asleep;
   newGeneration();
+  W.lean = false;
   if (!W.el) return;
   W.el.dataset.asleep = String(asleep);
   if (W.tag) W.tag.textContent = asleep ? "Wessel · asleep" : "Wessel";
@@ -429,6 +431,7 @@ export function setWesselAsleep(asleep: boolean) {
 /** A page change: new generation, fresh marks, he forgets his parking spot. */
 export function newPage() {
   newGeneration();
+  W.lean = false;
   W.anchor = null;
   W.drive = null;
   hero = document.querySelector<HTMLElement>("[data-hero]");

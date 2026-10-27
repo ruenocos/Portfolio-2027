@@ -26,23 +26,26 @@ export function CursorLayer() {
     const detach = attachWessel(el);
     // Waking him makes him decoration again, so focus moves to the switch
     // that now says day, and the change is read out.
-    const wake = () => {
+    const wake = (keyboard: boolean) => {
       if (el.dataset.asleep !== "true") return;
-      const keyboard = el.contains(document.activeElement);
       setAsleep(false);
       announce("Wessel is awake. Day mode.");
-      if (keyboard) document.querySelector<HTMLElement>(".dn")?.focus();
+      if (!keyboard) return;
+      // The switch, if it's on screen; else the page, so focus is never lost.
+      const dn = document.querySelector<HTMLElement>(".dn");
+      (dn?.offsetParent ? dn : document.getElementById("main"))?.focus();
     };
+    const click = () => wake(false);
     const key = (e: KeyboardEvent) => {
       if (e.key === "Enter" || e.key === " ") {
         e.preventDefault();
-        wake();
+        wake(true);
       }
     };
-    el.addEventListener("click", wake);
+    el.addEventListener("click", click);
     el.addEventListener("keydown", key);
     return () => {
-      el.removeEventListener("click", wake);
+      el.removeEventListener("click", click);
       el.removeEventListener("keydown", key);
       detach();
     };

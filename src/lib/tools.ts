@@ -13,3 +13,6 @@ export const TOOLS = {
 export type ToolId = keyof typeof TOOLS;
 
 export const toolSrc = (id: ToolId) => `/tools/${id}.svg`;
+
+/** Only the tools we have a logo for: an id added in Sanity first is skipped. */
+export const knownTools = (ids: readonly string[]) => ids.filter((id): id is ToolId => Object.hasOwn(TOOLS, id));

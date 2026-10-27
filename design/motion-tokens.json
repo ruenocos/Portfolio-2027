@@ -166,14 +166,17 @@
   "transition": {
     "page": {
       "out": {
-        "ms": 240,
+        "ms": 160,
         "easing": "ui"
       },
       "in": {
         "ms": 240,
         "easing": "ui"
       },
-      "veil": "canvas"
+      "veil": "canvas",
+      "hold": "header, day/night switch, Pause and Wessel's cursor stay still",
+      "scroll": "Lenis stop + jump to top under the veil, start after veil in",
+      "technique": "DOM veil preferred over view-transition snapshot"
     },
     "loadEntrance": {
       "uses": "entrance grammar (enter-opacity 560 + enter-rise 720, 16px)",
@@ -181,8 +184,13 @@
       "maxSteps": 4,
       "skip": "home first-visit boot, paused, reduced"
     },
-    "pausedOrReduced": "fade only",
-    "dropped": "case video morph (2026-10-27)"
+    "pausedOrReduced": "160ms opacity only",
+    "dropped": "case video morph (2026-10-27)",
+    "casePage": {
+      "videoDelayMs": 240,
+      "order": "title row first, header video one step later"
+    },
+    "source": "motion flow research 2026-10-27, studio/references/motion-flow/"
   },
   "pause": {
     "control": "Pause motion button beside the day/night switch",

@@ -216,7 +216,9 @@
     outline-offset: 4px;
     transition:
       outline-color var(--dur-ui) var(--ease-ui),
+      box-shadow var(--dur-ui) var(--ease-ui),
       opacity var(--dur-ui) var(--ease-ui),
+      filter var(--dur-ui) var(--ease-ui),
       transform var(--dur-spring) var(--ease-spring);
   }
   .tools[data-size="56"] .tool {
@@ -263,6 +265,13 @@
       0 0 0 3px var(--canvas),
       0 0 0 4.5px var(--grape);
     transform: translateY(-3px);
+  }
+  @media (forced-colors: active) {
+    .tool[aria-pressed="true"],
+    .tool.on {
+      outline: 2px solid Highlight;
+      outline-offset: 3px;
+    }
   }
   .tools:has(.tool[aria-pressed="true"], .tool.on) .tool:not([aria-pressed="true"], .on) {
     opacity: 0.7;
@@ -683,7 +692,7 @@
     .dn .k {
       background: ButtonText;
     }
-    .pzb[aria-pressed="true"] {
+    .pzb[data-paused] {
       background: Highlight;
       color: HighlightText;
     }

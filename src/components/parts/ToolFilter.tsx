@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { TOOLS, toolSrc, type ToolId } from "@/lib/tools";
+import { TOOLS, knownTools, toolSrc, type ToolId } from "@/lib/tools";
 import { announce } from "@/lib/motion";
 
 // Work page: filter projects by tool. The picked chips ring in grape and
@@ -19,7 +19,7 @@ export function ToolFilter({ ids, onChange }: { ids: readonly ToolId[]; onChange
   return (
     <div className="tfilter">
       <div ref={group} className="tools" data-size={56} role="group" aria-label="Filter by tool">
-        {ids.filter((id) => id in TOOLS).map((id) => {
+        {knownTools(ids).map((id) => {
           const on = picked.includes(id);
           return (
             <button

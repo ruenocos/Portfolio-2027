@@ -39,6 +39,8 @@
   --dur-press: 120ms;
   --enter-rise: 16px;
   --press-y: 1px;
+  --dur-page-out: 160ms;
+  --dur-page-in: 240ms;
   --type-display-size: 192px;
   --type-statement-size: 56px;
   --type-headline-size: 44px;
