@@ -17,7 +17,13 @@ export type AboutContent = {
 export const FALLBACK_ABOUT: AboutContent = {
   hello: "Hi, I’m Wessel.",
   lead: FALLBACK_HOME.about.opener,
-  photos: FALLBACK_HOME.about.photos,
+  photos: [
+    ...FALLBACK_HOME.about.photos,
+    // Wons's own photos (2026-10-27). Alt text describes, it doesn't caption.
+    { src: "/media/about-cat-bed.jpg", alt: "Wessel on the bed, a ginger cat beside him" },
+    { src: "/media/about-cat-cushion.jpg", alt: "A ginger cat on the sofa with a crocheted coaster on its head" },
+    { src: "/media/about-cat-paw.jpg", alt: "A ginger cat stretching one paw out on a striped blanket" },
+  ],
   facts: [
     { label: "Now", value: "UX/UI & Motion Designer", sub: "WP Masters, since Jul 2024" },
     { label: "Studied", value: "E-commerce Design, cum laude", sub: "Mediacollege Amsterdam, 2020–2024" },
