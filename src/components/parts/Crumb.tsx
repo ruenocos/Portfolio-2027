@@ -17,11 +17,11 @@ export function Crumb({
     <nav className="frame crumb" data-row aria-label={label}>
       <div className="side" />
       <div className="cell">
-        <TextLink href={back.href} label={back.label} arrow="←" />
+        <TextLink href={back.href} label={back.label} arrow="left" />
         {count && <span className="text-label text-mute">{count}</span>}
         {next &&
           (next.href ? (
-            <TextLink href={next.href} label={`Next: ${next.label}`} arrow="→" />
+            <TextLink href={next.href} label={`Next: ${next.label}`} arrow="right" />
           ) : (
             <span className="text-label">
               Next: {next.label}

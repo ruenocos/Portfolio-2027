@@ -229,12 +229,32 @@
   }
   .tlink .ar {
     color: var(--grape);
-    font-size: 1.15em;
-    translate: 0 -1px;
   }
   .tlink .ar.ext {
-    font-family: var(--font-mono);
     color: var(--mute);
+  }
+
+  /* ---------- arrow icon ---------- */
+  .arw {
+    display: inline-block;
+    width: 1.15em;
+    height: 1.15em;
+    flex: none;
+    vertical-align: -0.2em;
+    overflow: visible;
+  }
+  .ar,
+  .ext {
+    display: inline-flex;
+    align-items: center;
+  }
+  .hd .ct,
+  .tz {
+    gap: 0.35em;
+  }
+  .mnav .arw {
+    width: 0.7em;
+    height: 0.7em;
   }
 
   /* ---------- media frame ---------- */

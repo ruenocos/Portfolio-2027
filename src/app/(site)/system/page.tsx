@@ -3,6 +3,7 @@ import tokens from "../../../../design/tokens.json";
 import { Cursor } from "@/components/canvas/Cursor";
 import { Pin } from "@/components/canvas/Pin";
 import { Selection } from "@/components/canvas/Selection";
+import { Arrow } from "@/components/parts/Arrow";
 import { Crumb } from "@/components/parts/Crumb";
 import { Divider } from "@/components/parts/Divider";
 import { Facts } from "@/components/parts/Facts";
@@ -109,7 +110,9 @@ export default function SystemPage() {
               <SizePill>203 × 116</SizePill>
               <GrapePill>▶ Reel</GrapePill>
               <GrapePill>Case study soon</GrapePill>
-              <GrapePill size="tap">Contact ↓</GrapePill>
+              <GrapePill size="tap">
+                Contact <Arrow dir="down" />
+              </GrapePill>
             </Specimen>
             <Specimen name="Outline pill · status">
               <OutlinePill tap>Copy email</OutlinePill>
@@ -132,10 +135,10 @@ export default function SystemPage() {
               <EmptyTool />
             </Specimen>
             <Specimen name="Text links">
-              <TextLink href="#top" label="More about me" arrow="→" />
-              <TextLink href="https://www.linkedin.com/in/wesseloud/" label="LinkedIn" arrow="↗" />
-              <TextLink href="#contact" label="Contact" arrow="↓" />
-              <TextLink href="#top" label="All work" arrow="←" />
+              <TextLink href="#top" label="More about me" arrow="right" />
+              <TextLink href="https://www.linkedin.com/in/wesseloud/" label="LinkedIn" arrow="out" />
+              <TextLink href="#contact" label="Contact" arrow="down" />
+              <TextLink href="#top" label="All work" arrow="left" />
             </Specimen>
             <Specimen name="Cursors" className="gap-x-10 gap-y-8 items-start">
               <Cursor kind="wes" name="Wessel" staticDemo />

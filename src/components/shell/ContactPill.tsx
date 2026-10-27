@@ -1,5 +1,6 @@
 "use client";
 
+import { Arrow } from "@/components/parts/Arrow";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 
@@ -48,7 +49,7 @@ export function ContactPill() {
       tabIndex={on ? 0 : -1}
       aria-hidden={!on}
     >
-      Contact ↓
+      Contact <Arrow dir="down" />
     </a>
   );
 }

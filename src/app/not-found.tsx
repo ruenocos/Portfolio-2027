@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Arrow } from "@/components/parts/Arrow";
 import { Hop } from "@/components/shell/Hop";
 import { Row } from "@/components/shell/Row";
 import { Shell } from "@/components/shell/Shell";
@@ -14,7 +15,7 @@ export default function NotFound() {
         </p>
         <h1 className="text-statement">This page isn’t in the file.</h1>
         <Link href="/" className="text-label text-grape self-start">
-          <Hop text="Back home" /> <span aria-hidden="true">→</span>
+          <Hop text="Back home" /> <Arrow dir="right" />
         </Link>
       </Row>
     </Shell>

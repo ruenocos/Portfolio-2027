@@ -1,10 +1,10 @@
 import Link from "next/link";
 import { Hop } from "@/components/shell/Hop";
+import { Arrow, type ArrowDir } from "./Arrow";
 
-// A text link with the letter hop and its arrow (DESIGN.md §6, Arrows):
-// → inside the site, ↗ leaves it (mono, mute), ↓ scrolls down, ← back, ↑ top.
+// A text link with the letter hop and its arrow icon (DESIGN.md §6, Arrows):
+// right inside the site, out leaves it (mute), down scrolls, left back, up top.
 // External links open in a new tab.
-type Arrow = "→" | "↗" | "↓" | "←" | "↑";
 
 export function TextLink({
   href,
@@ -15,21 +15,21 @@ export function TextLink({
 }: {
   href: string;
   label: string;
-  arrow?: Arrow;
+  arrow?: ArrowDir;
   className?: string;
   title?: string;
 }) {
   const external = /^https?:/.test(href);
   const mark = arrow && (
-    <span className={`ar${arrow === "↗" ? " ext" : ""}`} aria-hidden="true">
-      {arrow}
+    <span className={`ar${arrow === "out" ? " ext" : ""}`} aria-hidden="true">
+      <Arrow dir={arrow} />
     </span>
   );
   const inner = (
     <>
-      {arrow === "←" && mark}
+      {arrow === "left" && mark}
       <Hop text={label} />
-      {arrow !== "←" && mark}
+      {arrow !== "left" && mark}
     </>
   );
   const cls = `tlink text-label ${className}`;

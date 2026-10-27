@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Arrow } from "@/components/parts/Arrow";
 import { Row } from "@/components/shell/Row";
 
 // Placeholder until the home build (Phase 4). The hero is a [data-hero], so
@@ -11,7 +12,7 @@ export default function Home() {
       </Row>
       <Row className="p-inset">
         <Link href="/system" className="text-label text-grape">
-          System →
+          System <Arrow dir="right" />
         </Link>
       </Row>
     </>

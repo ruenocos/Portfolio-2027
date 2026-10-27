@@ -126,7 +126,7 @@ Header (sticky, 90px) → Hero → `# About 1/4` → About (story + photo deck) 
 | **Chips** | ⌘C / ⌘V key chips: Micro, `ink` fill with `canvas` text, radius 6. Size pills: Micro, `tang` fill, `on-tang` text, radius 999. |
 | **Tool chips** | Brand logos as circles: 56px in Daily kit, 32px in project rows. Logos are the only non-system colours outside the dioramas. |
 | **Media** | Project media: portrait 3:4 MP4 (muted, looping, plays in view at 0.75×) + JPG poster. About: 3 portrait photos. Radius 24 (`--rm`). |
-| **Arrows** | → inside the site, ↗ leaves the site, ↓ scrolls down the page. External ↗ uses Geist Mono in `mute`. No other icons. |
+| **Arrows** | One drawn arrow icon (Wons 2026-10-27, replaces the text glyphs): 16px grid, 1.5px stroke at every size, round ends, current colour, 1.15em next to labels. Rotated per meaning: → inside the site, ↗ leaves the site (in `mute`), ↓ scrolls down, ← back, ↑ to the top. Build: `<Arrow dir>`. No other icons. |
 | **Pause motion** | Wons 2026-10-27 (WCAG 2.2.2). Round button right of the day/night switch on every page: 34px desktop (40 on touch, 44 on phones), 10px after the switch (6px on phones), hit area 44. Rest: `fill` + `line` outline, two-bar glyph in `mute`. Hover: grape outline, ink glyph, Micro caps tip "Pause motion" below (ink pill, canvas text). Paused: grape fill, ▶ glyph in `on-grape`, tip "Play motion". `aria-pressed` + label swap; status to the live region ("Motion paused" / "Motion back on", proposed copy). Figma: Control / Pause motion. |
 | **Focus ring** | 2px grape outline, 3px offset, radius 4. |
 
