@@ -20,6 +20,7 @@ export function useBeat<T extends HTMLElement>(spec: BeatSpec) {
       need: latest.current.need,
       keep: latest.current.keep,
       reset: () => latest.current.reset?.(),
+      still: (m) => latest.current.still?.(m),
     });
   }, []);
   return ref;

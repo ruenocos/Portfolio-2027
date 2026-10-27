@@ -329,6 +329,17 @@
   .tz {
     gap: 0.35em;
   }
+  /* At Statement size a 1.5px line reads as a typed glyph: let the stroke
+     scale with the icon so it carries the weight of the letters next to it. */
+  .text-statement .arw path {
+    vector-effect: none;
+    stroke-width: 1.2;
+  }
+  .text-statement .arw {
+    width: 0.85em;
+    height: 0.85em;
+    vertical-align: -0.05em;
+  }
   .mnav .arw {
     width: 0.7em;
     height: 0.7em;
@@ -415,6 +426,14 @@
   }
   .pj > .cell {
     padding: var(--spacing-section) var(--spacing-inset);
+  }
+  .pj[hidden] {
+    display: none;
+  }
+  /* Filtered out (Work): it fades, then the rest close up. */
+  .pj[data-leaving] {
+    opacity: 0;
+    transition: opacity var(--dur-ui) var(--ease-ui);
   }
   .pj .pl,
   .pj .pr {
@@ -587,6 +606,7 @@
     background: var(--c);
     color: var(--on);
     white-space: nowrap;
+    font-variant-numeric: tabular-nums;
     transform-origin: 0 0;
   }
   .cur[data-flip="true"] .tag {
@@ -922,7 +942,8 @@
     .pin .bub,
     .pj .pc .media .pin .bub {
       white-space: normal;
-      max-width: 180px;
+      max-width: 240px;
+      text-align: start;
     }
     .crumb > .cell {
       flex-wrap: wrap;

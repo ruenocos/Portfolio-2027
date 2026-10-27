@@ -12,7 +12,8 @@ const bezier = (b: number[]) => `cubic-bezier(${b.join(",")})`;
 // top to bottom, 80ms apart, 4 steps at most. Rows are main's [data-row]s;
 // a row can name its own blocks with [data-enter], otherwise its content
 // cell moves. Skipped while calm, and on home's first visit
-// (<html data-boot>), which has its own intro.
+// (<html data-boot>), which has its own intro; later visits to home enter
+// like every other page, hero first.
 export function Entrance() {
   const pathname = usePathname();
 

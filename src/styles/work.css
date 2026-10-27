@@ -1,0 +1,53 @@
+/* Work overview (approved v03): page title, the tool filter bar, then the
+   home's project rows in two groups. */
+
+@layer components {
+  .whero {
+    padding: var(--spacing-section) var(--spacing-inset) var(--spacing-inset);
+  }
+  .wfbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 16px 24px;
+    padding: 24px var(--spacing-inset);
+  }
+  @media (width < 900px) {
+    .wfbar {
+      padding-block: var(--spacing-inset);
+    }
+    .wfbar .tfilter {
+      width: 100%;
+      justify-content: space-between;
+      row-gap: 8px;
+    }
+    /* All five chips on one row, shrinking a little on narrow phones;
+       Show all goes under them. */
+    .wfbar .tools {
+      flex: 1 1 100%;
+      flex-wrap: nowrap;
+      justify-content: space-between;
+    }
+    .wfbar .tools .tool {
+      --s: min(56px, calc((100vw - 120px) / 5));
+    }
+    /* Show all sits on the title's row, so its empty slot costs no height. */
+    .wfbar {
+      position: relative;
+    }
+    .wfbar .clr {
+      position: absolute;
+      top: calc(var(--spacing-inset) - 10px);
+      right: var(--spacing-inset);
+    }
+  }
+}
+
+/* Phones: no room for him beside the rows, so on Work and the case he
+   stays off the page (as in the prototype) instead of sitting on copy. */
+@media (width < 900px) {
+  body:has(main .whero, main .rd) .cur.wes {
+    display: none;
+  }
+}

@@ -65,14 +65,26 @@ export function CursorLayer() {
     const tag = y.querySelector(".tag b")!;
     root.classList.add("youcur");
     let soon = 0;
+    let at: [number, number] | null = null;
+    let raf = 0;
+    // What's under you: the hand on links, and a hint in the tag.
+    const look = (t: Element | null) => {
+      y.dataset.on = String(!!t?.closest?.("a,button,[role=button],label,[data-you]"));
+      if (!soon) tag.textContent = t?.closest?.("[data-you]")?.getAttribute("data-you") || "You";
+    };
     const move = (e: PointerEvent) => {
       if (e.pointerType !== "mouse") return;
+      at = [e.clientX, e.clientY];
       y.style.transform = `translate(${e.clientX - TIP[0]}px,${e.clientY - TIP[1]}px)`;
       y.dataset.hide = String(!!document.querySelector("dialog[open]"));
-      const t = e.target as Element;
-      y.dataset.on = String(!!t.closest?.("a,button,[role=button],label,[data-you]"));
-      if (!soon) tag.textContent = t.closest?.("[data-you]")?.getAttribute("data-you") || "You";
+      look(e.target as Element);
     };
+    // Scrolling with the mouse still moves the page under you, not you.
+    const scrolled = () =>
+      (raf ||= requestAnimationFrame(() => {
+        raf = 0;
+        if (at) look(document.elementFromPoint(at[0], at[1]));
+      }));
     const out = (e: MouseEvent) => {
       if (!e.relatedTarget) y.dataset.hide = "true";
     };
@@ -85,6 +97,7 @@ export function CursorLayer() {
       soon = window.setTimeout(() => (soon = 0), 1400);
     };
     addEventListener("pointermove", move, { passive: true });
+    addEventListener("scroll", scrolled, { passive: true });
     addEventListener("pointerdown", down);
     addEventListener("pointerup", up);
     addEventListener("wsl:you", say);
@@ -92,6 +105,8 @@ export function CursorLayer() {
     return () => {
       root.classList.remove("youcur");
       removeEventListener("pointermove", move);
+      removeEventListener("scroll", scrolled);
+      cancelAnimationFrame(raf);
       removeEventListener("pointerdown", down);
       removeEventListener("pointerup", up);
       removeEventListener("wsl:you", say);

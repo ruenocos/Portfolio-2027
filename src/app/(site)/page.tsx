@@ -1,20 +1,37 @@
-import Link from "next/link";
-import { Arrow } from "@/components/parts/Arrow";
-import { Row } from "@/components/shell/Row";
+import type { Metadata } from "next";
+import { About } from "@/components/home/About";
+import { Archive } from "@/components/home/Archive";
+import { Bookend } from "@/components/home/Bookend";
+import { Focus } from "@/components/home/Focus";
+import { Hero } from "@/components/home/Hero";
+import { Divider } from "@/components/parts/Divider";
+import { ProjectRows } from "@/components/parts/ProjectRow";
+import { getHome } from "@/content/get";
+import { getDraftFetchOptions } from "@/sanity/live";
 
-// Placeholder until the home build (Phase 4). The hero is a [data-hero], so
-// the header wordmark waits until it has scrolled away, like the real one.
-export default function Home() {
+// Page meta from the approved copy (home-copy_v01.md, S16).
+export const metadata: Metadata = {
+  title: { absolute: "Wessel Oud · UI/UX and motion designer" },
+  description:
+    "Medior UI/UX and motion designer in the Netherlands, currently at WP Masters. I design it, bring it to life, and automate the boring parts.",
+};
+
+// Home (DESIGN.md §5 page order): hero → About → Selected work → Focus →
+// See more → bookend, then the shell's footer.
+export default async function Home() {
+  const c = await getHome(await getDraftFetchOptions());
   return (
     <>
-      <Row as="section" data-hero className="bg-dots flex flex-col justify-end p-inset min-h-[clamp(420px,72svh_-_70px,620px)] stack:min-h-[clamp(480px,80svh_-_91px,720px)]">
-        <h1 className="text-display text-ink uppercase">Wessel Oud</h1>
-      </Row>
-      <Row className="p-inset">
-        <Link href="/system" className="text-link text-grape">
-          System <Arrow dir="right" />
-        </Link>
-      </Row>
+      <Hero hero={c.hero} />
+      <Divider label={{ name: "About" }} tall />
+      <About about={c.about} />
+      <Divider label={{ name: "Selected work" }} id="wdiv" />
+      <ProjectRows projects={c.projects} id="work" />
+      <Divider label={{ name: "Focus" }} />
+      <Focus focus={c.focus} />
+      <Divider label={{ name: "See more" }} />
+      <Archive cards={c.archive} />
+      <Bookend />
     </>
   );
 }

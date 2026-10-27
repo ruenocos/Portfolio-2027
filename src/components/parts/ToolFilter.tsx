@@ -6,7 +6,16 @@ import { announce } from "@/lib/motion";
 
 // Work page: filter projects by tool. The picked chips ring in grape and
 // lift; the rest dim, exactly like the Daily kit hover. "Show all" clears.
-export function ToolFilter({ ids, onChange }: { ids: readonly ToolId[]; onChange?: (picked: ToolId[]) => void }) {
+// single: one tool at a time (picking another swaps), so every pick has work.
+export function ToolFilter({
+  ids,
+  single = false,
+  onChange,
+}: {
+  ids: readonly ToolId[];
+  single?: boolean;
+  onChange?: (picked: ToolId[]) => void;
+}) {
   const [picked, setPicked] = useState<ToolId[]>([]);
   const group = useRef<HTMLDivElement>(null);
   const set = (next: ToolId[]) => {
@@ -28,7 +37,7 @@ export function ToolFilter({ ids, onChange }: { ids: readonly ToolId[]; onChange
               className="tool"
               aria-pressed={on}
               aria-label={TOOLS[id].name}
-              onClick={() => set(on ? picked.filter((p) => p !== id) : [...picked, id])}
+              onClick={() => set(on ? picked.filter((p) => p !== id) : single ? [id] : [...picked, id])}
             >
               {/* eslint-disable-next-line @next/next/no-img-element -- brand SVGs, served as they are */}
               <img src={toolSrc(id)} alt="" width={56} height={56} />
@@ -39,7 +48,9 @@ export function ToolFilter({ ids, onChange }: { ids: readonly ToolId[]; onChange
       <button
         type="button"
         className="clr text-link"
-        hidden={!picked.length}
+        // Kept in place while hidden, so picking a tool doesn't shift the rows.
+        style={picked.length ? undefined : { visibility: "hidden" }}
+        aria-hidden={!picked.length || undefined}
         onClick={() => {
           set([]);
           // It hides itself, so focus goes back to the first chip.

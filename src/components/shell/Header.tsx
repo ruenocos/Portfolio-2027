@@ -116,12 +116,12 @@ export function Header() {
             </div>
           </div>
           <div className="end">
-            <a href="#contact" className="ct text-link">
+            <Link href="#contact" className="ct text-link">
               <Hop text="Contact" />
               <span className="ar" aria-hidden="true">
                 <Arrow dir="down" />
               </span>
-            </a>
+            </Link>
             <button
               ref={button}
               type="button"

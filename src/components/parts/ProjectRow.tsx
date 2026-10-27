@@ -10,7 +10,8 @@ import type { ToolId } from "@/lib/tools";
 import { Bot, fade, live, pageBox, put, select, showPin, wait, wessel, type XY } from "@/lib/wessel";
 import motionTokens from "../../../design/motion-tokens.json";
 import { MediaFill } from "./Media";
-import { Tools } from "./Tools";
+import { MockTag, Slot } from "./Pills";
+import { EmptyTool, Tools } from "./Tools";
 
 const MAG = motionTokens.magnetism.projectMedia;
 const NEED = motionTokens.wessel.need.projectRow;
@@ -33,7 +34,9 @@ export type Project = {
   /** Wessel's pin on the media. spot: where it lands, a little off, like it was dropped by hand. */
   note?: { text: string; spot?: { fx: number; dy: number; rot: number } };
   /** Which of these fields are placeholder copy (DESIGN.md §2.8). */
-  mock?: ("summary" | "role" | "note")[];
+  mock?: ("summary" | "role" | "note" | "media")[];
+  /** A slot still waiting for its project: only the media is real; the text shows dashed gaps. */
+  placeholder?: boolean;
 };
 
 // Leans toward your pointer while it's over the row's side columns, with a
@@ -88,13 +91,14 @@ function useMagnet() {
  * timeline | portrait media 3:4 at 78% of the column | role + tools.
  * Tablet: text | media. Phone: one column.
  * By day Wessel drops a pin on the media and selects it; by night the
- * Handoff bot redlines its spacing.
+ * Handoff bot redlines its spacing (his pins stay away while he sleeps).
  */
-export function ProjectRow({ project: p }: { project: Project }) {
+export function ProjectRow({ project: p, hidden, leaving }: { project: Project; hidden?: boolean; leaving?: boolean }) {
   const media = useMagnet();
   const pin = useRef<HTMLSpanElement>(null);
   const [soon, setSoon] = useState(false);
-  const mock = (f: "summary" | "role" | "note") => (p.mock?.includes(f) ? "" : undefined);
+  const mock = (f: "summary" | "role" | "note" | "media") => (p.mock?.includes(f) ? "" : undefined);
+  const gap = p.placeholder;
 
   // Pin spot: a fraction across the media, a little up from its bottom.
   const placePin = () => {
@@ -156,12 +160,8 @@ export function ProjectRow({ project: p }: { project: Project }) {
       );
     },
     async night(g) {
-      const el = pin.current;
+      // His pins are his voice: they stay put away while he sleeps.
       const m = media.current;
-      if (el) {
-        placePin();
-        showPin(el);
-      }
       if (!m) return;
       // Handoff specs it: spacing to the cell edges, and its size.
       const H = new Bot("Handoff");
@@ -185,6 +185,13 @@ export function ProjectRow({ project: p }: { project: Project }) {
       await wait(160);
       live(g);
       await H.leave();
+    },
+    // Calm: his pin is simply there, where he'd have dropped it.
+    still(mode) {
+      const el = pin.current;
+      if (!el || mode !== "day") return;
+      placePin();
+      el.hidden = false;
     },
     reset() {
       if (pin.current) pin.current.hidden = true;
@@ -220,25 +227,31 @@ export function ProjectRow({ project: p }: { project: Project }) {
   );
 
   return (
-    <article ref={row} className="pj">
+    <article ref={row} className="pj" hidden={hidden} data-leaving={leaving || undefined}>
       <div className="cell pl">
         <div>
-          <h3 className="text-title" lang={p.lang}>
+          <h3 className="text-title" lang={p.lang} data-mock={gap ? "" : undefined}>
             {p.title}
+            {gap && (
+              <span aria-hidden="true">
+                <MockTag className="ml-2.5 align-middle" />
+              </span>
+            )}
           </h3>
           <p className="pd text-body" data-mock={mock("summary")}>
-            {p.summary}
+            {gap ? <Slot>Summary</Slot> : p.summary}
           </p>
         </div>
         <dl className="meta">
           <dt className="text-label">Timeline</dt>
-          <dd className="text-body">{p.timeline}</dd>
+          <dd className="text-body">{gap ? <Slot>Year</Slot> : p.timeline}</dd>
         </dl>
       </div>
       <div className="cell pc">
         {p.href ? (
           <Link
             ref={media as React.RefObject<HTMLAnchorElement>}
+            data-mock={mock("media")}
             href={p.href}
             className="media"
             data-ratio="portrait"
@@ -250,6 +263,7 @@ export function ProjectRow({ project: p }: { project: Project }) {
         ) : (
           <button
             ref={media as React.RefObject<HTMLButtonElement>}
+            data-mock={mock("media")}
             type="button"
             className="media"
             data-ratio="portrait"
@@ -265,14 +279,12 @@ export function ProjectRow({ project: p }: { project: Project }) {
         <dl className="meta">
           <dt className="text-label">Role</dt>
           <dd className="text-body" data-mock={mock("role")}>
-            {p.role}
+            {gap ? <Slot>Role</Slot> : p.role}
           </dd>
         </dl>
         <dl className="meta">
           <dt className="text-label">Tools</dt>
-          <dd>
-            <Tools ids={p.tools} />
-          </dd>
+          <dd>{gap ? <EmptyTool /> : <Tools ids={p.tools} />}</dd>
         </dl>
       </div>
     </article>

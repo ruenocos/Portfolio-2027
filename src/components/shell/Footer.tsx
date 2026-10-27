@@ -6,11 +6,11 @@ import { EMAIL, LINKEDIN, NAV } from "./nav";
 import { Row } from "./Row";
 
 // Every "Contact ↓" lands here (#contact). There is no contact page.
-// Home puts its bookend above this in Phase 4.
+// On home the bookend sits right above it, in place of the spacer.
 export function Footer() {
   return (
     <>
-      <div className="frame divider-tall" aria-hidden="true">
+      <div className="frame divider-tall footer-air" aria-hidden="true">
         <div className="side" />
         <div className="side" />
         <div className="side" />
@@ -23,9 +23,6 @@ export function Footer() {
         <div className="fcols">
           <div className="cell">
             <h3 className="text-lead">Email</h3>
-            <a id="mail" className="mail" href={`mailto:${EMAIL}`}>
-              {EMAIL}
-            </a>
             <CopyEmail email={EMAIL} />
           </div>
           <div className="cell">

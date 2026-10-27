@@ -1,0 +1,68 @@
+import type { Project } from "@/components/parts/ProjectRow";
+import { FALLBACK_PROJECTS } from "./projects";
+
+// Everything the home page says and shows. Sanity fills it (the "home"
+// singleton plus the featured projects); until a field is filled there,
+// the approved copy below stands in (studio/copy/home-copy_v01.md and the
+// v90 prototype). Fields marked mock are placeholders, shown with data-mock
+// so nothing invented ships unmarked (DESIGN.md §2.8).
+
+export type Photo = { src: string; alt: string };
+export type ArchiveCard = { src: string; name: string; mock?: boolean };
+export type Track = { key: "ux" | "motion" | "ai"; title: string; line: string };
+
+export type HomeContent = {
+  hero: {
+    basedIn: string;
+    /** The role line, in Wessel's voice (Accent). Two lines on the hero. */
+    role: [string, string];
+    reel: { loop?: string; full?: string; poster?: string; mock?: boolean };
+  };
+  about: {
+    opener: string;
+    next: string;
+    photos: Photo[];
+  };
+  projects: Project[];
+  focus: { statement: string; tracks: Track[] };
+  archive: ArchiveCard[];
+};
+
+export const FALLBACK_HOME: HomeContent = {
+  hero: {
+    basedIn: "Netherlands",
+    role: ["Medior UI/UX and", "motion designer"],
+    // A placeholder loop until the real reel is cut.
+    reel: { loop: "/media/reel-loop.mp4", full: "/media/reel.mp4", poster: "/media/reel.jpg", mock: true },
+  },
+  about: {
+    opener: "I learned design at Mediacollege and motion from a lot of YouTube. Now I do both at WP Masters.",
+    next: "Next, I’m looking for a medior UI/UX role where motion is part of the job, not an extra.",
+    photos: [
+      { src: "/media/portrait.jpg", alt: "Wessel Oud, portrait" },
+      { src: "/media/about-barcelona.jpg", alt: "Wessel in front of the Sagrada Família in Barcelona" },
+      { src: "/media/about-hat.jpg", alt: "Wessel in a denim bucket hat, mid-thought" },
+    ],
+  },
+  projects: FALLBACK_PROJECTS,
+  focus: {
+    statement: "Primarily working on the details you feel before you notice them",
+    tracks: [
+      { key: "ux", title: "UX/UI design", line: "Websites first. Then the components, so nobody has to redraw a button twice." },
+      { key: "motion", title: "Motion design", line: "I animate to show what changed, where it went, and what to do next." },
+      { key: "ai", title: "AI / automation", line: "Exports, handoff files, content updates: the jobs I’d rather a plugin did." },
+    ],
+  },
+  // The fanned hand above "All work". The three projects plus placeholder
+  // tiles until the archive is real.
+  archive: [
+    { src: "/media/archive-tile5.jpg", name: "Archive 05", mock: true },
+    { src: "/media/archive-tile3.jpg", name: "Archive 03", mock: true },
+    { src: "/media/archive-tile1.jpg", name: "Archive 01", mock: true },
+    { src: "/media/archive-ui-motion.jpg", name: "UI motion study" },
+    { src: "/media/archive-desaak.jpg", name: "De Saak" },
+    { src: "/media/archive-designer-tool.jpg", name: "Designer tool" },
+    { src: "/media/archive-tile2.jpg", name: "Archive 02", mock: true },
+    { src: "/media/archive-tile4.jpg", name: "Archive 04", mock: true },
+  ],
+};
