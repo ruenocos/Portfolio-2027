@@ -21,6 +21,7 @@ const SCHEME = { light: "light", dark: "dark", night: "dark" };
 // Mobile steps from DESIGN.md §4 and §5 (below the 900px stack breakpoint).
 // They live only in the token descriptions, so they're listed here once.
 const MOBILE_TYPE = {
+  title: "28px",
   display: "clamp(51px, 13.1vw, 192px)", // scales with width, 51 at 390
   statement: "40px",
   headline: "34px",
@@ -73,7 +74,7 @@ for (const mode of MODES) {
   for (const name of colorNames) push(`  --${name}: ${v(tokens.color[mode][name])};`);
   // Tactile objects: top-edge light and how much colour goes into the drop.
   const tac = tokens.tactile[mode];
-  push(`  --tac-lit: ${v(tac.lit)};`, `  --tac-lit-outline: ${v(tac.litOutline)};`, `  --tac-drop: ${v(tac.drop)};`);
+  push(`  --tac-lit: ${v(tac.lit)};`, `  --tac-lit-outline: ${v(tac.litOutline)};`, `  --tac-drop: ${v(tac.drop)};`, `  --shadow-outline: ${v(tac.outline)};`, `  --shadow-key: ${v(tac.key)};`, `  --tac-drop-dark: ${v(tac.dropDark)};`);
   push("}", "");
 }
 

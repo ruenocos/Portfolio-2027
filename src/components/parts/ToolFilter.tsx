@@ -1,28 +1,25 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { TOOLS, toolSrc, type ToolId } from "@/lib/tools";
 import { announce } from "@/lib/motion";
 
 // Work page: filter projects by tool. The picked chips ring in grape and
 // lift; the rest dim, exactly like the Daily kit hover. "Show all" clears.
-export function ToolFilter({
-  ids,
-  onChange,
-}: {
-  ids: readonly ToolId[];
-  onChange?: (picked: ToolId[]) => void;
-}) {
+export function ToolFilter({ ids, onChange }: { ids: readonly ToolId[]; onChange?: (picked: ToolId[]) => void }) {
   const [picked, setPicked] = useState<ToolId[]>([]);
+  const group = useRef<HTMLDivElement>(null);
   const set = (next: ToolId[]) => {
     setPicked(next);
     onChange?.(next);
-    announce(next.length ? `Showing work made with ${next.map((id) => TOOLS[id].name).join(", ")}` : "Showing all work");
+    announce(
+      next.length ? `Showing work made with ${next.map((id) => TOOLS[id].name).join(", ")}` : "Showing all work",
+    );
   };
   return (
     <div className="tfilter">
-      <div className="tools" data-size={56} role="group" aria-label="Filter by tool">
-        {ids.map((id) => {
+      <div ref={group} className="tools" data-size={56} role="group" aria-label="Filter by tool">
+        {ids.filter((id) => id in TOOLS).map((id) => {
           const on = picked.includes(id);
           return (
             <button
@@ -39,7 +36,16 @@ export function ToolFilter({
           );
         })}
       </div>
-      <button type="button" className="clr text-label" hidden={!picked.length} onClick={() => set([])}>
+      <button
+        type="button"
+        className="clr text-link"
+        hidden={!picked.length}
+        onClick={() => {
+          set([]);
+          // It hides itself, so focus goes back to the first chip.
+          group.current?.querySelector<HTMLButtonElement>("button.tool")?.focus();
+        }}
+      >
         Show all
       </button>
     </div>

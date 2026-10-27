@@ -5,7 +5,8 @@ import { TOOLS, toolSrc, type ToolId } from "@/lib/tools";
 export function Tools({ ids, size = 32, label }: { ids: readonly ToolId[]; size?: 32 | 56; label?: string }) {
   return (
     <ul className="tools" data-size={size} aria-label={label}>
-      {ids.map((id) => (
+      {/* Unknown ids (a tool added in Sanity before its logo) are skipped. */}
+      {ids.filter((id) => id in TOOLS).map((id) => (
         <li key={id} className="tool">
           {/* eslint-disable-next-line @next/next/no-img-element -- brand SVGs, served as they are */}
           <img src={toolSrc(id)} alt={TOOLS[id].name} width={size} height={size} />

@@ -4,6 +4,27 @@
    Type comes from the text-* utilities in the markup, not from here. */
 
 @layer components {
+  /* Per-mode part values. Set as variables on every [data-mode] element, so
+     the nearest mode wins: a light panel inside a night page stays light. */
+  :root,
+  [data-mode="light"],
+  [data-mode="dark"] {
+    --bot-tag-fill: var(--bot);
+    --bot-tag-text: var(--canvas);
+    --bot-tag-edge: transparent;
+    --note-fill: color-mix(in srgb, var(--tang) 16%, var(--canvas));
+    --note-edge: color-mix(in srgb, var(--tang) 35%, var(--canvas));
+  }
+  /* Night: bots are dashed outlines, and the note tint
+     would go muddy on indigo, so it takes the night fill with an ember edge. */
+  [data-mode="night"] {
+    --bot-tag-fill: transparent;
+    --bot-tag-text: var(--bot);
+    --bot-tag-edge: var(--bot);
+    --note-fill: var(--fill);
+    --note-edge: color-mix(in srgb, var(--tang) 45%, var(--fill));
+  }
+
   /* ---------- section label: "{ Selected work }" ---------- */
   .slab {
     display: inline-flex;
@@ -32,49 +53,32 @@
      and key chips, get a lit top edge and a short drop in their own colour.
      Marks (selections, redlines, labels, links) stay flat. Strength per
      mode comes from --tac-lit / --tac-lit-outline / --tac-drop. */
-  .szp,
   .gpill,
   .tz,
-  .cur .tag,
+  .cur:not(.bot) .tag,
   .dn .k {
     --tac-c: var(--grape);
-    background-image: linear-gradient(180deg, rgb(255 255 255 / calc(var(--tac-lit) / 2)), rgb(255 255 255 / 0) 55%);
+    border: 1px solid transparent; /* an edge in forced colours */
     box-shadow:
       inset 0 1px 0 rgb(255 255 255 / var(--tac-lit)),
       inset 0 -1px 0 rgb(0 0 0 / 0.12),
       0 1px 1px rgb(0 0 0 / 0.12),
-      0 4px 8px -4px color-mix(in srgb, var(--tac-c) var(--tac-drop), transparent);
-  }
-  .szp {
-    --tac-c: var(--tang);
+      0 4px 8px -4px color-mix(in srgb, color-mix(in srgb, var(--tac-c), black var(--tac-drop-dark)) var(--tac-drop), transparent);
   }
   .cur .tag {
     --tac-c: var(--c);
   }
   .dn .k {
-    background-image: linear-gradient(180deg, rgb(255 255 255 / calc(var(--tac-lit) / 2)), rgb(255 255 255 / 0) 60%);
     box-shadow:
       inset 0 1px 0 rgb(255 255 255 / var(--tac-lit)),
       0 1px 1px rgb(0 0 0 / 0.14),
-      0 3px 6px -3px color-mix(in srgb, var(--grape) var(--tac-drop), transparent);
-  }
-  [data-mode="night"] .cur.bot .tag {
-    background-image: none;
-    box-shadow: none;
+      0 3px 6px -3px color-mix(in srgb, color-mix(in srgb, var(--grape), black var(--tac-drop-dark)) var(--tac-drop), transparent);
   }
   /* Canvas-coloured objects you can press: an edge of light and a soft drop. */
   .opill[data-tap],
   .copy,
   .pzb {
-    box-shadow:
-      inset 0 1px 0 rgb(255 255 255 / var(--tac-lit-outline)),
-      0 1px 2px rgb(0 0 0 / 0.06),
-      0 4px 10px -6px rgb(0 0 0 / 0.18);
-  }
-  :is([data-mode="dark"], [data-mode="night"]) :is(.opill[data-tap], .copy, .pzb) {
-    box-shadow:
-      inset 0 1px 0 rgb(255 255 255 / var(--tac-lit-outline)),
-      0 4px 10px -6px rgb(0 0 0 / 0.5);
+    box-shadow: var(--shadow-outline);
   }
   .dn {
     box-shadow: inset 0 1px 2px rgb(0 0 0 / 0.1);
@@ -89,15 +93,18 @@
       color var(--dur-ui) var(--ease-ui),
       opacity var(--dur-ui) var(--ease-ui);
   }
+  :root:not([data-motion="calm"]) .dn:active .k {
+    translate: 0 var(--press-y);
+  }
   :root:not([data-motion="calm"]) :is(a, button):is(.gpill, .tz, .opill, .copy, .pzb):active {
     transform: translateY(var(--press-y));
-    box-shadow: inset 0 1px 0 rgb(255 255 255 / calc(var(--tac-lit) / 2)), 0 0 0 rgb(0 0 0 / 0);
+    box-shadow: inset 0 1px 0 rgb(255 255 255 / calc(var(--tac-lit) / 2));
   }
   /* Size pill: Wessel's measurements and Handoff's redline numbers. */
   .szp {
     display: inline-block;
-    padding: 3px 8px;
-    border-radius: var(--radius-pill);
+    padding: 3px 6px;
+    border-radius: var(--radius-mark);
     background: var(--tang);
     color: var(--on-tang);
     white-space: nowrap;
@@ -119,7 +126,7 @@
     min-height: var(--spacing-tap);
     padding: 0 18px;
   }
-  /* Outline pill: Copy email and the About status. The lamp breathes by day. */
+  /* Outline pill: Copy email, a 44-tall canvas-coloured button. */
   .opill {
     display: inline-flex;
     align-items: center;
@@ -136,21 +143,12 @@
     padding: 0 16px;
     color: var(--grape);
   }
-  .opill .lamp {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    background: var(--tang);
-    box-shadow: 0 0 0 4px color-mix(in srgb, var(--tang) 20%, transparent);
-    animation: lamp 2.4s var(--ease-ui) infinite;
+  .status {
+    margin: 0;
   }
-  [data-mode="night"] .opill .lamp {
-    background: var(--mute);
-    box-shadow: none;
-    animation: none;
-  }
-  .opill .tm {
+  .status time {
     color: var(--mute);
+    font-variant-numeric: tabular-nums;
   }
   /* Ink chip: ⌘C / ⌘V keys (r6). The Pause tip is the pill version of it. */
   .kchip {
@@ -165,26 +163,16 @@
     color: var(--canvas);
     white-space: nowrap;
     /* A keycap: lit top, a 2px darker base like the side of the key. */
-    background-image: linear-gradient(180deg, rgb(255 255 255 / 0.12), rgb(255 255 255 / 0) 60%);
-    box-shadow:
-      inset 0 1px 0 rgb(255 255 255 / 0.2),
-      inset 0 -2px 0 rgb(0 0 0 / 0.45),
-      0 1px 2px rgb(0 0 0 / 0.2);
-  }
-  :is([data-mode="dark"], [data-mode="night"]) .kchip {
-    box-shadow:
-      inset 0 1px 0 rgb(255 255 255 / 0.8),
-      inset 0 -2px 0 rgb(0 0 0 / 0.18),
-      0 1px 2px rgb(0 0 0 / 0.4);
+    box-shadow: var(--shadow-key);
   }
   /* Mock tag: placeholder copy or data, so nothing invented ships unmarked. */
   .mock {
     display: inline-block;
     width: max-content;
     max-width: 100%;
-    padding: 2px 8px;
+    padding: 2px 6px;
     border: 1px dashed var(--mute);
-    border-radius: var(--radius-pill);
+    border-radius: var(--radius-tag);
     color: var(--mute);
   }
   /* Build marker only: deploy previews and dev show it, the live site never does. */
@@ -196,7 +184,7 @@
     display: inline;
     padding: 1px 6px;
     border: 1px dashed var(--mute);
-    border-radius: 6px;
+    border-radius: var(--radius-tag);
     color: var(--mute);
     font-family: var(--font-mono);
     font-size: 0.82em;
@@ -267,17 +255,22 @@
     position: absolute;
     inset: calc((var(--s) - var(--spacing-tap)) / 2);
   }
+  /* Picked: a canvas gap and a grape ring, lifted. Focus is a separate
+     outline further out, so a focused chip never looks picked. */
   .tool[aria-pressed="true"],
   .tool.on {
-    outline-color: var(--grape);
+    box-shadow:
+      0 0 0 3px var(--canvas),
+      0 0 0 4.5px var(--grape);
     transform: translateY(-3px);
   }
   .tools:has(.tool[aria-pressed="true"], .tool.on) .tool:not([aria-pressed="true"], .on) {
-    opacity: 0.45;
+    opacity: 0.7;
+    filter: grayscale(1);
   }
   .tool:focus-visible {
     outline: 2px solid var(--grape);
-    outline-offset: 4px;
+    outline-offset: 8px;
   }
   .tfilter {
     display: flex;
@@ -530,6 +523,8 @@
   }
   .facts dd {
     margin: 0;
+    overflow-wrap: anywhere;
+    hyphens: auto;
   }
   .facts .sub {
     color: var(--mute);
@@ -585,6 +580,9 @@
     white-space: nowrap;
     transform-origin: 0 0;
   }
+  .cur[data-flip="true"] .tag {
+    border-radius: var(--radius-pill) 4px var(--radius-pill) var(--radius-pill);
+  }
   .cur[data-flip="true"] .lab {
     position: absolute;
     right: 10px;
@@ -606,10 +604,10 @@
     --c: var(--bot);
     --on: var(--canvas);
   }
-  [data-mode="night"] .cur.bot .tag {
-    background: transparent;
-    color: var(--bot);
-    border: 1px dashed var(--bot);
+  .cur.bot .tag {
+    background: var(--bot-tag-fill);
+    color: var(--bot-tag-text);
+    border: 1px dashed var(--bot-tag-edge);
   }
   .cur.you {
     --c: var(--grape);
@@ -623,11 +621,6 @@
   }
   .cur.you[data-on="true"] .ptr {
     transform: rotate(-8deg);
-  }
-  [data-mode="night"] .cur.you .tag {
-    box-shadow:
-      0 0 0 1px color-mix(in srgb, var(--grape) 40%, transparent),
-      0 0 18px -2px color-mix(in srgb, var(--grape) 70%, transparent);
   }
   /* Asleep: tilted, breathing, "z z", and his note. He's the wake button. */
   .cur.wes .note,
@@ -670,9 +663,45 @@
       display: flex;
     }
   }
-  .youcur,
-  .youcur * {
+  /* Your own pointer hides only while the You cursor really stands in for
+     it: not while calm, not in the reel dialog, not in forced colours. */
+  html.youcur:not([data-motion="calm"]):not(:has(dialog[open])),
+  html.youcur:not([data-motion="calm"]):not(:has(dialog[open])) * {
     cursor: none !important;
+  }
+  html[data-motion="calm"] .cur.you[data-fixed] {
+    display: none;
+  }
+  @media (forced-colors: active) {
+    html.youcur,
+    html.youcur * {
+      cursor: auto !important;
+    }
+    .cur.you[data-fixed] {
+      display: none;
+    }
+    .dn .k {
+      background: ButtonText;
+    }
+    .pzb[aria-pressed="true"] {
+      background: Highlight;
+      color: HighlightText;
+    }
+  }
+  /* Asleep he's a button: the focus ring wraps his name tag, not the arrow. */
+  .cur.wes[data-asleep="true"]:focus-visible {
+    outline: none;
+  }
+  .cur.wes[data-asleep="true"]:focus-visible .tag {
+    outline: 2px solid var(--grape);
+    outline-offset: 3px;
+  }
+  /* Docked on a phone he sits over content, so he stops catching taps there.
+     The day/night switch wakes him too. */
+  @media (width < 900px) {
+    .cur.wes[data-dock="true"] {
+      pointer-events: none;
+    }
   }
   /* You sit above everything, the phone menu included. */
   .cur.you[data-fixed] {
@@ -724,20 +753,14 @@
     white-space: normal;
     padding: 10px 12px 12px;
     border-radius: var(--radius-pin);
-    background: color-mix(in srgb, var(--tang) 16%, var(--canvas));
-    border: 1px solid color-mix(in srgb, var(--tang) 35%, var(--canvas));
+    background: var(--note-fill);
+    border: 1px solid var(--note-edge);
     color: var(--ink);
     box-shadow:
       inset 0 1px 0 rgb(255 255 255 / var(--tac-lit-outline)),
       0 1px 2px rgb(0 0 0 / 0.08),
       0 4px 10px -6px rgb(0 0 0 / 0.25);
     rotate: -2deg;
-  }
-  /* At night the tint goes muddy on indigo: night fill, ember edge instead. */
-  [data-mode="night"] .pin .bub[data-note],
-  [data-mode="night"] .cur .note {
-    background: var(--fill);
-    border-color: color-mix(in srgb, var(--tang) 45%, var(--fill));
   }
   .pin[data-dot="true"] .bub {
     display: none;
@@ -887,7 +910,8 @@
       flex: 1 1 140px;
       min-width: 0;
     }
-    .pin .bub {
+    .pin .bub,
+    .pj .pc .media .pin .bub {
       white-space: normal;
       max-width: 180px;
     }
@@ -934,11 +958,6 @@
   }
 }
 
-@keyframes lamp {
-  50% {
-    box-shadow: 0 0 0 7px color-mix(in srgb, var(--tang) 0%, transparent);
-  }
-}
 @keyframes breathe {
   50% {
     transform: scale(1.03);

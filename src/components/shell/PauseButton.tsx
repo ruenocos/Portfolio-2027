@@ -7,13 +7,14 @@ import { useMotion } from "@/components/useMotion";
 // page, for the rest of the visit. Status goes to the live region.
 export function PauseButton() {
   const { paused } = useMotion();
+  // One fixed name; aria-pressed carries the state. Only the tip swaps.
   const label = paused ? "Play motion" : "Pause motion";
   return (
     <button
       type="button"
       className="pzb"
       aria-pressed={paused}
-      aria-label={label}
+      aria-label="Pause motion"
       onClick={() => setPaused(!paused)}
     >
       {paused ? (

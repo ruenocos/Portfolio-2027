@@ -26,11 +26,20 @@ export function Hop({ text }: { text: string }) {
             e.currentTarget.classList.remove("go");
         }}
       >
-        {[...text].map((ch, i) => (
-          <i key={i} style={{ "--i": i } as React.CSSProperties}>
-            {ch}
-          </i>
-        ))}
+        {/* Letters sit in word groups, so a wrap never splits a word. */}
+        {text.split(/(\s+)/).map((word, w, all) => {
+          if (/^\s+$/.test(word)) return word;
+          const start = all.slice(0, w).join("").length;
+          return (
+            <span key={w} className="hw">
+              {[...word].map((ch, i) => (
+                <i key={i} style={{ "--i": start + i } as React.CSSProperties}>
+                  {ch}
+                </i>
+              ))}
+            </span>
+          );
+        })}
       </span>
     </>
   );

@@ -22,3 +22,12 @@ export function Arrow({ dir = "right", className = "" }: { dir?: ArrowDir; class
     </svg>
   );
 }
+
+/** The drawn play mark for "Reel" (the same shape as the Pause button's play). */
+export function Play({ className = "" }: { className?: string }) {
+  return (
+    <svg className={`arw ${className}`} viewBox="0 0 16 16" aria-hidden="true" focusable="false">
+      <path d="M4.5 2.9v10.2c0 .6.6.9 1.1.6l8-5.1c.5-.3.5-.9 0-1.2l-8-5.1c-.5-.3-1.1 0-1.1.6z" fill="currentColor" />
+    </svg>
+  );
+}

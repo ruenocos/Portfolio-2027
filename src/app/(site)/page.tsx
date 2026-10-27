@@ -11,7 +11,7 @@ export default function Home() {
         <h1 className="text-display text-ink uppercase">Wessel Oud</h1>
       </Row>
       <Row className="p-inset">
-        <Link href="/system" className="text-label text-grape">
+        <Link href="/system" className="text-link text-grape">
           System <Arrow dir="right" />
         </Link>
       </Row>

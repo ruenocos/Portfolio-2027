@@ -32,11 +32,12 @@ export function TextLink({
       {arrow !== "left" && mark}
     </>
   );
-  const cls = `tlink text-label ${className}`;
+  const cls = `tlink text-link ${className}`;
   if (external)
     return (
       <a className={cls} href={href} target="_blank" rel="noopener" title={title}>
         {inner}
+        <span className="sr-only"> (opens in a new tab)</span>
       </a>
     );
   if (href.startsWith("#"))

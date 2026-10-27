@@ -92,7 +92,7 @@ function useMagnet() {
  */
 export function ProjectRow({ project: p }: { project: Project }) {
   const media = useMagnet();
-  const pin = useRef<HTMLDivElement>(null);
+  const pin = useRef<HTMLSpanElement>(null);
   const [soon, setSoon] = useState(false);
   const mock = (f: "summary" | "role" | "note") => (p.mock?.includes(f) ? "" : undefined);
 
@@ -143,12 +143,16 @@ export function ProjectRow({ project: p }: { project: Project }) {
       await wait(150);
       wessel.press(false);
       await wait(250);
+      // He parks just outside the media's right edge with his tag leaning
+      // back over his own work, so the role and tools stay readable. On a
+      // phone he waits above the pin, clear of its text.
       await wessel.go(
         () => {
           const r = el.querySelector(".bub")!.getBoundingClientRect();
-          return mobile() ? [r.left + 24, r.top - 30] : [r.right + 14, r.top + r.height * 0.6];
+          const b = m.getBoundingClientRect();
+          return mobile() ? [r.left + 24, r.top - 44] : [b.right + 12, r.top + r.height * 0.6];
         },
-        { k: 160, timeout: 700 },
+        { k: 160, timeout: 700, lean: !mobile() },
       );
     },
     async night(g) {
@@ -219,7 +223,7 @@ export function ProjectRow({ project: p }: { project: Project }) {
     <article ref={row} className="pj">
       <div className="cell pl">
         <div>
-          <h3 className="text-accent" lang={p.lang}>
+          <h3 className="text-title" lang={p.lang}>
             {p.title}
           </h3>
           <p className="pd text-body" data-mock={mock("summary")}>

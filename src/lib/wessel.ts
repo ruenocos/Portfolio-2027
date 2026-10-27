@@ -234,6 +234,8 @@ const W = {
   shown: false,
   dist: 0,
   sp: 0,
+  /** Tag on the left of the pointer, so a parked Wessel covers his own work, not the next column. */
+  lean: false,
 };
 
 // Scroll speed: SV now, SP the recent peak (decays fast).
@@ -309,7 +311,7 @@ function tick(n: number) {
   W.sp = Math.hypot(W.vx, W.vy);
 
   const lab = el.querySelector<HTMLElement>(".lab");
-  el.dataset.flip = String(W.x + (lab?.offsetWidth ?? 0) + 20 > innerWidth);
+  el.dataset.flip = String(W.lean || W.x + (lab?.offsetWidth ?? 0) + 20 > innerWidth);
   const heroIn = !!hero && inView(hero);
   el.dataset.note = String(W.asleep && heroIn);
   el.dataset.dock = String(W.asleep && !heroIn);
@@ -328,7 +330,8 @@ export const wessel = {
     },
 
   /** Travels to a viewport point (or a function that tracks one). */
-  go(target: Target, { k = S.beat.k, timeout = 700 } = {}) {
+  go(target: Target, { k = S.beat.k, timeout = 700, lean = false } = {}) {
+    W.lean = lean;
     W.drive = typeof target === "function" ? target : () => target;
     W.spring = { k, z: S.beat.z };
     const t = W.drive();
@@ -410,12 +413,14 @@ export function setWesselAsleep(asleep: boolean) {
   if (asleep) {
     W.el.removeAttribute("aria-hidden");
     W.el.setAttribute("role", "button");
-    W.el.setAttribute("aria-label", "Off the clock. Click me if it’s urgent.");
+    W.el.setAttribute("aria-label", "Wake Wessel (switches to day mode)");
+    W.el.inert = false;
     wessel.show();
   } else {
     W.el.setAttribute("aria-hidden", "true");
     W.el.removeAttribute("role");
     W.el.removeAttribute("aria-label");
+    W.el.inert = true;
   }
   // Let each beat replay in the new mode once its section is seen.
   requestAnimationFrame(() => beats.forEach(trigger));

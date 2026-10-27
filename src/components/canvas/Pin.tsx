@@ -1,7 +1,7 @@
 import { forwardRef } from "react";
 import { Smiley } from "@/components/shell/Smiley";
 
-// Comment pin: Wessel's smiley avatar + a bubble (radius 4/16/16/16, Small).
+// Comment pin (a span, so it can sit inside the media link or button): Wessel's smiley avatar + a bubble (radius 4/16/16/16, Small).
 // note = the tinted, tilted sticky variant. dot = shrunk after it's read.
 // live pins are driven by a beat: hidden until Wessel drops one, and only
 // one on screen at a time (showPin in lib/wessel).
@@ -16,12 +16,12 @@ type Props = {
   "data-mock"?: string;
 };
 
-export const Pin = forwardRef<HTMLDivElement, Props>(function Pin(
+export const Pin = forwardRef<HTMLSpanElement, Props>(function Pin(
   { children, note, dot, live, staticDemo, className = "", style, ...rest },
   ref,
 ) {
   return (
-    <div
+    <span
       ref={ref}
       className={`pin ${className}`}
       aria-hidden="true"
@@ -38,6 +38,6 @@ export const Pin = forwardRef<HTMLDivElement, Props>(function Pin(
       <span className="bub text-small" data-note={note ? "" : undefined}>
         {children}
       </span>
-    </div>
+    </span>
   );
 });

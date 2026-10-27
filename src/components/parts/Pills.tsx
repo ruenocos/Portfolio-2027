@@ -8,20 +8,19 @@ export function SizePill({ children, className = "" }: Children) {
   return <span className={`szp text-micro ${className}`}>{children}</span>;
 }
 
-/** Yours to touch. small = Micro caps label ("▶ Reel"), tap = 44 tall. */
+/** Yours to touch. small = Micro caps label ("Reel" with the drawn play mark), tap = 44 tall. */
 export function GrapePill({ children, size = "small", className = "" }: Children & { size?: "small" | "tap" }) {
   return (
-    <span className={`gpill ${size === "small" ? "text-micro-caps" : "text-label"} ${className}`} data-size={size}>
+    <span className={`gpill ${size === "small" ? "text-micro-caps" : "text-link"} ${className}`} data-size={size}>
       {children}
     </span>
   );
 }
 
-/** Outline pill. With a lamp it's the About status ("Wessel is awake"); tap = a 44-tall button face (Copy email). */
-export function OutlinePill({ children, lamp = false, tap = false, className = "" }: Children & { lamp?: boolean; tap?: boolean }) {
+/** Outline pill: tap = a 44-tall button face (Copy email). The About status is a plain line now (Status). */
+export function OutlinePill({ children, tap = false, className = "" }: Children & { tap?: boolean }) {
   return (
-    <span className={`opill text-label ${className}`} data-tap={tap ? "" : undefined}>
-      {lamp && <span className="lamp" aria-hidden="true" />}
+    <span className={`opill ${tap ? "text-link" : "text-label"} ${className}`} data-tap={tap ? "" : undefined}>
       {children}
     </span>
   );

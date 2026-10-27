@@ -41,7 +41,7 @@ Three modes. Light and dark follow the system by day. **Night ("purple hour") al
 | `line` | #E6E0D7 | #26231F | #24223A | hairlines; the 1px gaps between cells |
 | `fill` | #EFEBE4 | #1C1A17 | #17152B | media placeholders, quiet fills |
 | `dot` | #D9D2C7 | #2E2A25 | #2B2947 | dot grid |
-| `tang` | #F0611F | #FF7A3D | #B05E3E (ember) | **Wessel's ink**: his cursor, name, logo, selections, pins, everything he draws |
+| `tang` | #F0611F | #FF7A3D | #BC6443 (ember; was #B05E3E, raised to pass AA on small tags 2026-10-27) | **Wessel's ink**: his cursor, name, logo, selections, pins, everything he draws |
 | `tang-ink` | #C2410C | #FF7A3D | #C27052 | tangerine for small text (AA) |
 | `on-tang` | #161412 | #12100E | #0E0D1A | text on tangerine pills |
 | `grape` | #6A3DF0 | #B39BFF | #B39BFF | **yours to touch**: links, focus rings, "You" cursor, text selection, active states |
@@ -64,11 +64,13 @@ Fonts: **Bricolage Grotesque** (display + text; opsz 12–96), **Geist Mono** (l
 | Statement | Bricolage 500 · 56px (40 mobile) · lh 1.05 · ls -2% | "All work" |
 | Headline | Bricolage 500 · 44px (34 mobile) · lh 1.05 · ls -2% | About title, Focus statement |
 | Email | Bricolage 500 · 32px (fluid to 24 mobile) · lh 1.1 · grape 2px underline | the email address only |
-| Accent | Instrument Serif Italic · 36px · lh 1.05 | hero role line, work titles, Focus titles; inline accent words at 1.08em (*feel*, *notice*) |
+| Accent | Instrument Serif Italic · 36px · lh 1.05 | hero role line and single inline accent words at 1.08em (*feel*, *notice*) only. Not on titles or values (review 2026-10-27) |
+| Title | Bricolage 500 · 32px/36 · −1% | project titles in rows and cards; 28px mobile |
 | Lead | Bricolage 400 · 20px/32 | cell labels (Email, Elsewhere), short leads |
 | Body | Bricolage 400 · 16px/24 | running text |
-| Small | Bricolage 400 · 14px/20 | comment-pin bubbles |
-| Label | Geist Mono 500 · 12px/16 · uppercase · +6% | section labels, nav, meta, buttons |
+| Small | Bricolage 400 · 14px/20 | comment-pin bubbles, legal bar |
+| Link | Bricolage 500 · 16px/20 · sentence case | text links, buttons and pills you press (Contact, Copy email, Show all) |
+| Label | Geist Mono 500 · 12px/16 · uppercase · +6% | section labels, nav, meta, the status line. Not for links or buttons (2026-10-27) |
 | Micro | Geist Mono 500 · 11px/14 · +4% · tabular figures | numbers and keys: size pills ("203 × 116"), ⌘C/⌘V chips, counters |
 | Micro caps | Geist Mono 500 · 11px/14 · uppercase · +6% | word pills: "▶ Reel", "Case study soon", frame and layer labels |
 | Wordmark | Bricolage 800 · 28px · ls -3% | header wordmark only |
@@ -88,7 +90,9 @@ Rules:
 - **Insets and rhythm:** content inset is 40px desktop and 20px mobile. Sections use 96px vertical padding (40 mobile). Section dividers are 168px rows (96 mobile; the tall ones are 240 at every width), with the label at bottom-left (inset 40, 20px from the bottom; mobile inset 20, 16px from the bottom).
 - **Section labels:** `{ About }` in Label style, ink. Only the braces are tangerine (`tang-ink`). No counter (dropped 2026-10-27).
 - **Round things inside the square frame:** media radius 24 (`--rm`), pills 999, handles round, chips are circles.
-- **Tactile objects** (2026-10-27): things you can press (pills, Contact, Copy email, Pause, the switch knob) plus cursor tags, pins and key chips get a lit top edge and a short drop tinted in their own colour; key chips are keycaps with a 2px darker base. Marks stay flat: selections, redlines, bot tags at night, section labels, text links, the status pill, tool chips, media. Strength per mode in tokens.json `tactile` (night is about a fifth). Pressed: sinks 1px (`easing.press`, 120ms), off while calm.
+- **Status line** (2026-10-27): "Awake in Amsterdam, 14:32" / "Asleep in Amsterdam, 23:10", Label style, live Amsterdam time in `mute`. Still: no pill, no lamp.
+- **Mode values** are variables set on every `[data-mode]` element, never `[data-mode] .x` ancestor selectors, so a light panel inside a night page stays light.
+- **Tactile objects** (2026-10-27): things you can press (pills, Contact, Copy email, Pause, the switch knob) plus cursor tags, pins and key chips get a lit top edge (no gradient sheen) and a short drop tinted in their own colour, pulled toward black in dark and night (`tactile.dropDark`); key chips are keycaps with a 2px darker base. Marks stay flat: selections and their size labels, redlines, bot tags, section labels, text links, the status line, tool chips, media. Round + lifted = you can press it; small rectangle + flat = a mark. Strength per mode in tokens.json `tactile` (night is about a fifth). Pressed: sinks 1px (`easing.press`, 120ms), off while calm.
 - **Breakpoint:** one main switch at 900px (stack to one column, 20px insets), plus 600px for small tweaks. Use `hover:none` for touch behaviour.
 - **Tap targets:** at least 44px. Grow the hit box, not the visible thing (`::before` inset, padding with negative margin, or a JS hit-slop when Wessel measures the element, like the reel).
 - **Tablet (600–900):** project rows go text | media (two columns); Focus stays one card per row.
@@ -124,11 +128,11 @@ Header (sticky, 90px) → Hero → `{ About }` → About (story + photo deck) �
 | **Cursor tag** | Figma-style pointer (rounded arrowhead, 23px, 1.75 outline in canvas colour) + pill tag with a square corner toward the tip, about 6px clear of the arrow's notch. Wessel = tangerine, You = grape, bots = ink (dashed outline at night). |
 | **Comment pin** | Round avatar (smiley) + bubble, radius 4/16/16/16, Small style, canvas fill + line border + soft shadow. Pops in on a spring, text types at 85ms per character, shrinks to a dot when done. **One pin visible at a time.** |
 | **Selection** | 1.5px tangerine box + 4 round handles + Micro size pill below ("203 × 116"). Only Wessel and the bots make them. |
-| **Chips** | ⌘C / ⌘V key chips: Micro, `ink` fill with `canvas` text, radius 6. Size pills: Micro, `tang` fill, `on-tang` text, radius 999. |
+| **Chips** | ⌘C / ⌘V key chips: Micro, `ink` fill with `canvas` text, radius 6. Size labels: Micro, `tang` fill, `on-tang` text, radius 3 (`radius.mark`, how Figma draws them), flat. Mock tag: dashed, radius 2 (`radius.tag`). |
 | **Tool chips** | Brand logos as circles: 56px in Daily kit, 32px in project rows. Logos are the only non-system colours outside the dioramas. |
 | **Media** | Project media: portrait 3:4 MP4 (muted, looping, plays in view at 0.75×) + JPG poster. About: 3 portrait photos. Radius 24 (`--rm`). |
 | **Arrows** | One drawn arrow icon (Wons 2026-10-27, replaces the text glyphs): 16px grid, 1.5px stroke at every size, round ends, current colour, 1.15em next to labels. Rotated per meaning: → inside the site, ↗ leaves the site (in `mute`), ↓ scrolls down, ← back, ↑ to the top. Build: `<Arrow dir>`. No other icons. |
-| **Pause motion** | Wons 2026-10-27 (WCAG 2.2.2). Round button right of the day/night switch on every page: 34px desktop (40 on touch, 44 on phones), 10px after the switch (6px on phones), hit area 44. Rest: `fill` + `line` outline, two-bar glyph in `mute`. Hover: grape outline, ink glyph, Micro caps tip "Pause motion" below (ink pill, canvas text). Paused: grape fill, ▶ glyph in `on-grape`, tip "Play motion". `aria-pressed` + label swap; status to the live region ("Motion paused" / "Motion back on", proposed copy). Figma: Control / Pause motion. |
+| **Pause motion** | Wons 2026-10-27 (WCAG 2.2.2). Round button right of the day/night switch on every page: 34px desktop (40 on touch, 44 on phones), 10px after the switch (6px on phones), hit area 44. Rest: `fill` + `line` outline, two-bar glyph in `mute`. Hover: grape outline, ink glyph, Micro caps tip "Pause motion" below (ink pill, canvas text). Paused: grape fill, ▶ glyph in `on-grape`, tip "Play motion". fixed name "Pause motion" with `aria-pressed` carrying the state (only the visual tip swaps); status to the live region ("Motion paused" / "Motion back on", proposed copy). Figma: Control / Pause motion. |
 | **Focus ring** | 2px grape outline, 3px offset, radius 4. |
 
 ## 7. Wessel's cursor (behaviour rules)

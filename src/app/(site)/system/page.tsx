@@ -3,7 +3,7 @@ import tokens from "../../../../design/tokens.json";
 import { Cursor } from "@/components/canvas/Cursor";
 import { Pin } from "@/components/canvas/Pin";
 import { Selection } from "@/components/canvas/Selection";
-import { Arrow } from "@/components/parts/Arrow";
+import { Arrow, Play } from "@/components/parts/Arrow";
 import { Crumb } from "@/components/parts/Crumb";
 import { Divider } from "@/components/parts/Divider";
 import { Facts } from "@/components/parts/Facts";
@@ -11,6 +11,7 @@ import { Media, MediaFigure } from "@/components/parts/Media";
 import { GrapePill, KeyChip, MockTag, OutlinePill, SizePill, Slot } from "@/components/parts/Pills";
 import { ProjectRows, type Project } from "@/components/parts/ProjectRow";
 import { SectionLabel } from "@/components/parts/SectionLabel";
+import { Status } from "@/components/parts/Status";
 import { TextLink } from "@/components/parts/TextLink";
 import { ToolFilter } from "@/components/parts/ToolFilter";
 import { EmptyTool, Tools } from "@/components/parts/Tools";
@@ -108,18 +109,17 @@ export default function SystemPage() {
             </Specimen>
             <Specimen name="Pills">
               <SizePill>203 × 116</SizePill>
-              <GrapePill>▶ Reel</GrapePill>
+              <GrapePill>
+                <Play /> Reel
+              </GrapePill>
               <GrapePill>Case study soon</GrapePill>
               <GrapePill size="tap">
                 Contact <Arrow dir="down" />
               </GrapePill>
             </Specimen>
-            <Specimen name="Outline pill · status">
+            <Specimen name="Outline pill · status line">
               <OutlinePill tap>Copy email</OutlinePill>
-              <OutlinePill lamp>
-                <span data-mock>Wessel is awake</span>
-                <span className="tm">Amsterdam</span>
-              </OutlinePill>
+              <Status />
             </Specimen>
             <Specimen name="Ink chip · mock tag · slot">
               <KeyChip>⌘C</KeyChip>

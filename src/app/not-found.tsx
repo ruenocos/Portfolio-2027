@@ -14,7 +14,7 @@ export default function NotFound() {
           <span className="text-tang-ink">#</span> 404
         </p>
         <h1 className="text-statement">This page isn’t in the file.</h1>
-        <Link href="/" className="text-label text-grape self-start">
+        <Link href="/" className="text-link text-grape self-start">
           <Hop text="Back home" /> <Arrow dir="right" />
         </Link>
       </Row>

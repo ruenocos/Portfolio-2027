@@ -3,6 +3,7 @@
 import { usePathname } from "next/navigation";
 import { useEffect, useRef } from "react";
 import { setAsleep } from "@/components/ModeProvider";
+import { announce } from "@/lib/motion";
 import { useMotion } from "@/components/useMotion";
 import { TIP, arrive, attachWessel, newPage, setWesselAsleep } from "@/lib/wessel";
 import { Cursor } from "./canvas/Cursor";
@@ -23,8 +24,14 @@ export function CursorLayer() {
     const el = wes.current;
     if (!el) return;
     const detach = attachWessel(el);
+    // Waking him makes him decoration again, so focus moves to the switch
+    // that now says day, and the change is read out.
     const wake = () => {
-      if (el.dataset.asleep === "true") setAsleep(false);
+      if (el.dataset.asleep !== "true") return;
+      const keyboard = el.contains(document.activeElement);
+      setAsleep(false);
+      announce("Wessel is awake. Day mode.");
+      if (keyboard) document.querySelector<HTMLElement>(".dn")?.focus();
     };
     const key = (e: KeyboardEvent) => {
       if (e.key === "Enter" || e.key === " ") {

@@ -54,7 +54,7 @@ export function Footer() {
         </div>
         <div className="side" />
       </section>
-      <Row className="legal text-label">
+      <Row className="legal text-small">
         <span>© 2027 Wessel Oud</span>
         <span>Made in the Netherlands</span>
       </Row>

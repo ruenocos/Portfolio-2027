@@ -18,7 +18,7 @@ export function Shell({ children }: { children: React.ReactNode }) {
       <div className="page" id="top">
         <Header />
         <PageFade>
-          <main id="main">{children}</main>
+          <main id="main" tabIndex={-1}>{children}</main>
           <Footer />
         </PageFade>
         {/* Wessel's marks and the night bots: page coordinates, so they scroll with it. */}
