@@ -220,7 +220,6 @@ export async function getAbout(): Promise<AboutContent> {
           when: j.when!,
           place: j.place!,
           role: j.role!,
-          ...(j.hasCase && j.slug ? { href: `/work/${j.slug}`, cta: "Read the case" } : {}),
         }))
       : f.experience,
     stickers: stickers.length ? stickers.map((s) => ({ text: s.text, tone: s.tone ?? "tang" })) : f.stickers,

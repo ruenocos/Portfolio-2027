@@ -1,7 +1,7 @@
 import type { Fact } from "@/components/parts/Facts";
 import { FALLBACK_HOME, type Photo } from "./home";
 
-export type Job = { when: string; place: string; role: string; href?: string; cta?: string };
+export type Job = { when: string; place: string; role: string };
 export type Sticker = { text: string; tone: "tang" | "grape" | "ink" | "outline" };
 export type AboutContent = {
   hello: string;
@@ -25,7 +25,7 @@ export const FALLBACK_ABOUT: AboutContent = {
   ],
   experience: [
     { when: "Jul 2024 – now", place: "WP Masters", role: "UX/UI & Motion Designer" },
-    { when: "Apr 2023 – now", place: "De Saak", role: "User Experience Designer", href: "/work/de-saak", cta: "Read the case" },
+    { when: "Apr 2023 – now", place: "De Saak", role: "User Experience Designer" },
     { when: "Feb 2023 – Feb 2024", place: "WP Masters", role: "Two UX/UI internships" },
     { when: "Jul 2020 – Jun 2023", place: "CAD & Company", role: "UX Designer, then marketing graphic design" },
     { when: "Jan 2020 – Jul 2024", place: "Mediacollege Amsterdam", role: "E-commerce Design, cum laude" },

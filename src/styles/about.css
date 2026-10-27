@@ -88,30 +88,47 @@
   .hist > li {
     position: relative;
     display: grid;
-    grid-template-columns: 200px minmax(0, 1fr) minmax(0, 1fr) 160px;
+    grid-template-columns: 200px minmax(0, 1fr) minmax(0, 1fr);
     gap: 24px;
     align-items: baseline;
     padding: 22px var(--spacing-inset);
   }
-  .hist > li[data-link] {
-    transition: background-color var(--dur-ui) var(--ease-ui);
+  /* One selection box springs to the row you point at, like picking layers. */
+  .hwrap {
+    position: relative;
+    min-width: 0;
   }
-  .hist > li[data-link]:hover {
-    background: var(--fill);
+  .hist .yr {
+    transition: color var(--dur-ui) var(--ease-ui);
   }
-  .hist .go {
-    justify-self: end;
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
+  .hist > li[data-on="true"] .yr {
+    color: var(--tang);
+  }
+  .hsel {
+    left: calc(var(--spacing-inset) - 12px);
+    right: calc(var(--spacing-inset) - 12px);
+    top: 0;
+    opacity: 0;
+    transition:
+      transform 520ms var(--ease-spring),
+      height 520ms var(--ease-spring),
+      opacity 240ms var(--ease-ui);
+  }
+  .hsel[data-on="true"] {
+    opacity: 1;
+  }
+  .hwrap[data-who="you"] .hsel,
+  .hwrap[data-who="you"] .hsel > i {
+    border-color: var(--grape);
+  }
+  .hwrap[data-who="you"] .hist > li[data-on="true"] .yr {
     color: var(--grape);
-    white-space: nowrap;
   }
-  /* The whole row is the link's hit area. */
-  .hist .go::after {
-    content: "";
-    position: absolute;
-    inset: 0;
+  html[data-motion="calm"] .hsel {
+    transition: none;
+  }
+  [data-mode="night"] .hsel {
+    display: none;
   }
 
   /* ---------- off screen: the sticker board ---------- */
@@ -199,11 +216,6 @@
       grid-template-columns: minmax(0, 1fr);
       gap: 4px;
       padding: 18px var(--spacing-inset);
-    }
-    .hist .go {
-      justify-self: start;
-      margin-top: 6px;
-      min-height: var(--spacing-tap);
     }
     .board {
       min-height: 420px;

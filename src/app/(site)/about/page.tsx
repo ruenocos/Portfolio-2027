@@ -1,8 +1,7 @@
 import type { Metadata } from "next";
-import Link from "next/link";
+import { History } from "@/components/about/History";
 import { PhotoStack } from "@/components/about/PhotoStack";
 import { Stickers } from "@/components/about/Stickers";
-import { Arrow } from "@/components/parts/Arrow";
 import { Divider } from "@/components/parts/Divider";
 import { Facts } from "@/components/parts/Facts";
 import { Status } from "@/components/parts/Status";
@@ -42,22 +41,7 @@ export default async function AboutPage() {
       <Divider label={{ name: "Experience" }} />
       <section className="frame" data-row aria-label="Experience">
         <div className="side" />
-        <ol className="hist">
-          {c.experience.map((j) => (
-            <li key={`${j.place}-${j.when}`} className="cell" data-link={j.href ? "" : undefined}>
-              <span className="yr text-label text-mute">{j.when}</span>
-              <span className="pl text-lead">{j.place}</span>
-              <span className="ro text-body text-mute">{j.role}</span>
-              {j.href && (
-                <Link href={j.href} className="go text-link">
-                  {j.cta ?? "Read the case"}
-                  <Arrow dir="right" />
-                  <span className="sr-only">: {j.place}</span>
-                </Link>
-              )}
-            </li>
-          ))}
-        </ol>
+        <History jobs={c.experience} />
         <div className="side" />
       </section>
       <Divider label={{ name: "Off screen" }} />
