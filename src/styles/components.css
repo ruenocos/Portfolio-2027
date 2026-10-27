@@ -329,6 +329,17 @@
   .tz {
     gap: 0.35em;
   }
+  /* At Statement size a 1.5px line reads as a typed glyph: let the stroke
+     scale with the icon so it carries the weight of the letters next to it. */
+  .text-statement .arw path {
+    vector-effect: none;
+    stroke-width: 1.2;
+  }
+  .text-statement .arw {
+    width: 0.85em;
+    height: 0.85em;
+    vertical-align: -0.05em;
+  }
   .mnav .arw {
     width: 0.7em;
     height: 0.7em;
