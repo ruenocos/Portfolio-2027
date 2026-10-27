@@ -425,6 +425,9 @@ export function Hero({ hero: c }: { hero: HomeContent["hero"] }) {
         if (!(e instanceof Error) || e.message !== "skip") throw e;
         unprep();
         playReel();
+        // Off the name: he waits where he'd have pointed you down.
+        const [fx, fy, dy] = nodSpot();
+        void wessel.go(wessel.at(h, fx, fy, 0, dy), { k: 150, timeout: 1200 });
       } finally {
         su?.done();
         removeEventListener("scroll", away);

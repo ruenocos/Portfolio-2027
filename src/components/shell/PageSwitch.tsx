@@ -52,7 +52,7 @@ function arrive() {
 export function PageSwitch() {
   const router = useRouter();
   const pathname = usePathname();
-  const first = useRef(true);
+  const last = useRef<string | null>(null);
 
   useEffect(() => {
     const onClick = (e: MouseEvent) => {
@@ -86,10 +86,11 @@ export function PageSwitch() {
   }, [router]);
 
   useEffect(() => {
-    if (first.current) {
-      first.current = false;
-      return;
-    }
+    // Only a real change of page moves anything (not the first render, nor
+    // development mode's second run of it).
+    const was = last.current;
+    last.current = pathname;
+    if (was === null || was === pathname) return;
     arrive();
     // Keyboard and screen reader users start at the top of the new page.
     document.getElementById("main")?.focus({ preventScroll: true });

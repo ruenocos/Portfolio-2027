@@ -931,7 +931,8 @@
     .pin .bub,
     .pj .pc .media .pin .bub {
       white-space: normal;
-      max-width: 180px;
+      max-width: 240px;
+      text-align: start;
     }
     .crumb > .cell {
       flex-wrap: wrap;

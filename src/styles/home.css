@@ -785,7 +785,7 @@
       padding: 24px var(--spacing-inset);
     }
     /* Five chips fit at 320: the gap gives way first, then the chips. */
-    .kit {
+    .tools.kit[data-size="56"] {
       gap: clamp(6px, calc((100vw - 356px) / 4), 12px);
       flex-wrap: nowrap;
     }
@@ -807,7 +807,7 @@
     .arch {
       height: 520px;
       --cw: 160px;
-      --spread: 8deg;
+      --spread: 5.5deg;
       --lift: -120px;
     }
     .arch .hand {

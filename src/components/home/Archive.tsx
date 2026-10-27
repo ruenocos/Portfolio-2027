@@ -66,6 +66,7 @@ export function Archive({ cards }: { cards: ArchiveCard[] }) {
       live(g);
       T.press(true);
       await wait(120);
+      setHover(false);
       setTidy(true);
       T.press(false);
       await wait(560);
