@@ -31,26 +31,6 @@
   }
 
   /* ---------- reading progress: 2px under the sticky header ---------- */
-  .cprog {
-    position: fixed;
-    left: 0;
-    right: 0;
-    top: calc(var(--spacing-header) - 1px);
-    height: 2px;
-    z-index: 41;
-    pointer-events: none;
-  }
-  .cprog > i {
-    display: block;
-    height: 100%;
-    background: var(--tang);
-    transform-origin: left;
-    transition: transform var(--dur-ui) var(--ease-ui);
-  }
-  [data-mode="night"] .cprog > i {
-    background: var(--bot);
-  }
-
   /* ---------- the read: Layers panel | sections ---------- */
   .rd {
     display: grid;
@@ -193,16 +173,13 @@
       grid-template-columns: minmax(0, 1fr);
     }
     .lay,
-    .cprog {
-      display: none;
-    }
     .sc .fpin {
       position: static;
       order: -1;
       align-self: flex-start;
     }
   }
-  html[data-motion="calm"] :is(.lsel, .lcur, .cprog > i, .sc .fpin) {
+  html[data-motion="calm"] :is(.lsel, .lcur, .sc .fpin) {
     transition: none;
   }
 }

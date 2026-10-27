@@ -247,6 +247,7 @@ export class Bot {
 const W = {
   el: null as HTMLElement | null,
   tag: null as HTMLElement | null,
+  note: null as string | null,
   x: 0,
   y: 0,
   vx: 0,
@@ -428,6 +429,12 @@ export const wessel = {
     }, 650);
   },
 
+  /** A short note after his name in the tag ("Wessel · 42%"); null clears it. */
+  note(text: string | null) {
+    W.note = text;
+    if (W.tag && !W.asleep) W.tag.textContent = text ? `Wessel · ${text}` : "Wessel";
+  },
+
   show() {
     if (W.shown || !W.el) return;
     W.shown = true;
@@ -458,7 +465,7 @@ export function setWesselAsleep(asleep: boolean) {
   W.lean = false;
   if (!W.el) return;
   W.el.dataset.asleep = String(asleep);
-  if (W.tag) W.tag.textContent = asleep ? "Wessel · asleep" : "Wessel";
+  if (W.tag) W.tag.textContent = asleep ? "Wessel · asleep" : W.note ? `Wessel · ${W.note}` : "Wessel";
   // Asleep he's a real button (wake him); awake he's decoration.
   W.el.tabIndex = asleep ? 0 : -1;
   if (asleep) {

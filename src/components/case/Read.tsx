@@ -17,8 +17,8 @@ const REST_X = 110;
 /**
  * The read (case-study-spec v02 §6): a sticky Layers panel next to the
  * sections. Wessel is your reading buddy: he selects the layer you're
- * reading and presses once per change. Reading progress is a 2px bar under
- * the header. It's the one Wessel (the shell's), driven to the layer, so
+ * reading, presses once per change, and counts how far you are in his tag
+ * ("Wessel · 42%"). It's the one Wessel (the shell's), driven to the layer, so
  * there's never a second one on screen. At night he sleeps in his corner
  * and the Handoff bot does it, dashed. Each figure gets its pin the first
  * time it's half in view. Phones: panel and cursor hide.
@@ -91,6 +91,12 @@ export function Read({ sections }: { sections: CaseSection[] }) {
     void wessel.go(target, { k: 260 });
   }, [asleep, cur]);
 
+  // How far through the read, in his tag (the bot's at night).
+  useEffect(() => {
+    wessel.note(`${pct}%`);
+  }, [pct]);
+  useEffect(() => () => wessel.note(null), []);
+
   // One pin per figure, the first time it's half in view.
   useEffect(() => {
     const io = new IntersectionObserver(
@@ -108,16 +114,6 @@ export function Read({ sections }: { sections: CaseSection[] }) {
 
   return (
     <>
-      <div
-        className="cprog"
-        role="progressbar"
-        aria-label="Reading progress"
-        aria-valuemin={0}
-        aria-valuemax={100}
-        aria-valuenow={pct}
-      >
-        <i style={{ transform: `scaleX(${pct / 100})` }} />
-      </div>
       <div ref={root} className="rd">
         <aside className="cell lay" aria-label="Contents">
           <div className="lp">
@@ -154,7 +150,7 @@ export function Read({ sections }: { sections: CaseSection[] }) {
                     data-press={press}
                     style={{ transform: `translate(${(cur < 0 ? 160 : box.x + 40).toFixed(0)}px, ${box.y + 26}px)` }}
                   >
-                    <Cursor kind="bot" name="Handoff" staticDemo />
+                    <Cursor kind="bot" name={`Handoff · ${pct}%`} staticDemo />
                   </div>
                 )}
               </>

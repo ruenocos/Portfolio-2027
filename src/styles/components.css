@@ -595,6 +595,7 @@
     background: var(--c);
     color: var(--on);
     white-space: nowrap;
+    font-variant-numeric: tabular-nums;
     transform-origin: 0 0;
   }
   .cur[data-flip="true"] .tag {
