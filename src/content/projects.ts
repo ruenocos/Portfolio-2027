@@ -15,7 +15,7 @@ export const FALLBACK_PROJECTS: Project[] = [
     href: "/work/de-saak",
     label: "De Saak case study. Design, dev and SEO, 2023 to now.",
     note: { text: "The menu took longest.", spot: { fx: 0.72, dy: 30, rot: -3 } },
-    mock: ["summary", "role", "note"],
+    mock: ["summary", "role", "note", "media"],
   },
   {
     title: "UI motion study",

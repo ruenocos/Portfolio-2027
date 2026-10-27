@@ -284,7 +284,11 @@ export function createDio(kind: DioKind, svg: SVGSVGElement): Dio {
     if (!raf) last = 0;
   };
   const kick = () => {
-    if (calm()) return render();
+    // Calm: springs land on their end state at once.
+    if (calm()) {
+      S.springs.forEach((s) => s.step(0));
+      return render();
+    }
     if (visible) raf ||= requestAnimationFrame(frame);
   };
   const io = new IntersectionObserver(([e]) => {

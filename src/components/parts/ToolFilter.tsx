@@ -48,7 +48,9 @@ export function ToolFilter({
       <button
         type="button"
         className="clr text-link"
-        hidden={!picked.length}
+        // Kept in place while hidden, so picking a tool doesn't shift the rows.
+        style={picked.length ? undefined : { visibility: "hidden" }}
+        aria-hidden={!picked.length || undefined}
         onClick={() => {
           set([]);
           // It hides itself, so focus goes back to the first chip.

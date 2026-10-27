@@ -134,41 +134,42 @@ type CaseDoc = {
   })[];
 };
 
+// Field by field: whatever Sanity hasn't filled yet keeps the draft's.
 function toCase(slug: string, d: CaseDoc): Case {
+  const fb = FALLBACK_CASES.find((c) => c.slug === slug);
+  const fact = (label: string, value?: string) =>
+    value ? { label, value } : (fb?.facts.find((f) => f.label === label) ?? { label, value: "" });
+  const poster = img(d.hero?.poster, 1800);
   return {
     slug,
-    title: d.title,
-    lang: d.lang === "nl" ? "nl" : undefined,
-    lead: d.lead ?? "",
-    intro: d.intro ?? "",
-    facts: [
-      { label: "Role", value: d.role },
-      { label: "Scope", value: d.scope },
-      { label: "Timeline", value: d.timeline },
-    ],
-    hero: {
-      video: d.hero?.video,
-      poster: img(d.hero?.poster, 1800),
-      alt: d.hero?.alt ?? "",
-      caption: d.hero?.caption ?? "",
-    },
-    sections: (d.sections ?? []).map((s) => ({
-      key: s._key,
-      name: s.name,
-      heading: s.heading,
-      body: s.body,
-      note: s.note,
-      figure:
-        s.figure?.src && s.figure.alt
-          ? {
-              src: img(s.figure.src, 1600)!,
-              alt: s.figure.alt,
-              caption: s.figure.caption ?? "",
-              width: s.figure.width ?? 1600,
-              height: s.figure.height ?? 1000,
-            }
-          : undefined,
-    })),
+    title: d.title || fb?.title || slug,
+    lang: d.lang === "nl" ? "nl" : d.lang ? undefined : fb?.lang,
+    lead: d.lead || fb?.lead || "",
+    intro: d.intro || fb?.intro || "",
+    mock: fb?.mock?.filter((m) => (m === "lead" && !d.lead) || (m === "intro" && !d.intro) || (m === "caption" && !poster)),
+    facts: [fact("Role", d.role), fact("Scope", d.scope), fact("Timeline", d.timeline)],
+    hero: poster
+      ? { video: d.hero?.video, poster, alt: d.hero?.alt ?? "", caption: d.hero?.caption ?? "" }
+      : fb?.hero ?? { poster: undefined, alt: "", caption: "" },
+    sections: (d.sections ?? [])
+      .filter((s) => s.name && s.heading)
+      .map((s) => ({
+        key: s._key,
+        name: s.name,
+        heading: s.heading,
+        body: s.body ?? "",
+        note: s.note,
+        figure:
+          s.figure?.src && s.figure.alt
+            ? {
+                src: img(s.figure.src, 1600)!,
+                alt: s.figure.alt,
+                caption: s.figure.caption ?? "",
+                width: s.figure.width ?? 1600,
+                height: s.figure.height ?? 1000,
+              }
+            : undefined,
+      })),
   };
 }
 

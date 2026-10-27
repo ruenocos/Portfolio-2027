@@ -29,6 +29,7 @@ export function Read({ sections }: { sections: CaseSection[] }) {
   const list = useRef<HTMLOListElement>(null);
   const [cur, setCur] = useState(-1);
   const [pct, setPct] = useState(0);
+  const [inside, setInside] = useState(false);
   const [press, setPress] = useState(false);
   const [box, setBox] = useState<{ y: number; h: number; x: number } | null>(null);
 
@@ -46,6 +47,7 @@ export function Read({ sections }: { sections: CaseSection[] }) {
       });
       const r = read.getBoundingClientRect();
       setCur(a);
+      setInside(r.top < vh && r.bottom > vh * 0.5);
       setPct(Math.max(0, Math.min(100, Math.round(((vh * LINE - r.top) / r.height) * 100))));
     };
     const on = () => (raf ||= requestAnimationFrame(tick));
@@ -72,7 +74,11 @@ export function Read({ sections }: { sections: CaseSection[] }) {
       setPress(false);
       wessel.press(false);
     }, 180);
-    return () => clearTimeout(t);
+    return () => {
+      clearTimeout(t);
+      setPress(false);
+      wessel.press(false);
+    };
   }, [cur, calm]);
 
   // By day Wessel himself rests beside the layer you're reading, while the
@@ -82,8 +88,11 @@ export function Read({ sections }: { sections: CaseSection[] }) {
     const a = list.current?.children[cur]?.querySelector("a");
     if (!a) return;
     // Just past the label (capped, so his tag stays inside the panel).
+    // Once the read is behind you he lets go, so he doesn't sit on the end.
     const target = (): XY | null => {
       if (innerWidth < 900) return null;
+      const rd = root.current?.getBoundingClientRect();
+      if (!rd || rd.bottom < innerHeight * 0.5) return null;
       const r = a.getBoundingClientRect();
       return [r.left + Math.min(r.width + 14, REST_X + 40), r.top + r.height * 0.6];
     };
@@ -91,14 +100,17 @@ export function Read({ sections }: { sections: CaseSection[] }) {
     void wessel.go(target, { k: 260 });
   }, [asleep, cur]);
 
-  // How far through the read, in his tag (the bot's at night).
+  // How far through the read, in his tag (the bot's at night), while
+  // you're in it.
   useEffect(() => {
-    wessel.note(`${pct}%`);
-  }, [pct]);
+    wessel.note(inside ? `${pct}%` : null);
+  }, [pct, inside]);
   useEffect(() => () => wessel.note(null), []);
 
-  // One pin per figure, the first time it's half in view.
+  // One pin per figure, the first time it's half in view (his notes, so
+  // not while he sleeps).
   useEffect(() => {
+    if (asleep) return;
     const io = new IntersectionObserver(
       (es) =>
         es.forEach((e) => {
@@ -110,7 +122,7 @@ export function Read({ sections }: { sections: CaseSection[] }) {
     );
     root.current!.querySelectorAll("figure").forEach((f) => io.observe(f));
     return () => io.disconnect();
-  }, []);
+  }, [asleep]);
 
   return (
     <>
@@ -159,7 +171,7 @@ export function Read({ sections }: { sections: CaseSection[] }) {
         </aside>
         <div className="secs">
           {sections.map((s) => (
-            <article key={s.key} id={s.key} className="cell sc" aria-labelledby={`h-${s.key}`}>
+            <article key={s.key} id={s.key} className="cell sc" tabIndex={-1} aria-labelledby={`h-${s.key}`}>
               <p className="text-label text-mute" data-enter>
                 <span className="hash" aria-hidden="true">
                   #
@@ -167,10 +179,10 @@ export function Read({ sections }: { sections: CaseSection[] }) {
                 {s.name}
                 {s.mock && <MockTag className="ml-2">{s.mock === "wording" ? "Numbers real · wording mock" : "mock"}</MockTag>}
               </p>
-              <h2 id={`h-${s.key}`} className="text-headline" data-enter>
+              <h2 id={`h-${s.key}`} className="text-headline" data-enter data-mock={s.mock === "all" ? "" : undefined}>
                 {s.heading}
               </h2>
-              <p className="sl text-body" data-enter data-mock={s.mock ? "" : undefined}>
+              <p className={`sl ${s.key === "takeaway" ? "text-accent" : "text-body"}`} data-enter data-mock={s.mock ? "" : undefined}>
                 {s.body}
               </p>
               {s.figure && (
@@ -179,7 +191,7 @@ export function Read({ sections }: { sections: CaseSection[] }) {
                     {/* eslint-disable-next-line @next/next/no-img-element -- screenshots at their own ratio */}
                     <img src={s.figure.src} alt={s.figure.alt} width={s.figure.width} height={s.figure.height} loading="lazy" />
                   </div>
-                  <figcaption className="text-label text-mute">{s.figure.caption}</figcaption>
+                  <figcaption className="text-label text-mute" data-mock={s.mock === "all" ? "" : undefined}>{s.figure.caption}</figcaption>
                   {s.note && (
                     <Pin className="fpin" data-mock={s.mock ? "" : undefined}>
                       {s.note}

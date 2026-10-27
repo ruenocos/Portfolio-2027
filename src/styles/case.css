@@ -81,7 +81,6 @@
   /* Wessel's selection on the layer you're reading. Positioned against the
      list, which starts below the "Layers" label. */
   .lp {
-    --ly-top: calc(var(--spacing-section) + 14px + 16px);
   }
   .lsel {
     left: calc(var(--spacing-inset) - 10px);
@@ -121,6 +120,7 @@
     flex-direction: column;
     gap: 20px;
     scroll-margin-top: var(--spacing-header);
+    outline: none;
   }
   .sc h2 {
     overflow-wrap: break-word;

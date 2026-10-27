@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Divider } from "@/components/parts/Divider";
 import { ProjectRow, type Project } from "@/components/parts/ProjectRow";
 import { ToolFilter } from "@/components/parts/ToolFilter";
@@ -26,6 +26,8 @@ export function WorkList({ selected, archive }: { selected: Project[]; archive: 
   ];
   // Only offer tools some project was made with.
   const used = knownTools(Object.keys(TOOLS)).filter((id) => [...selected, ...archive].some((p) => p.tools.includes(id)));
+
+  useEffect(() => () => clearTimeout(t.current), []);
 
   const pick = (next: ToolId[]) => {
     clearTimeout(t.current);

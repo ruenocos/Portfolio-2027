@@ -91,6 +91,8 @@ export function PageSwitch() {
       return;
     }
     arrive();
+    // Keyboard and screen reader users start at the top of the new page.
+    document.getElementById("main")?.focus({ preventScroll: true });
   }, [pathname]);
 
   return null;

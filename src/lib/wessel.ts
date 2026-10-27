@@ -16,7 +16,7 @@
 // - calm (Pause motion or reduced motion): no travel, end states only
 
 import motionTokens from "../../design/motion-tokens.json";
-import { getMotion } from "./motion";
+import { getMotion, subscribeMotion } from "./motion";
 import { smileySvg } from "./smiley";
 
 const { wessel: T } = motionTokens;
@@ -451,7 +451,22 @@ export function attachWessel(el: HTMLElement) {
   lastSY = scrollY;
   el.dataset.hide = "true";
   raf = requestAnimationFrame(tick);
+  // Pause (or the system's reduce motion) mid-beat: drop what's running and
+  // put every section straight into its end state.
+  let wasCalm = calm();
+  const off = subscribeMotion(() => {
+    if (calm() === wasCalm) return;
+    wasCalm = calm();
+    if (!wasCalm) return;
+    newGeneration();
+    beats.forEach((b) => {
+      b.done = {};
+      b.q = false;
+      trigger(b);
+    });
+  });
   return () => {
+    off();
     cancelAnimationFrame(raf);
     W.el = null;
   };

@@ -34,7 +34,7 @@ export type Project = {
   /** Wessel's pin on the media. spot: where it lands, a little off, like it was dropped by hand. */
   note?: { text: string; spot?: { fx: number; dy: number; rot: number } };
   /** Which of these fields are placeholder copy (DESIGN.md §2.8). */
-  mock?: ("summary" | "role" | "note")[];
+  mock?: ("summary" | "role" | "note" | "media")[];
   /** A slot still waiting for its project: only the media is real; the text shows dashed gaps. */
   placeholder?: boolean;
 };
@@ -97,7 +97,7 @@ export function ProjectRow({ project: p, hidden, leaving }: { project: Project; 
   const media = useMagnet();
   const pin = useRef<HTMLSpanElement>(null);
   const [soon, setSoon] = useState(false);
-  const mock = (f: "summary" | "role" | "note") => (p.mock?.includes(f) ? "" : undefined);
+  const mock = (f: "summary" | "role" | "note" | "media") => (p.mock?.includes(f) ? "" : undefined);
   const gap = p.placeholder;
 
   // Pin spot: a fraction across the media, a little up from its bottom.
@@ -230,7 +230,7 @@ export function ProjectRow({ project: p, hidden, leaving }: { project: Project; 
     <article ref={row} className="pj" hidden={hidden} data-leaving={leaving || undefined}>
       <div className="cell pl">
         <div>
-          <h3 className="text-title" lang={p.lang}>
+          <h3 className="text-title" lang={p.lang} data-mock={gap ? "" : undefined}>
             {p.title}
             {gap && (
               <span aria-hidden="true">
@@ -251,6 +251,7 @@ export function ProjectRow({ project: p, hidden, leaving }: { project: Project; 
         {p.href ? (
           <Link
             ref={media as React.RefObject<HTMLAnchorElement>}
+            data-mock={mock("media")}
             href={p.href}
             className="media"
             data-ratio="portrait"
@@ -262,6 +263,7 @@ export function ProjectRow({ project: p, hidden, leaving }: { project: Project; 
         ) : (
           <button
             ref={media as React.RefObject<HTMLButtonElement>}
+            data-mock={mock("media")}
             type="button"
             className="media"
             data-ratio="portrait"
