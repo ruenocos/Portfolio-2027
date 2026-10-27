@@ -176,7 +176,7 @@
       "veil": "canvas",
       "hold": "header, day/night switch, Pause and Wessel's cursor stay still (Wessel holds his screen spot until the new page gives him a job)",
       "scroll": "Lenis stop + jump to top under the veil, start after veil in",
-      "technique": "DOM: PageSwitch plays the way out, routes, jumps to top under cover, plays the way in. Options veil/fade/lift on preview via ?pt= (2026-10-27, pick pending). View-transition snapshot dropped: it showed the grey frame between pages and flashed the new page before its entrance."
+      "technique": "DOM veil (PageSwitch): canvas cover over the content column out, route, jump to top under cover, veil lifts while the rows rise. Picked by Wons 2026-10-27 21:43 over Fade/Lift. No view-transition snapshot (grey frame + snap)."
     },
     "loadEntrance": {
       "uses": "entrance grammar (enter-opacity 560 + enter-rise 720, 16px)",
@@ -184,7 +184,7 @@
       "maxSteps": 4,
       "skip": "home first-visit boot, paused, reduced"
     },
-    "pausedOrReduced": "160ms opacity only",
+    "pausedOrReduced": "instant swap, no entrance",
     "dropped": "case video morph (2026-10-27)",
     "casePage": {
       "videoDelayMs": 240,
