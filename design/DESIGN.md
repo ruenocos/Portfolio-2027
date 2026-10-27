@@ -84,7 +84,7 @@ Rules:
 
 - **Frame:** every row is 3 columns: side `max(96px, (100vw − 1600px)/2)`, content, side. Side columns carry the dot grid. Content max width is 1600px.
 - **Ruled cells:** cells sit on a `line` background with `gap: 1px`, so siblings share single hairlines. No shadows on cells and no card borders. Cells are square-cornered (radius 0).
-- **Dot grid:** 1.1px dots every 16px, in `dot`. It sits on the side columns, the hero, the dividers and the bookend. Each box fits its own dots (`background-repeat: space`, centred), so a dot never sits on a hairline (Wons, 2026-10-27).
+- **Dot grid:** 1.1px dots every 16px, in `dot`. It sits on the side columns, the hero, the dividers and the bookend.
 - **Insets and rhythm:** content inset is 40px desktop and 20px mobile. Sections use 96px vertical padding (40 mobile). Section dividers are 168px rows (96 mobile; the tall ones are 240 at every width), with the label at bottom-left (inset 40, 20px from the bottom; mobile inset 20, 16px from the bottom).
 - **Section labels:** `# About · 1/4` in Label style. Only `#` is tangerine (`tang-ink`); the counter is ink.
 - **Round things inside the square frame:** media radius 24 (`--rm`), pills 999, handles round, chips are circles.
