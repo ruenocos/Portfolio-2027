@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useSyncExternalStore } from "react";
-import { MODE_KEY, resolveMode, type Mode } from "@/lib/mode";
+import { MODE_KEY, paintThemeColor, resolveMode, type Mode } from "@/lib/mode";
 
 // The current mode lives on <html data-mode>. This keeps it right while the
 // page is open (sunset, system theme changes) and lets the header switch
@@ -18,6 +18,7 @@ function apply() {
   // Cross-fade every colour token for the length of the mode easing.
   root.classList.add("mode-fade");
   root.dataset.mode = mode;
+  paintThemeColor(mode);
   window.setTimeout(() => root.classList.remove("mode-fade"), 900);
   listeners.forEach((fn) => fn());
 }

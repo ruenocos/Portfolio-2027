@@ -65,6 +65,16 @@ Motion:
   he survives page changes. It's an empty stage until Phase 3.
 - Status messages go to `#live` through `announce()`.
 
+## Site basics
+
+- Favicon (`src/app/icon.svg`, `favicon.ico`, `apple-icon.png`): Wessel's smiley.
+- `robots.ts` and `sitemap.ts` use Netlify's `URL` and `CONTEXT`: deploy
+  previews are never indexed; production hides `/studio`, `/system`, `/api`.
+- The phone's browser bar takes the canvas colour of the mode (theme-color).
+- `not-found.tsx` and `(site)/error.tsx` keep the shell. Their copy is a
+  placeholder (`data-mock`).
+- Security headers in `next.config.ts` (no CSP yet).
+
 ## Sanity
 
 Project `u0p6z6ze`, dataset `production` (public: never put private content in
