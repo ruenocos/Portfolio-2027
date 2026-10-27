@@ -1,0 +1,991 @@
+/* Phase 3 components. One rule set per component; the prototype drew some
+   of these several times (merge list: studio/web/build/phase-3/
+   component-inventory_v01.md). Values from DESIGN.md v02.1 §5, §6 and §7.
+   Type comes from the text-* utilities in the markup, not from here. */
+
+@layer components {
+  /* Per-mode part values. Set as variables on every [data-mode] element, so
+     the nearest mode wins: a light panel inside a night page stays light. */
+  :root,
+  [data-mode="light"],
+  [data-mode="dark"] {
+    --bot-tag-fill: var(--bot);
+    --bot-tag-text: var(--canvas);
+    --bot-tag-edge: transparent;
+    --note-fill: color-mix(in srgb, var(--tang) 16%, var(--canvas));
+    --note-edge: color-mix(in srgb, var(--tang) 35%, var(--canvas));
+  }
+  /* Night: bots are dashed outlines, and the note tint
+     would go muddy on indigo, so it takes the night fill with an ember edge. */
+  [data-mode="night"] {
+    --bot-tag-fill: transparent;
+    --bot-tag-text: var(--bot);
+    --bot-tag-edge: var(--bot);
+    --note-fill: var(--fill);
+    --note-edge: color-mix(in srgb, var(--tang) 45%, var(--fill));
+  }
+
+  /* ---------- section label: "{ Selected work }" ---------- */
+  .slab {
+    display: inline-flex;
+    gap: 0.6em;
+    color: var(--ink);
+    margin: 0;
+  }
+  .slab .br {
+    color: var(--tang-ink);
+  }
+
+  /* ---------- divider row: the label sits bottom-left of a dotted band ---------- */
+  .divider > .cell {
+    height: var(--spacing-divider);
+    display: flex;
+    align-items: flex-end;
+    padding: 0 var(--spacing-inset) 20px;
+  }
+  .divider.divider-tall > .cell,
+  .divider.divider-tall > .side {
+    height: 240px;
+  }
+
+  /* ---------- pills and chips ---------- */
+  /* Tactile objects (DESIGN.md §6): things you can press, plus tags, pins
+     and key chips, get a lit top edge and a short drop in their own colour.
+     Marks (selections, redlines, labels, links) stay flat. Strength per
+     mode comes from --tac-lit / --tac-lit-outline / --tac-drop. */
+  .gpill,
+  .tz,
+  .cur:not(.bot) .tag,
+  .dn .k {
+    --tac-c: var(--grape);
+    border: 1px solid transparent; /* an edge in forced colours */
+    box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / var(--tac-lit)),
+      inset 0 -1px 0 rgb(0 0 0 / 0.12),
+      0 1px 1px rgb(0 0 0 / 0.12),
+      0 4px 8px -4px color-mix(in srgb, color-mix(in srgb, var(--tac-c), black var(--tac-drop-dark)) var(--tac-drop), transparent);
+  }
+  .cur .tag {
+    --tac-c: var(--c);
+  }
+  .dn .k {
+    box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / var(--tac-lit)),
+      0 1px 1px rgb(0 0 0 / 0.14),
+      0 3px 6px -3px color-mix(in srgb, color-mix(in srgb, var(--grape), black var(--tac-drop-dark)) var(--tac-drop), transparent);
+  }
+  /* Canvas-coloured objects you can press: an edge of light and a soft drop. */
+  .opill[data-tap],
+  .copy,
+  .pzb {
+    box-shadow: var(--shadow-outline);
+  }
+  .dn {
+    box-shadow: inset 0 1px 2px rgb(0 0 0 / 0.1);
+  }
+  /* Pressed: it sinks 1px and its drop tucks in. Not while calm. */
+  :root:not([data-motion="calm"]) :is(a, button):is(.gpill, .opill, .copy, .pzb) {
+    transition:
+      transform var(--dur-press) var(--ease-press),
+      box-shadow var(--dur-press) var(--ease-press),
+      border-color var(--dur-ui) var(--ease-ui),
+      background-color var(--dur-spring) var(--ease-ui),
+      color var(--dur-ui) var(--ease-ui),
+      opacity var(--dur-ui) var(--ease-ui);
+  }
+  :root:not([data-motion="calm"]) .dn:active .k {
+    translate: 0 var(--press-y);
+  }
+  :root:not([data-motion="calm"]) :is(a, button):is(.gpill, .tz, .opill, .copy, .pzb):active {
+    transform: translateY(var(--press-y));
+    box-shadow: inset 0 1px 0 rgb(255 255 255 / calc(var(--tac-lit) / 2));
+  }
+  /* Size pill: Wessel's measurements and Handoff's redline numbers. */
+  .szp {
+    display: inline-block;
+    padding: 3px 6px;
+    border-radius: var(--radius-mark);
+    background: var(--tang);
+    color: var(--on-tang);
+    white-space: nowrap;
+  }
+  /* Grape pill: yours to touch. "small" is a Micro caps label, "tap" is 44 tall. */
+  .gpill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    border-radius: var(--radius-pill);
+    background: var(--grape);
+    color: var(--on-grape);
+    white-space: nowrap;
+  }
+  .gpill[data-size="small"] {
+    padding: 3px 8px;
+  }
+  .gpill[data-size="tap"] {
+    min-height: var(--spacing-tap);
+    padding: 0 18px;
+  }
+  /* Outline pill: Copy email, a 44-tall canvas-coloured button. */
+  .opill {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    min-height: 36px;
+    padding: 0 14px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-pill);
+    background: var(--canvas);
+    white-space: nowrap;
+  }
+  .opill[data-tap] {
+    min-height: var(--spacing-tap);
+    padding: 0 16px;
+    color: var(--grape);
+  }
+  .status {
+    margin: 0;
+  }
+  .status time {
+    color: var(--mute);
+    font-variant-numeric: tabular-nums;
+  }
+  /* Ink chip: ⌘C / ⌘V keys (r6). The Pause tip is the pill version of it. */
+  .kchip {
+    display: inline-grid;
+    place-items: center;
+    min-width: 24px;
+    height: 22px;
+    padding: 0 6px;
+    border-radius: 6px;
+    padding-bottom: 2px;
+    background: var(--ink);
+    color: var(--canvas);
+    white-space: nowrap;
+    /* A keycap: lit top, a 2px darker base like the side of the key. */
+    box-shadow: var(--shadow-key);
+  }
+  /* Mock tag: placeholder copy or data, so nothing invented ships unmarked. */
+  .mock {
+    display: inline-block;
+    width: max-content;
+    max-width: 100%;
+    padding: 2px 6px;
+    border: 1px dashed var(--mute);
+    border-radius: var(--radius-tag);
+    color: var(--mute);
+  }
+  /* Build marker only: deploy previews and dev show it, the live site never does. */
+  html[data-live] .mock {
+    display: none;
+  }
+  /* Slot: an inline gap where a real value is still missing. */
+  .slot {
+    display: inline;
+    padding: 1px 6px;
+    border: 1px dashed var(--mute);
+    border-radius: var(--radius-tag);
+    color: var(--mute);
+    font-family: var(--font-mono);
+    font-size: 0.82em;
+    letter-spacing: 0.01em;
+    line-height: 1.6;
+  }
+
+  /* ---------- tool chips: logos as circles, 56 (Daily kit) or 32 (rows) ---------- */
+  .tools {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  .tools[data-size="56"] {
+    gap: 12px;
+  }
+  .tool {
+    --s: 32px;
+    position: relative;
+    display: block;
+    width: var(--s);
+    height: var(--s);
+    flex: none;
+    border-radius: 50%;
+    outline: 1.5px solid transparent;
+    outline-offset: 4px;
+    transition:
+      outline-color var(--dur-ui) var(--ease-ui),
+      box-shadow var(--dur-ui) var(--ease-ui),
+      opacity var(--dur-ui) var(--ease-ui),
+      filter var(--dur-ui) var(--ease-ui),
+      transform var(--dur-spring) var(--ease-spring);
+  }
+  .tools[data-size="56"] .tool {
+    --s: 56px;
+  }
+  /* A hairline ring, so light logo tiles keep their edge on the canvas. */
+  .tool::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    box-shadow: inset 0 0 0 1px var(--line);
+    pointer-events: none;
+  }
+  .tool.empty::after {
+    content: none;
+  }
+  .tool img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+  }
+  .tool.empty {
+    border: 1px dashed var(--mute);
+    opacity: 0.6;
+  }
+  button.tool {
+    padding: 0;
+    border: 0;
+    background: none;
+    cursor: pointer;
+  }
+  button.tool::before {
+    content: "";
+    position: absolute;
+    inset: calc((var(--s) - var(--spacing-tap)) / 2);
+  }
+  /* Picked: a canvas gap and a grape ring, lifted. Focus is a separate
+     outline further out, so a focused chip never looks picked. */
+  .tool[aria-pressed="true"],
+  .tool.on {
+    box-shadow:
+      0 0 0 3px var(--canvas),
+      0 0 0 4.5px var(--grape);
+    transform: translateY(-3px);
+  }
+  @media (forced-colors: active) {
+    .tool[aria-pressed="true"],
+    .tool.on {
+      outline: 2px solid Highlight;
+      outline-offset: 3px;
+    }
+  }
+  .tools:has(.tool[aria-pressed="true"], .tool.on) .tool:not([aria-pressed="true"], .on) {
+    opacity: 0.7;
+    filter: grayscale(1);
+  }
+  .tool:focus-visible {
+    outline: 2px solid var(--grape);
+    outline-offset: 8px;
+  }
+  .tfilter {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    flex-wrap: wrap;
+  }
+  .tfilter .clr {
+    min-height: var(--spacing-tap);
+    color: var(--grape);
+    cursor: pointer;
+  }
+
+  /* ---------- text link: letter hop + arrow ---------- */
+  .tlink {
+    min-height: var(--spacing-tap);
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4em;
+    transition: color var(--dur-ui) var(--ease-ui);
+  }
+  .tlink:hover {
+    color: var(--grape);
+  }
+  .tlink .ar {
+    color: var(--grape);
+  }
+  .tlink .ar.ext {
+    color: var(--mute);
+  }
+
+  /* ---------- arrow icon ---------- */
+  .arw {
+    display: inline-block;
+    width: 1.15em;
+    height: 1.15em;
+    flex: none;
+    vertical-align: -0.2em;
+    overflow: visible;
+  }
+  .ar,
+  .ext {
+    display: inline-flex;
+    align-items: center;
+  }
+  .hd .ct,
+  .tz {
+    gap: 0.35em;
+  }
+  .mnav .arw {
+    width: 0.7em;
+    height: 0.7em;
+  }
+
+  /* ---------- media frame ---------- */
+  .media {
+    position: relative;
+    display: block;
+    border-radius: var(--radius-media);
+    background: var(--fill);
+    isolation: isolate;
+  }
+  .media[data-ratio="portrait"] {
+    aspect-ratio: 3 / 4;
+  }
+  .media[data-ratio="wide"] {
+    aspect-ratio: 16 / 9;
+  }
+  /* The clip holds the picture; pins and tags hang outside it. */
+  .media .clip {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    border-radius: inherit;
+  }
+  .media .clip > img,
+  .media .clip > video {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+  .media .clip > video {
+    opacity: 0;
+    transition: opacity 300ms var(--ease-ui);
+  }
+  .media .clip > video[data-on="true"] {
+    opacity: 1;
+  }
+  /* Missing media: a quiet fill, never a broken-image icon. */
+  .media .clip > img[data-err="true"] {
+    visibility: hidden;
+  }
+  /* Placeholder: dashed, with a mock tag in the middle. */
+  .media[data-placeholder] {
+    display: grid;
+    place-items: center;
+    padding: 24px;
+    text-align: center;
+    border: 1px dashed var(--line);
+  }
+  /* Print: a photo with a canvas border, for the About deck. */
+  .media[data-print] {
+    outline: 6px solid var(--canvas);
+    outline-offset: -6px;
+    box-shadow:
+      0 1px 0 var(--line),
+      0 18px 40px -18px rgb(0 0 0 / 0.35);
+  }
+  .mfig {
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  .mfig figcaption {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    align-items: center;
+    color: var(--mute);
+  }
+
+  /* ---------- project row: equal thirds ---------- */
+  .pj {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--spacing-hairline);
+    background: var(--line);
+    min-width: 0;
+  }
+  .pj > .cell {
+    padding: var(--spacing-section) var(--spacing-inset);
+  }
+  .pj .pl,
+  .pj .pr {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: 40px;
+  }
+  .pj .pl h3 {
+    margin: -6px 0 16px;
+    overflow-wrap: break-word;
+    hyphens: auto;
+  }
+  .pj .pd {
+    color: var(--mute);
+    max-width: 34ch;
+    margin: 0;
+  }
+  .pj .pc {
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding-inline: 0;
+  }
+  .pj .pc .media {
+    width: 78%;
+    max-width: 520px;
+    cursor: pointer;
+  }
+  .pj .pc .media .pin {
+    position: absolute;
+    z-index: 4;
+    left: var(--px);
+    bottom: var(--py);
+    rotate: var(--rot);
+    transform-origin: 0 100%;
+  }
+  .pj .pc .media .pin .bub {
+    white-space: normal;
+    max-width: 300px;
+  }
+  .meta {
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .meta dt {
+    color: var(--mute);
+  }
+  .meta dd {
+    margin: 0;
+    min-height: 32px;
+    display: flex;
+    align-items: center;
+  }
+  .meta:has(.tools:empty) {
+    display: none;
+  }
+  /* "Case study soon" for touch and keyboard (mouse users get it on the You tag). */
+  .soontag {
+    position: absolute;
+    left: 50%;
+    bottom: 18px;
+    z-index: 5;
+    translate: -50% 8px;
+    opacity: 0;
+    pointer-events: none;
+    transition:
+      opacity var(--dur-ui) var(--ease-ui),
+      translate var(--dur-spring) var(--ease-spring);
+  }
+  .soontag[data-on="true"] {
+    opacity: 1;
+    translate: -50% 0;
+  }
+
+  /* ---------- crumb bar ---------- */
+  .crumb > .cell {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 0 var(--spacing-inset);
+    min-height: 64px;
+  }
+  .crumb .sn {
+    color: var(--mute);
+  }
+
+  /* ---------- facts row ---------- */
+  .facts {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--spacing-hairline);
+    background: var(--line);
+    margin: 0;
+    min-width: 0;
+  }
+  .facts > .cell {
+    padding: 40px var(--spacing-inset);
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .facts dt {
+    color: var(--mute);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 22px;
+  }
+  .facts dt .mock {
+    padding: 1px 6px;
+  }
+  .facts dd {
+    margin: 0;
+    overflow-wrap: anywhere;
+    hyphens: auto;
+  }
+  .facts .sub {
+    color: var(--mute);
+    margin-top: 6px;
+  }
+
+  /* ---------- Wessel's canvas: cursors, pins, selections, redlines ---------- */
+  .cur {
+    --c: var(--ink);
+    --on: var(--canvas);
+    position: absolute;
+    left: 0;
+    top: 0;
+    display: flex;
+    align-items: flex-start;
+    pointer-events: none;
+    text-align: left;
+    transition: opacity var(--dur-ui) var(--ease-ui);
+  }
+  .cur[data-static] {
+    position: relative;
+  }
+  .cur .ptr {
+    width: 23px;
+    height: 23px;
+    flex: none;
+    transform-origin: 3px 3px;
+    transition: transform 260ms var(--ease-spring);
+    filter: drop-shadow(0 1px 1.5px rgb(0 0 0 / 0.28));
+  }
+  .cur .ptr path {
+    fill: var(--c);
+    stroke: var(--canvas);
+    stroke-width: 1.75;
+    stroke-linejoin: round;
+  }
+  .cur .lab {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+    margin: 22px 0 0 -3px;
+  }
+  .cur .tag {
+    display: inline-flex;
+    align-items: center;
+    height: 24px;
+    padding: 0 10px;
+    /* The square corner points back at the tip. */
+    border-radius: 4px var(--radius-pill) var(--radius-pill) var(--radius-pill);
+    background: var(--c);
+    color: var(--on);
+    white-space: nowrap;
+    transform-origin: 0 0;
+  }
+  .cur[data-flip="true"] .tag {
+    border-radius: var(--radius-pill) 4px var(--radius-pill) var(--radius-pill);
+  }
+  .cur[data-flip="true"] .lab {
+    position: absolute;
+    right: 10px;
+    top: 21px;
+    margin: 0;
+    align-items: flex-end;
+  }
+  .cur[data-hide="true"] {
+    opacity: 0;
+  }
+  .cur[data-press="true"] .ptr {
+    transform: scale(0.84);
+  }
+  .cur.wes {
+    --c: var(--tang);
+    --on: var(--on-tang);
+  }
+  .cur.bot {
+    --c: var(--bot);
+    --on: var(--canvas);
+  }
+  .cur.bot .tag {
+    background: var(--bot-tag-fill);
+    color: var(--bot-tag-text);
+    border: 1px dashed var(--bot-tag-edge);
+  }
+  .cur.you {
+    --c: var(--grape);
+    --on: var(--on-grape);
+  }
+  .cur.you .tag {
+    transition: transform 320ms var(--ease-spring);
+  }
+  .cur.you[data-on="true"] .tag {
+    transform: scale(1.1);
+  }
+  .cur.you[data-on="true"] .ptr {
+    transform: rotate(-8deg);
+  }
+  /* Asleep: tilted, breathing, "z z", and his note. He's the wake button. */
+  .cur.wes .note,
+  .cur.wes .zz {
+    display: none;
+  }
+  .cur.wes[data-asleep="true"] {
+    pointer-events: auto;
+    cursor: pointer;
+  }
+  .cur.wes[data-asleep="true"]::before {
+    content: "";
+    position: absolute;
+    inset: -12px -12px -12px -10px;
+  }
+  .cur.wes[data-asleep="true"] .ptr {
+    transform: rotate(-28deg) translateY(2px);
+    opacity: 0.75;
+  }
+  .cur.wes[data-asleep="true"] .tag {
+    animation: breathe 4s ease-in-out infinite;
+  }
+  .cur.wes[data-asleep="true"] .zz {
+    display: block;
+    position: absolute;
+    left: 18px;
+    top: -10px;
+    color: var(--mute);
+    font-style: normal;
+    animation: zz 2.4s ease-in-out infinite;
+  }
+  .cur.wes[data-asleep="true"][data-note="true"] .note {
+    display: block;
+  }
+  .cur.wes[data-dock="true"] .lab {
+    display: none;
+  }
+  @media (width >= 900px) {
+    .cur.wes[data-dock="true"] .lab {
+      display: flex;
+    }
+  }
+  /* Your own pointer hides only while the You cursor really stands in for
+     it: not while calm, not in the reel dialog, not in forced colours. */
+  html.youcur:not([data-motion="calm"]):not(:has(dialog[open])),
+  html.youcur:not([data-motion="calm"]):not(:has(dialog[open])) * {
+    cursor: none !important;
+  }
+  html[data-motion="calm"] .cur.you[data-fixed] {
+    display: none;
+  }
+  @media (forced-colors: active) {
+    html.youcur,
+    html.youcur * {
+      cursor: auto !important;
+    }
+    .cur.you[data-fixed] {
+      display: none;
+    }
+    .dn .k {
+      background: ButtonText;
+    }
+    .pzb[data-paused] {
+      background: Highlight;
+      color: HighlightText;
+    }
+  }
+  /* Asleep he's a button: the focus ring wraps his name tag, not the arrow. */
+  .cur.wes[data-asleep="true"]:focus-visible {
+    outline: none;
+  }
+  .cur.wes[data-asleep="true"]:focus-visible .tag {
+    outline: 2px solid var(--grape);
+    outline-offset: 3px;
+  }
+  /* Docked on a phone he sits over content, so he stops catching taps there.
+     The day/night switch wakes him too. */
+  @media (width < 900px) {
+    .cur.wes[data-dock="true"] {
+      pointer-events: none;
+    }
+  }
+  /* You sit above everything, the phone menu included. */
+  .cur.you[data-fixed] {
+    position: fixed;
+    z-index: 95;
+  }
+
+  /* Comment pin: smiley avatar + bubble. One on screen at a time. */
+  .pin {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    transform-origin: 0 0;
+  }
+  .pin[data-static] {
+    position: relative;
+  }
+  .pin .av {
+    width: 32px;
+    height: 32px;
+    flex: none;
+    display: grid;
+    place-items: center;
+    border-radius: 50% 50% 50% 4px;
+    background: var(--tang);
+    color: var(--on-tang);
+    box-shadow: 0 2px 8px -2px rgb(0 0 0 / 0.4);
+  }
+  .pin .av svg {
+    width: 20px;
+    height: 20px;
+  }
+  .pin .bub {
+    padding: 8px 12px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-pin);
+    background: var(--canvas);
+    color: var(--ink);
+    white-space: nowrap;
+    box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / var(--tac-lit-outline)),
+      0 1px 2px rgb(0 0 0 / 0.08),
+      0 4px 10px -6px rgb(0 0 0 / 0.25);
+  }
+  /* The note variant: tinted with Wessel's ink and tilted, like a sticky. */
+  .pin .bub[data-note],
+  .cur .note {
+    max-width: 190px;
+    white-space: normal;
+    padding: 10px 12px 12px;
+    border-radius: var(--radius-pin);
+    background: var(--note-fill);
+    border: 1px solid var(--note-edge);
+    color: var(--ink);
+    box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / var(--tac-lit-outline)),
+      0 1px 2px rgb(0 0 0 / 0.08),
+      0 4px 10px -6px rgb(0 0 0 / 0.25);
+    rotate: -2deg;
+  }
+  .pin[data-dot="true"] .bub {
+    display: none;
+  }
+  .pin[data-dot="true"] {
+    transform: scale(0.8);
+    opacity: 0.9;
+  }
+  .pin[hidden] {
+    display: none;
+  }
+  .pop {
+    animation: pop var(--dur-spring) var(--ease-spring) both;
+  }
+
+  /* Selection: 1.5px tangerine box, 4 round handles, size pill below. */
+  .sel {
+    position: absolute;
+    border: 1.5px solid var(--tang);
+    pointer-events: none;
+    transition: opacity 360ms var(--ease-ui);
+  }
+  .sel[data-static] {
+    position: relative;
+    display: block;
+  }
+  .sel > i {
+    position: absolute;
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: var(--canvas);
+    border: 1.5px solid var(--tang);
+  }
+  .sel > i:nth-child(1) {
+    left: -5px;
+    top: -5px;
+  }
+  .sel > i:nth-child(2) {
+    right: -5px;
+    top: -5px;
+  }
+  .sel > i:nth-child(3) {
+    right: -5px;
+    bottom: -5px;
+  }
+  .sel > i:nth-child(4) {
+    left: -5px;
+    bottom: -5px;
+  }
+  .sel > .szp {
+    position: absolute;
+    left: 50%;
+    top: calc(100% + 8px);
+    translate: -50% 0;
+  }
+  .sel[data-bot="true"],
+  .sel[data-bot="true"] > i {
+    border-style: dashed;
+    border-color: var(--bot);
+  }
+  .sel[data-bot="true"] > .szp {
+    background: var(--bot);
+    color: var(--canvas);
+  }
+  /* Redlines: Handoff's spacing marks, with end ticks. */
+  .red {
+    position: absolute;
+    background: var(--tang);
+  }
+  .red.h {
+    height: 1px;
+  }
+  .red.v {
+    width: 1px;
+  }
+  .red::before,
+  .red::after {
+    content: "";
+    position: absolute;
+    background: var(--tang);
+  }
+  .red.h::before,
+  .red.h::after {
+    width: 1px;
+    height: 9px;
+    top: -4px;
+  }
+  .red.h::before {
+    left: 0;
+  }
+  .red.h::after {
+    right: 0;
+  }
+  .red.v::before,
+  .red.v::after {
+    height: 1px;
+    width: 9px;
+    left: -4px;
+  }
+  .red.v::before {
+    top: 0;
+  }
+  .red.v::after {
+    bottom: 0;
+  }
+  .ovl > .szp {
+    position: absolute;
+    translate: -50% -50%;
+  }
+  .ovl > .szp.below {
+    translate: -50% 0;
+  }
+
+  /* The page-coordinate layer: selections, redlines and bots scroll with the page. */
+  .ovl {
+    position: absolute;
+    inset: 0;
+    z-index: 34;
+    pointer-events: none;
+    overflow: clip;
+  }
+
+  @media (width < 900px) {
+    .pj {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 0;
+    }
+    .pj > .cell {
+      padding: 32px var(--spacing-inset);
+    }
+    .pj > .pl {
+      padding-bottom: 0;
+    }
+    .pj > .pc {
+      padding-inline: 0;
+    }
+    .pj > .pr {
+      padding-top: 0;
+      flex-direction: row;
+      flex-wrap: wrap;
+      row-gap: 24px;
+      gap: 40px;
+      justify-content: flex-start;
+    }
+    .pj > .pr .meta:first-child {
+      flex: 1 1 140px;
+      min-width: 0;
+    }
+    .pin .bub,
+    .pj .pc .media .pin .bub {
+      white-space: normal;
+      max-width: 180px;
+    }
+    .crumb > .cell {
+      flex-wrap: wrap;
+      gap: 0 16px;
+    }
+    .facts {
+      grid-template-columns: minmax(0, 1fr);
+    }
+    .facts > .cell {
+      padding-block: 24px;
+    }
+  }
+  /* Tablet: text | media, so a portrait doesn't fill a whole screen. */
+  @media (600px <= width < 900px) {
+    .pj {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      gap: var(--spacing-hairline);
+    }
+    .pj > .pl {
+      grid-column: 1;
+      grid-row: 1;
+    }
+    .pj > .pc {
+      grid-column: 2;
+      grid-row: 1 / span 2;
+      padding: 32px var(--spacing-inset);
+      align-items: center;
+    }
+    .pj > .pr {
+      grid-column: 1;
+      grid-row: 2;
+    }
+    .pj .pc .media {
+      width: 100%;
+      max-width: 320px;
+    }
+  }
+  @media (width < 600px) {
+    .media[data-ratio="wide"][data-square-small] {
+      aspect-ratio: 1;
+    }
+  }
+}
+
+@keyframes breathe {
+  50% {
+    transform: scale(1.03);
+  }
+}
+@keyframes zz {
+  0%,
+  100% {
+    transform: translate(0, 0);
+    opacity: 0.4;
+  }
+  50% {
+    transform: translate(3px, -4px);
+    opacity: 1;
+  }
+}
+@keyframes pop {
+  from {
+    transform: scale(0.5);
+    opacity: 0;
+  }
+}

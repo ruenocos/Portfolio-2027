@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Arrow } from "@/components/parts/Arrow";
 import { CopyEmail } from "./CopyEmail";
 import { Hop } from "./Hop";
 import { EMAIL, LINKEDIN, NAV } from "./nav";
@@ -32,7 +33,7 @@ export function Footer() {
             <a className="l" href={LINKEDIN} target="_blank" rel="noopener">
               <Hop text="LinkedIn" />
               <span className="ext" aria-hidden="true">
-                ↗
+                <Arrow dir="out" />
               </span>
             </a>
           </div>
@@ -46,14 +47,14 @@ export function Footer() {
             <a className="l" href="#top">
               <Hop text="Back to top" />
               <span className="ar" aria-hidden="true">
-                ↑
+                <Arrow dir="up" />
               </span>
             </a>
           </div>
         </div>
         <div className="side" />
       </section>
-      <Row className="legal text-label">
+      <Row className="legal text-small">
         <span>© 2027 Wessel Oud</span>
         <span>Made in the Netherlands</span>
       </Row>

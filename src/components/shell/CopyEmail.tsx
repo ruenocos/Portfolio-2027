@@ -36,7 +36,7 @@ export function CopyEmail({ email }: { email: string }) {
   };
 
   return (
-    <button type="button" className="copy text-label" onClick={copy}>
+    <button type="button" className="copy opill text-link" data-tap onClick={copy}>
       {label}
     </button>
   );

@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { Arrow } from "@/components/parts/Arrow";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { getLenis } from "@/lib/scroll";
@@ -81,8 +82,8 @@ export function Header() {
   }, [open]);
 
   const links = [
-    ...NAV.map((l) => ({ ...l, arrow: "" })),
-    { href: "#contact", label: "Contact", arrow: "↓" },
+    ...NAV.map((l) => ({ ...l, arrow: undefined })),
+    { href: "#contact", label: "Contact", arrow: "down" as const },
   ];
 
   return (
@@ -102,7 +103,7 @@ export function Header() {
                 <Link
                   key={href}
                   href={href}
-                  className="text-label"
+                  className="text-link"
                   aria-current={pathname.startsWith(href) ? "page" : undefined}
                 >
                   <Hop text={label} />
@@ -115,10 +116,10 @@ export function Header() {
             </div>
           </div>
           <div className="end">
-            <a href="#contact" className="ct text-label">
+            <a href="#contact" className="ct text-link">
               <Hop text="Contact" />
               <span className="ar" aria-hidden="true">
-                &nbsp;↓
+                <Arrow dir="down" />
               </span>
             </a>
             <button
@@ -161,7 +162,7 @@ export function Header() {
                 {label}
                 {arrow && (
                   <span className="ar" aria-hidden="true">
-                    {arrow}
+                    <Arrow dir={arrow} />
                   </span>
                 )}
               </Link>

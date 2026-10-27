@@ -21,9 +21,11 @@ const SCHEME = { light: "light", dark: "dark", night: "dark" };
 // Mobile steps from DESIGN.md §4 and §5 (below the 900px stack breakpoint).
 // They live only in the token descriptions, so they're listed here once.
 const MOBILE_TYPE = {
+  title: "24px",
+  accent: "32px",
   display: "clamp(51px, 13.1vw, 192px)", // scales with width, 51 at 390
-  statement: "40px",
-  headline: "34px",
+  statement: "48px",
+  headline: "40px",
   email: "clamp(24px, 6.2vw, 32px)", // fluid to 24
 };
 // side: 16px comes from the v90 prototype (web/site-prototype).
@@ -62,6 +64,8 @@ push("}", "");
 push(":root {");
 for (const [name, e] of Object.entries(motion.easing)) push(`  --dur-${name}: ${e.ms}ms;`);
 push(`  --enter-rise: ${motion.easing["enter-rise"].distance};`);
+push(`  --press-y: ${motion.easing.press.distance};`);
+push(`  --dur-page-out: ${motion.transition.page.out.ms}ms;`, `  --dur-page-in: ${motion.transition.page.in.ms}ms;`);
 for (const [name, t] of Object.entries(tokens.type)) push(`  --type-${name}-size: ${t.$value.fontSize};`);
 push("}", "");
 
@@ -70,6 +74,9 @@ for (const mode of MODES) {
   const selector = mode === "light" ? `:root, [data-mode="light"]` : `[data-mode="${mode}"]`;
   push(`${selector} {`, `  color-scheme: ${SCHEME[mode]};`);
   for (const name of colorNames) push(`  --${name}: ${v(tokens.color[mode][name])};`);
+  // Tactile objects: top-edge light and how much colour goes into the drop.
+  const tac = tokens.tactile[mode];
+  push(`  --tac-lit: ${v(tac.lit)};`, `  --tac-lit-outline: ${v(tac.litOutline)};`, `  --tac-drop: ${v(tac.drop)};`, `  --shadow-outline: ${v(tac.outline)};`, `  --shadow-key: ${v(tac.key)};`, `  --tac-drop-dark: ${v(tac.dropDark)};`);
   push("}", "");
 }
 

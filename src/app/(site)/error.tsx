@@ -10,7 +10,7 @@ export default function Error({ reset }: { error: Error; reset: () => void }) {
         <span className="text-tang-ink">#</span> Error
       </p>
       <h1 className="text-statement">Something broke on this page.</h1>
-      <button type="button" onClick={reset} className="text-label text-grape self-start min-h-tap cursor-pointer">
+      <button type="button" onClick={reset} className="text-link text-grape self-start min-h-tap cursor-pointer">
         Try again
       </button>
     </Row>

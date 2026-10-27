@@ -1,10 +1,9 @@
 import type { Metadata } from "next";
 import { Bricolage_Grotesque, Geist_Mono, Instrument_Serif } from "next/font/google";
-import { CursorLayer } from "@/components/CursorLayer";
 import { ModeProvider } from "@/components/ModeProvider";
 import { motionScript } from "@/lib/motion";
 import { modeScript, themeColorScript } from "@/lib/mode";
-import { SITE_URL } from "@/lib/site";
+import { IS_PRODUCTION, SITE_URL } from "@/lib/site";
 import "./globals.css";
 
 // next/font sets --nf-*; tokens.css puts them in front of the fallbacks.
@@ -26,6 +25,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     <html
       lang="en"
       data-mode="light"
+      data-live={IS_PRODUCTION ? "" : undefined}
       suppressHydrationWarning
       className={`${display.variable} ${mono.variable} ${serif.variable}`}
     >
@@ -37,8 +37,6 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       </head>
       <body>
         {children}
-        {/* Wessel's layer sits here so he survives every page change. */}
-        <CursorLayer />
         <p id="live" className="sr-only" aria-live="polite" />
         <ModeProvider />
       </body>

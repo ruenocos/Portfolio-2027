@@ -14,6 +14,7 @@
     gap: var(--spacing-hairline);
     background: var(--line);
     min-height: 100svh;
+    position: relative;
   }
   .page-body,
   main {
@@ -148,6 +149,9 @@
   }
 
   /* letter hop */
+  .hop .hw {
+    white-space: nowrap;
+  }
   .hop i {
     display: inline-block;
     font-style: normal;
@@ -255,7 +259,7 @@
     border-color: var(--grape);
     color: var(--ink);
   }
-  .pzb[aria-pressed="true"] {
+  .pzb[data-paused] {
     background: var(--grape);
     border-color: var(--grape);
     color: var(--on-grape);
@@ -320,22 +324,12 @@
   .mail:hover {
     color: var(--grape);
   }
+  /* Copy email is an OutlinePill tap face (components.css); only the cursor is its own. */
   .copy {
-    min-height: var(--spacing-tap);
-    padding: 0 16px;
-    border: 1px solid var(--line);
-    border-radius: var(--radius-pill);
-    color: var(--grape);
     cursor: pointer;
-    transition:
-      border-color var(--dur-ui) var(--ease-ui),
-      transform var(--dur-spring) var(--ease-spring);
   }
   .copy:hover {
     border-color: var(--grape);
-  }
-  .copy:active {
-    transform: scale(0.95);
   }
   .fcols .l {
     min-width: var(--spacing-tap);
@@ -557,13 +551,14 @@
       border-radius: var(--radius-pill);
       background: var(--grape);
       color: var(--on-grape);
-      box-shadow: 0 6px 18px -8px rgb(0 0 0 / 0.45);
       opacity: 0;
       translate: 0 var(--enter-rise);
       pointer-events: none;
       transition:
         opacity var(--dur-enter-opacity) var(--ease-enter-opacity),
-        translate var(--dur-spring) var(--ease-spring);
+        translate var(--dur-spring) var(--ease-spring),
+        transform var(--dur-press) var(--ease-press),
+        box-shadow var(--dur-press) var(--ease-press);
     }
     .tz[data-on="true"] {
       opacity: 1;
@@ -573,9 +568,6 @@
     .menu-open .tz {
       opacity: 0;
       pointer-events: none;
-    }
-    .tz:active {
-      transform: scale(0.96);
     }
 
     section[id] {
@@ -648,37 +640,30 @@ html.entering main [data-row] > .cell {
   opacity: 0;
 }
 
-/* Paused or reduced: things land at once. Colour still cross-fades. */
+/* Paused or reduced: things land at once. Colour still cross-fades, but
+   nothing else animates, not even during that cross-fade. */
+html[data-motion="calm"] *,
+html[data-motion="calm"] *::before,
+html[data-motion="calm"] *::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+}
 html[data-motion="calm"]:not(.mode-fade) *,
 html[data-motion="calm"]:not(.mode-fade) *::before,
 html[data-motion="calm"]:not(.mode-fade) *::after {
-  animation-duration: 0.01ms !important;
-  animation-iteration-count: 1 !important;
   transition-duration: 0s !important;
   transition-delay: 0s !important;
   scroll-behavior: auto !important;
 }
 
-/* Page change: a canvas cross-fade, 240 out then 240 in. The rest of the
-   page (header, Wessel's layer) doesn't animate. */
-::view-transition-old(root),
-::view-transition-new(root),
-::view-transition-group(.page) {
-  animation: none;
+/* Page change (PageSwitch): the veil is a canvas-coloured cover over the
+   content column, under the header so that holds still. */
+.veil {
+  position: fixed;
+  top: var(--spacing-header);
+  bottom: 0;
+  z-index: 30;
+  background: var(--canvas);
+  pointer-events: none;
 }
-::view-transition-old(.page) {
-  animation: page-out 240ms var(--ease-ui) both;
-}
-::view-transition-new(.page) {
-  animation: page-in 240ms var(--ease-ui) 240ms both;
-}
-@keyframes page-out {
-  to {
-    opacity: 0;
-  }
-}
-@keyframes page-in {
-  from {
-    opacity: 0;
-  }
-}
+

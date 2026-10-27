@@ -61,9 +61,33 @@ Motion:
   house entrance (rise 16px + fade, 80ms apart). A row can mark its own
   blocks with `data-enter`. Home's boot intro can skip it by setting
   `<html data-boot>`.
-- `src/components/CursorLayer.tsx` is Wessel's layer in the root layout, so
-  he survives page changes. It's an empty stage until Phase 3.
+- `src/components/CursorLayer.tsx` is Wessel's layer. It sits in the shell
+  (which stays mounted between pages), so he survives page changes.
 - Status messages go to `#live` through `announce()`.
+
+## Components
+
+Every component is on `/system` in light, dark and night, and the live ones
+(project rows, tool filter, media) run on the page itself. The prototype drew
+some parts several times; they're merged into one component each (list in
+`studio/web/build/phase-3/component-inventory_v01.md`).
+
+- `src/components/parts/`: `SectionLabel`, `Divider`, pills (`SizePill`,
+  `GrapePill`, `OutlinePill`, `KeyChip`, `MockTag`, `Slot`), `Tools` +
+  `ToolFilter`, `TextLink` (letter hop + arrow), `Media` / `MediaFigure`,
+  `ProjectRow(s)`, `Crumb`, `Facts`. Styles in `src/styles/components.css`.
+- `Media` plays its loop only while on screen, at 0.75×, and shows the
+  poster while calm. The source loads only when it comes near the screen.
+- `src/lib/wessel.ts` is Wessel's engine: his travel, beats, selections,
+  pins, redlines and the night bots. Springs and thresholds come from
+  `motion-tokens.json` (`wessel`). A section gets a beat with `useBeat()`
+  (`src/components/canvas/`): `day` for Wessel, `night` for a bot. Beats run
+  one at a time, once per mode, and check in with `live(g)` so a mode or page
+  change stops them.
+- The visitor's grape "You" cursor (mouse only) reads its label from the
+  nearest `[data-you]`: project media say "View case" or "Case study soon".
+- Selections, redlines and bots go on `#ovl`, a page-coordinate layer in the
+  shell, so they scroll with the page.
 
 ## Site basics
 

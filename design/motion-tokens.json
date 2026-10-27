@@ -44,6 +44,17 @@
       ],
       "ms": 900,
       "use": "light/dark/night token cross-fade"
+    },
+    "press": {
+      "bezier": [
+        0.2,
+        0,
+        0,
+        1
+      ],
+      "ms": 120,
+      "distance": "1px",
+      "use": "tactile objects sink 1px while pressed. Off when calm (Pause or reduced motion)"
     }
   },
   "entrance": {
@@ -60,10 +71,16 @@
   "magnetism": {
     "reel": {
       "max": "28px x / 18px y",
-      "rotate": "x * 0.07deg"
+      "rotate": "x * 0.07deg",
+      "pull": 0.05,
+      "ease": 0.1
     },
     "projectMedia": {
-      "zone": "side columns only, still over the middle column"
+      "zone": "side columns only, still over the middle column",
+      "max": "28px x / 18px y",
+      "rotate": "x * 0.07deg",
+      "pull": 0.05,
+      "ease": 0.1
     }
   },
   "wessel": {
@@ -87,10 +104,41 @@
         17000
       ],
       "max": 3
+    },
+    "spring": {
+      "$description": "Wessel's travel (2026-10-27, from the prototype engine). k = stiffness, z = damping ratio; y is k * yScale so he drops a touch slower than he slides.",
+      "beat": {
+        "k": 190,
+        "z": 0.82
+      },
+      "free": {
+        "k": 46,
+        "z": 0.92
+      },
+      "asleep": {
+        "k": 28,
+        "z": 0.92
+      },
+      "bot": {
+        "k": 170,
+        "z": 0.78
+      },
+      "yScale": 1.25,
+      "maxBoost": 2.6,
+      "boostPerPxSec": 1200
+    },
+    "pin": {
+      "showMs": 1300,
+      "onePinAtATime": true
+    },
+    "need": {
+      "default": 0.4,
+      "projectRow": 0.8
     }
   },
   "video": {
-    "playbackRate": 0.75
+    "playbackRate": 0.75,
+    "playsWhen": "in view; paused while calm (poster)"
   },
   "scroll": {
     "lenis": {
@@ -118,14 +166,17 @@
   "transition": {
     "page": {
       "out": {
-        "ms": 240,
+        "ms": 160,
         "easing": "ui"
       },
       "in": {
         "ms": 240,
         "easing": "ui"
       },
-      "veil": "canvas"
+      "veil": "canvas",
+      "hold": "header, day/night switch, Pause and Wessel's cursor stay still (Wessel holds his screen spot until the new page gives him a job)",
+      "scroll": "Lenis stop + jump to top under the veil, start after veil in",
+      "technique": "DOM veil (PageSwitch): canvas cover over the content column out, route, jump to top under cover, veil lifts while the rows rise. Picked by Wons 2026-10-27 21:43 over Fade/Lift. No view-transition snapshot (grey frame + snap)."
     },
     "loadEntrance": {
       "uses": "entrance grammar (enter-opacity 560 + enter-rise 720, 16px)",
@@ -133,8 +184,13 @@
       "maxSteps": 4,
       "skip": "home first-visit boot, paused, reduced"
     },
-    "pausedOrReduced": "fade only",
-    "dropped": "case video morph (2026-10-27)"
+    "pausedOrReduced": "instant swap, no entrance",
+    "dropped": "case video morph (2026-10-27)",
+    "casePage": {
+      "videoDelayMs": 240,
+      "order": "title row first, header video one step later"
+    },
+    "source": "motion flow research 2026-10-27, studio/references/motion-flow/"
   },
   "pause": {
     "control": "Pause motion button beside the day/night switch",

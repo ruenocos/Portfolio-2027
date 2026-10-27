@@ -1,13 +1,12 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import { useEffect, useRef } from "react";
+import { useEffect } from "react";
 import { getMotion } from "@/lib/motion";
 import motionTokens from "../../../design/motion-tokens.json";
 
 const { easing, transition } = motionTokens;
 const bezier = (b: number[]) => `cubic-bezier(${b.join(",")})`;
-const PAGE_IN = transition.page.out.ms; // the new page fades in after the old one has gone
 
 // The house entrance on load: the first screen's rows rise 16px and fade in,
 // top to bottom, 80ms apart, 4 steps at most. Rows are main's [data-row]s;
@@ -16,12 +15,9 @@ const PAGE_IN = transition.page.out.ms; // the new page fades in after the old o
 // (<html data-boot>), which has its own intro.
 export function Entrance() {
   const pathname = usePathname();
-  const first = useRef(true);
 
   useEffect(() => {
     const root = document.documentElement;
-    const delay = first.current ? 0 : PAGE_IN;
-    first.current = false;
     if (getMotion().calm || root.dataset.boot)
       return root.classList.remove("entering");
 
@@ -38,7 +34,6 @@ export function Entrance() {
         ? own
         : [row.children[1] as HTMLElement].filter(Boolean);
       const d =
-        delay +
         Math.min(i, transition.loadEntrance.maxSteps) *
           transition.loadEntrance.rowStaggerMs;
       for (const el of blocks) {
