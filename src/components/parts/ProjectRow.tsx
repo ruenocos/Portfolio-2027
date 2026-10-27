@@ -91,7 +91,7 @@ function useMagnet() {
  * timeline | portrait media 3:4 at 78% of the column | role + tools.
  * Tablet: text | media. Phone: one column.
  * By day Wessel drops a pin on the media and selects it; by night the
- * Handoff bot redlines its spacing.
+ * Handoff bot redlines its spacing (his pins stay away while he sleeps).
  */
 export function ProjectRow({ project: p, hidden, leaving }: { project: Project; hidden?: boolean; leaving?: boolean }) {
   const media = useMagnet();
@@ -160,12 +160,8 @@ export function ProjectRow({ project: p, hidden, leaving }: { project: Project; 
       );
     },
     async night(g) {
-      const el = pin.current;
+      // His pins are his voice: they stay put away while he sleeps.
       const m = media.current;
-      if (el) {
-        placePin();
-        showPin(el);
-      }
       if (!m) return;
       // Handoff specs it: spacing to the cell edges, and its size.
       const H = new Bot("Handoff");
@@ -189,6 +185,13 @@ export function ProjectRow({ project: p, hidden, leaving }: { project: Project; 
       await wait(160);
       live(g);
       await H.leave();
+    },
+    // Calm: his pin is simply there, where he'd have dropped it.
+    still(mode) {
+      const el = pin.current;
+      if (!el || mode !== "day") return;
+      placePin();
+      el.hidden = false;
     },
     reset() {
       if (pin.current) pin.current.hidden = true;

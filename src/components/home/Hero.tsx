@@ -59,9 +59,9 @@ function boot(hero: HTMLElement, parts: [Element | null, string][]) {
       hero.appendChild(d);
       return [d];
     });
-    await hold(320);
+    await hold(480);
     frames.forEach((d) => d.classList.add("f"));
-    await hold(200);
+    await hold(420);
     delete root.dataset.boot;
     frames.forEach((d) => d.classList.add("out"));
     await wait(640);
@@ -168,7 +168,10 @@ export function Hero({ hero: c }: { hero: HomeContent["hero"] }) {
       t = window.setTimeout(fit, 150);
     };
     addEventListener("resize", rz);
-    return () => removeEventListener("resize", rz);
+    return () => {
+      removeEventListener("resize", rz);
+      clearTimeout(t);
+    };
   }, []);
 
   // The reel's loop plays once Wessel has invited you to it (or at once at
@@ -299,14 +302,15 @@ export function Hero({ hero: c }: { hero: HomeContent["hero"] }) {
       const h = hero.current!;
       await boot(h, bootParts());
       live(g);
+      // It skips once the hero is scrolled 45% away, or on any key or click.
       let skip = false;
       const away = () => {
-        if (scrollY > h.offsetHeight * 0.45) {
-          skip = true;
-          removeEventListener("scroll", away);
-        }
+        if (scrollY > h.offsetHeight * 0.45) skip = true;
       };
+      const input = () => (skip = true);
       addEventListener("scroll", away, { passive: true });
+      addEventListener("keydown", input);
+      addEventListener("pointerdown", input);
       const chk = () => {
         live(g);
         if (skip) throw new Error("skip");
@@ -333,6 +337,8 @@ export function Hero({ hero: c }: { hero: HomeContent["hero"] }) {
           chk();
         }
       };
+      // The reel plays from the start; he invites you to it later.
+      playReel();
       try {
         if (calm()) throw new Error("skip");
         await breath(450);
@@ -341,7 +347,7 @@ export function Hero({ hero: c }: { hero: HomeContent["hero"] }) {
         chk();
         await breath(200);
         await say("Hello!", pp(W, 0.96, 0.04, 8, -46));
-        await breath(1000);
+        await breath(700);
         // Over to the middle of the W, one click: the fill plops in.
         await wessel.go(wessel.at(W, 0.5, 0.55), { k: 150, timeout: 1200 });
         chk();
@@ -354,9 +360,9 @@ export function Hero({ hero: c }: { hero: HomeContent["hero"] }) {
         const ring = put("hi-ring", "", [b.x + b.w / 2, b.y + b.h / 2]);
         setTimeout(() => ring.remove(), 900);
         wessel.press(false);
-        await breath(900);
+        await breath(700);
         W.classList.remove("plop");
-        await breath(300);
+        await breath(200);
         // The crooked u: select it, drag it straight, it snaps on a guide.
         await wessel.go(wessel.at(U, 0.5, 0.5), { k: 140, timeout: 1300 });
         chk();
@@ -379,10 +385,10 @@ export function Hero({ hero: c }: { hero: HomeContent["hero"] }) {
         const guide = put("hi-guide", "", [o.x - 32, o.y + o.h * 0.86, o.w + 64, 1]);
         setTimeout(() => guide.remove(), 1100);
         wessel.press(false);
-        await breath(700);
+        await breath(600);
         U.classList.remove("snap");
         su.done();
-        await breath(350);
+        await breath(250);
         // The reel: he drags a selection open, the size pops, and he invites you in.
         await wessel.go(wessel.at(r, 0, 0, -2, -2), { k: 140, timeout: 1300 });
         chk();
@@ -399,7 +405,7 @@ export function Hero({ hero: c }: { hero: HomeContent["hero"] }) {
         try {
           await wait(300);
           await say("Have a look", pp(r, 1, 0, 12, -44));
-          await wait(2600);
+          await wait(1800);
         } finally {
           s.done();
           delete r.dataset.invite;
@@ -411,7 +417,7 @@ export function Hero({ hero: c }: { hero: HomeContent["hero"] }) {
         await say("More below", pp(h, fx, fy, 16, dy - 68));
         await nodDown(h);
         nudge.current.on = true;
-        await wait(1800);
+        await wait(1200);
       } catch (e) {
         live(g);
         if (!(e instanceof Error) || e.message !== "skip") throw e;
@@ -419,6 +425,8 @@ export function Hero({ hero: c }: { hero: HomeContent["hero"] }) {
         playReel();
       } finally {
         removeEventListener("scroll", away);
+        removeEventListener("keydown", input);
+        removeEventListener("pointerdown", input);
         // The pin shrinks to a dot.
         const p = (pin as ReturnType<typeof putPin> | null)?.pin;
         if (p) {
@@ -453,6 +461,11 @@ export function Hero({ hero: c }: { hero: HomeContent["hero"] }) {
         setTimeout(() => t.remove(), 320);
       }
       await B.leave();
+    },
+    // Calm: the finished hero, reel on its poster.
+    still() {
+      unprep();
+      playReel();
     },
     reset() {
       reelOn.current = false;
@@ -520,7 +533,14 @@ export function Hero({ hero: c }: { hero: HomeContent["hero"] }) {
         <span className="w" aria-hidden="true">
           <Letters word="Wessel" group={[2, 6]} />
         </span>
-        <a ref={reel} className="reel" href="#reel" aria-label="Play the reel" onClick={openReel}>
+        <a
+          ref={reel}
+          className="reel"
+          href="#reel"
+          aria-label="Play the reel"
+          onClick={openReel}
+          data-mock={c.reel.mock ? "" : undefined}
+        >
           {/* eslint-disable-next-line @next/next/no-img-element -- a poster frame, served as it is */}
           {c.reel.poster && <img src={c.reel.poster} alt="" />}
           {c.reel.loop && <video ref={loop} data-src={c.reel.loop} muted loop playsInline preload="none" aria-hidden="true" />}

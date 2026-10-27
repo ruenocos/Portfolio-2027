@@ -102,6 +102,9 @@ export function Bookend() {
     async night() {
       show(true);
     },
+    still() {
+      show(true);
+    },
     reset() {
       if (!getMotion().calm) show(false);
     },
@@ -118,6 +121,7 @@ export function Bookend() {
     <section className="frame" data-row aria-label="Wessel Oud">
       <div className="side" />
       <div ref={cell} className="cell bk bg-dots">
+        <span className="sr-only">Wessel Oud</span>
         <div ref={bkn} className="bkn" aria-hidden="true" onClick={wake}>
           <Word w={NAME.Wessel} />
           <span className="smi">

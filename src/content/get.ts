@@ -1,8 +1,9 @@
 import type { Project } from "@/components/parts/ProjectRow";
 import { knownTools } from "@/lib/tools";
 import { cachedSanity, published } from "@/sanity/live";
-import { HOME_QUERY, WORK_QUERY } from "@/sanity/queries";
+import { CASE_QUERY, HOME_QUERY, WORK_QUERY } from "@/sanity/queries";
 import { FALLBACK_HOME, type HomeContent, type Track } from "./home";
+import { FALLBACK_CASES, type Case, type CaseSection } from "./cases";
 import { FALLBACK_ARCHIVE, FALLBACK_PROJECTS } from "./projects";
 
 type Row = {
@@ -115,3 +116,70 @@ export async function getWork(): Promise<{ selected: Project[]; archive: Project
     archive: d.archive?.length ? d.archive.map(toProject) : FALLBACK_ARCHIVE,
   };
 }
+
+type CaseDoc = {
+  title: string;
+  lang?: string;
+  lead?: string;
+  intro?: string;
+  role?: string;
+  scope?: string;
+  timeline?: string;
+  hero?: { video?: string; poster?: string; alt?: string; caption?: string };
+  sections?: (Omit<CaseSection, "key" | "figure"> & {
+    _key: string;
+    figure?: { src?: string; alt?: string; caption?: string; width?: number; height?: number };
+  })[];
+};
+
+function toCase(slug: string, d: CaseDoc): Case {
+  return {
+    slug,
+    title: d.title,
+    lang: d.lang === "nl" ? "nl" : undefined,
+    lead: d.lead ?? "",
+    intro: d.intro ?? "",
+    facts: [
+      { label: "Role", value: d.role },
+      { label: "Scope", value: d.scope },
+      { label: "Timeline", value: d.timeline },
+    ],
+    hero: {
+      video: d.hero?.video,
+      poster: img(d.hero?.poster, 1800),
+      alt: d.hero?.alt ?? "",
+      caption: d.hero?.caption ?? "",
+    },
+    sections: (d.sections ?? []).map((s) => ({
+      key: s._key,
+      name: s.name,
+      heading: s.heading,
+      body: s.body,
+      note: s.note,
+      figure:
+        s.figure?.src && s.figure.alt
+          ? {
+              src: img(s.figure.src, 1600)!,
+              alt: s.figure.alt,
+              caption: s.figure.caption ?? "",
+              width: s.figure.width ?? 1600,
+              height: s.figure.height ?? 1000,
+            }
+          : undefined,
+    })),
+  };
+}
+
+/** A case page: Sanity once it has the story, the mock draft until then. */
+export async function getCase(slug: string): Promise<Case | null> {
+  try {
+    const { data } = await cachedSanity({ query: CASE_QUERY, params: { slug }, perspective: published.perspective, stega: false });
+    const d = data as unknown as CaseDoc | null;
+    if (d?.sections?.length) return toCase(slug, d);
+  } catch (e) {
+    console.warn(`Case ${slug}: Sanity unavailable, using the fallback content.`, e);
+  }
+  return FALLBACK_CASES.find((c) => c.slug === slug) ?? null;
+}
+
+export const caseSlugs = () => FALLBACK_CASES.map((c) => c.slug);

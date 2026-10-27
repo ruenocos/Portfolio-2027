@@ -1,0 +1,208 @@
+/* Case page (case-study-spec v02): opening, header video, the read with
+   the Layers panel and Wessel as reading buddy, the progress bar. Crumb and
+   facts live in components.css. */
+
+@layer components {
+  /* ---------- opening: title | lead, 50/50 ---------- */
+  .copen {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--spacing-hairline);
+    background: var(--line);
+    min-width: 0;
+  }
+  .copen > .cell {
+    padding: var(--spacing-section) var(--spacing-inset);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 20px;
+  }
+  .copen h1 {
+    text-wrap: balance;
+    overflow-wrap: break-word;
+    hyphens: auto;
+  }
+  .copen .ol > p {
+    max-width: 520px;
+  }
+  .chero {
+    padding: var(--spacing-inset);
+  }
+
+  /* ---------- reading progress: 2px under the sticky header ---------- */
+  .cprog {
+    position: fixed;
+    left: 0;
+    right: 0;
+    top: calc(var(--spacing-header) - 1px);
+    height: 2px;
+    z-index: 41;
+    pointer-events: none;
+  }
+  .cprog > i {
+    display: block;
+    height: 100%;
+    background: var(--tang);
+    transform-origin: left;
+    transition: transform var(--dur-ui) var(--ease-ui);
+  }
+  [data-mode="night"] .cprog > i {
+    background: var(--bot);
+  }
+
+  /* ---------- the read: Layers panel | sections ---------- */
+  .rd {
+    display: grid;
+    grid-template-columns: 320px minmax(0, 1fr);
+    gap: var(--spacing-hairline);
+    background: var(--line);
+    min-width: 0;
+  }
+  .lay {
+    z-index: 2;
+  }
+  .lp {
+    position: sticky;
+    top: var(--spacing-header);
+    padding: var(--spacing-section) var(--spacing-inset) var(--spacing-inset);
+  }
+  .lh {
+    margin-bottom: 14px;
+  }
+  .ly {
+    display: flex;
+    flex-direction: column;
+  }
+  .ly a {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-height: var(--spacing-tap);
+    padding: 0 10px;
+    margin-left: -10px;
+    color: var(--mute);
+    transition: color var(--dur-ui) var(--ease-ui);
+  }
+  .ly .hash {
+    color: var(--tang-ink);
+    opacity: 0.7;
+    transition: opacity var(--dur-ui) var(--ease-ui);
+  }
+  .ly a:hover {
+    color: var(--grape);
+  }
+  .ly a[aria-current] {
+    color: var(--ink);
+  }
+  .ly a[aria-current] .hash {
+    opacity: 1;
+  }
+  /* Wessel's selection on the layer you're reading. Positioned against the
+     list, which starts below the "Layers" label. */
+  .lp {
+    --ly-top: calc(var(--spacing-section) + 14px + 16px);
+  }
+  .lsel {
+    left: calc(var(--spacing-inset) - 10px);
+    right: calc(var(--spacing-inset) - 2px);
+    top: 0;
+    opacity: 0;
+    transition:
+      transform 600ms var(--ease-spring),
+      height 600ms var(--ease-spring),
+      opacity 300ms var(--ease-ui);
+  }
+  .lsel[data-on="true"] {
+    opacity: 1;
+  }
+  .lcur {
+    position: absolute;
+    left: 0;
+    top: 0;
+    z-index: 5;
+    transition: transform var(--dur-spring) var(--ease-spring);
+  }
+  .lcur .ptr {
+    transition: transform 120ms var(--ease-ui);
+  }
+  .lcur[data-press="true"] .ptr {
+    transform: scale(0.82);
+  }
+
+  .secs {
+    display: grid;
+    gap: var(--spacing-hairline);
+    background: var(--line);
+  }
+  .sc {
+    padding: var(--spacing-section) var(--spacing-inset);
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    scroll-margin-top: var(--spacing-header);
+  }
+  .sc h2 {
+    overflow-wrap: break-word;
+    hyphens: auto;
+  }
+  .sc .sl {
+    max-width: 62ch;
+  }
+  .sc figure {
+    margin: 20px 0 0;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    position: relative;
+  }
+  .sc .fimg {
+    border-radius: var(--radius-media);
+    background: var(--fill);
+    overflow: hidden;
+  }
+  .sc .fimg img {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+  /* His pin on a figure pops in the first time it's half in view. */
+  .sc .fpin {
+    position: absolute;
+    left: 24px;
+    top: 24px;
+    opacity: 0;
+    scale: 0.6;
+    transition:
+      opacity 200ms var(--ease-ui),
+      scale var(--dur-spring) var(--ease-spring);
+  }
+  .sc .fpin[data-in],
+  html[data-motion="calm"] .sc .fpin {
+    opacity: 1;
+    scale: 1;
+  }
+  .sc .fpin .bub {
+    white-space: normal;
+    max-width: 220px;
+  }
+
+  @media (width < 900px) {
+    .copen,
+    .rd {
+      grid-template-columns: minmax(0, 1fr);
+    }
+    .lay,
+    .cprog {
+      display: none;
+    }
+    .sc .fpin {
+      position: static;
+      order: -1;
+      align-self: flex-start;
+    }
+  }
+  html[data-motion="calm"] :is(.lsel, .lcur, .cprog > i, .sc .fpin) {
+    transition: none;
+  }
+}

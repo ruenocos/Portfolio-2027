@@ -81,6 +81,11 @@ export function Archive({ cards }: { cards: ArchiveCard[] }) {
       await wait(260);
       await T.leave();
     },
+    still(mode) {
+      if (mode !== "night" || !beat.current || !hand.current) return;
+      tidyLayout(beat.current, hand.current, cards.length);
+      setTidy(true);
+    },
     reset() {
       setTidy(false);
       setWes(false);

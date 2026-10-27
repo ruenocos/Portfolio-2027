@@ -26,3 +26,11 @@ export const WORK_QUERY = defineQuery(`{
   "selected": *[_type == "project" && featured == true] | order(order asc) ${projectRow},
   "archive": *[_type == "project" && featured != true] | order(order asc, _createdAt desc) ${projectRow}
 }`);
+
+export const CASE_QUERY = defineQuery(`*[_type == "project" && hasCase == true && slug.current == $slug][0]{
+  title, lang, lead, intro, role, scope, timeline,
+  "hero": { "video": hero.video.asset->url, "poster": hero.poster.asset->url, "alt": hero.alt, "caption": hero.caption },
+  "sections": sections[]{ _key, name, heading, body, note,
+    "figure": figure{ "src": asset->url, alt, caption, "width": asset->metadata.dimensions.width, "height": asset->metadata.dimensions.height } }
+}`);
+

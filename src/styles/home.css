@@ -61,7 +61,6 @@
     justify-content: space-between;
     color: var(--tang);
     white-space: nowrap;
-    text-transform: uppercase;
   }
   .name .w {
     position: relative;
@@ -212,10 +211,15 @@
     opacity: 0;
     transform: translateY(8px) scale(0.97);
   }
+  /* He arrives once the wireframe is done, not on top of it. */
+  html[data-boot] .cur.wes {
+    visibility: hidden;
+  }
   .frm {
     position: absolute;
     z-index: 2;
-    border: 1px dashed var(--mute);
+    border: 1px solid var(--line);
+    background: color-mix(in srgb, var(--fill) 40%, transparent);
     border-radius: var(--radius-focus);
     pointer-events: none;
     animation: frm 420ms var(--ease-ui) both;

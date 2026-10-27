@@ -153,10 +153,28 @@ function Card({
       live(g);
       await R.leave();
     },
+    still(mode) {
+      if (mode === "night" && lyr.current) lyr.current.textContent = f.layer;
+    },
     reset() {
       if (lyr.current) lyr.current.textContent = `Frame ${f.n}`;
     },
   });
+
+  // Keyboard: Enter or Space plays the scene (D duplicates on the AI card,
+  // like Figma's ⌘D, but only while the card has focus).
+  const key = (e: React.KeyboardEvent) => {
+    if (e.target !== e.currentTarget || e.metaKey || e.ctrlKey || e.altKey) return;
+    const d = dio();
+    if (!d) return;
+    if (e.key === "Enter" || e.key === " " || (k === "ai" && e.key.toLowerCase() === "d")) {
+      e.preventDefault();
+      if (k === "ux") {
+        d.set(true);
+        d.tap();
+      } else d.set(!d.on);
+    }
+  };
 
   return (
     <article
@@ -166,6 +184,8 @@ function Card({
       data-on={lit}
       tabIndex={0}
       aria-label={track.title}
+      aria-keyshortcuts={k === "ai" ? "D" : undefined}
+      onKeyDown={key}
       onPointerEnter={() => !touch() && light(k)}
       onPointerLeave={() => !touch() && light(null)}
       onFocus={() => light(k)}
@@ -235,21 +255,6 @@ export function Focus({ focus: c }: { focus: HomeContent["focus"] }) {
     return () => io.disconnect();
   }, []);
 
-  // D duplicates the AI scene while it's on screen.
-  useEffect(() => {
-    const key = (e: KeyboardEvent) => {
-      if (e.repeat || e.metaKey || e.ctrlKey || e.altKey || e.key.toLowerCase() !== "d") return;
-      if ((e.target as Element).closest?.("input,textarea,[contenteditable]")) return;
-      const d = all.current.ai;
-      const s = document.querySelector('.fig[data-k="ai"] .iso')?.getBoundingClientRect();
-      if (!d || !s || s.bottom < 0 || s.top > innerHeight) return;
-      e.preventDefault();
-      d.set(!d.on);
-    };
-    addEventListener("keydown", key);
-    return () => removeEventListener("keydown", key);
-  }, []);
-
   // A tool points at the work it makes: it lights its card and plays its scene.
   const chip = (k: DioKind, on: boolean) => {
     setLit(on ? k : null);
@@ -262,11 +267,12 @@ export function Focus({ focus: c }: { focus: HomeContent["focus"] }) {
       <div className="fx">
         <div className="cell fl">
           <div className="stmt" data-enter>
-            <p ref={stmt} className="text-headline" aria-label={c.statement}>
+            <p ref={stmt} className="text-headline">
               {typed == null ? (
                 c.statement
               ) : (
                 <>
+                  <span className="sr-only">{c.statement}</span>
                   <span aria-hidden="true">{c.statement.slice(0, typed)}</span>
                   <span aria-hidden="true" className="opacity-0">
                     {c.statement.slice(typed)}

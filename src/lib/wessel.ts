@@ -31,6 +31,9 @@ const cl = (v: number, a = 0, b = 1) => Math.max(a, Math.min(b, v));
 const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
 const easeInOut = (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
 const calm = () => getMotion().calm;
+// The sticky header's height (--spacing-header), read once.
+let hdr = 0;
+const header = () => (hdr ||= parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--spacing-header")) || 90);
 const mobile = () => innerWidth < 900;
 
 // ---------- generations ----------
@@ -293,7 +296,7 @@ function home(): XY {
   if (W.anchor) {
     // He stays where he last worked, like a collaborator in a shared file…
     const y = W.anchor[1] - scrollY;
-    W.parked = y > 40 && y < innerHeight - 40;
+    W.parked = y > header() + 24 && y < innerHeight - 40;
     if (W.parked) return [W.anchor[0] - scrollX, y];
     // …and once that has scrolled away he wanders after you, a beat behind.
     return [W.anchor[0] - scrollX, y < 0 ? innerHeight * 0.22 : innerHeight * 0.78];
@@ -316,7 +319,8 @@ function tick(n: number) {
   let t = W.drive?.() ?? null;
   const driving = !!t;
   // A job that scrolls away: he reaches for it from the edge instead of leaving.
-  if (t && !W.asleep) t = [t[0], cl(t[1], 24, innerHeight - 40)];
+  // Never on the sticky header: his target stays below it.
+  if (t && !W.asleep) t = [t[0], cl(t[1], header() + 24, innerHeight - 40)];
   if (!t) t = home();
   const parked = !driving && W.parked && !W.asleep;
 
@@ -512,6 +516,9 @@ export type BeatSpec = {
   keep?: boolean;
   /** Back to the start state (mode or page change). */
   reset?: () => void;
+  /** Paused or reduced motion: no beat runs (DESIGN.md §8). This puts the
+   *  section straight into the state the beat would have left it in. */
+  still?: (mode: "day" | "night") => void;
 };
 type Beat = BeatSpec & { el: HTMLElement; done: { day?: boolean; night?: boolean }; q?: boolean };
 
@@ -525,6 +532,7 @@ export const isBusy = () => busy;
 
 function seen(el: Element, f: number) {
   const r = el.getBoundingClientRect();
+  if (!r.height) return false;
   return Math.min(r.bottom, innerHeight) - Math.max(r.top, 0) >= Math.min(r.height * f, innerHeight * f);
 }
 
@@ -536,13 +544,16 @@ function trigger(b: Beat) {
   b.q = true;
   chain = chain.then(async () => {
     b.q = false;
-    if (b.done[mode] || !seen(b.el, need) || !beats.has(b)) return;
+    // Calm: no beat, just its end state, whether or not it's on screen yet.
+    if (b.done[mode] || !beats.has(b) || (!calm() && !seen(b.el, need))) return;
     b.done[mode] = true;
+    if (calm()) return b.still?.(mode);
     const g = gen;
     // He always plays his full beat. If you're moving fast he waits a
     // breath; a flick past skips it, and it plays when you come back.
     for (let i = 0; i < T.fastScroll.waitMs / 60 && !calm() && SP > T.fastScroll.waitAbovePxPerSec; i++)
       await wait(60);
+    if (g !== gen || !beats.has(b) || !b.el.isConnected) return;
     if (!calm() && (SP > T.fastScroll.skipAbovePxPerSec || !seen(b.el, need))) {
       b.done[mode] = false;
       // Flicked past: it plays when you come back, or once you stop here.
@@ -554,7 +565,8 @@ function trigger(b: Beat) {
     try {
       await (W.asleep ? b.night! : b.day)(g);
     } catch (e) {
-      if (e !== STALE) console.error(e);
+      // A section that left mid-beat (page change) just stops.
+      if (e !== STALE && b.el.isConnected) console.error(e);
     }
     busy = false;
     if (g === gen && !W.asleep && !b.keep) wessel.free();
@@ -580,6 +592,7 @@ export function registerBeat(el: HTMLElement, spec: BeatSpec) {
   beats.add(b);
   byEl.set(el, b);
   io.observe(el);
+  if (calm()) requestAnimationFrame(() => trigger(b));
   return () => {
     beats.delete(b);
     byEl.delete(el);

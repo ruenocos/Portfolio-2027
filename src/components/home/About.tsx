@@ -49,7 +49,7 @@ export function About({ about: c }: { about: HomeContent["about"] }) {
       await wessel.go(wessel.at(d, 0.5, 1, 40, -20), { k: 150 });
     },
     async night(g) {
-      const top = deck.current!.querySelector('.dk[data-p="0"]');
+      const top = deck.current?.querySelector('.dk[data-p="0"]');
       if (!top) return;
       const U = new Bot("Content update");
       const r = pageBox(top);
@@ -81,14 +81,22 @@ export function About({ about: c }: { about: HomeContent["about"] }) {
           <p className="text-body text-mute">{c.next}</p>
           <TextLink href="/about" label="More about me" arrow="right" />
         </div>
-        <button ref={deck} type="button" className="deck" aria-label="Show the next photo of Wessel" onClick={next} data-enter>
+        {/* The button's name says which photo is on top, so the alt texts are read. */}
+        <button
+          ref={deck}
+          type="button"
+          className="deck"
+          aria-label={`Next photo. Showing: ${c.photos[order[0]]?.alt ?? ""}`}
+          onClick={next}
+          data-enter
+        >
           {c.photos.map((p, i) => (
-            <figure key={p.src} className="dk" data-p={order.indexOf(i)} data-out={out === i ? "" : undefined}>
+            <span key={p.src} className="dk" data-p={order.indexOf(i)} data-out={out === i ? "" : undefined}>
               {/* eslint-disable-next-line @next/next/no-img-element -- Sanity's CDN sizes these */}
-              <img src={p.src} alt={p.alt} draggable={false} loading={i ? "lazy" : undefined} />
-            </figure>
+              <img src={p.src} alt="" draggable={false} loading={i ? "lazy" : undefined} />
+            </span>
           ))}
-          <span className="cnt text-label" aria-live="polite">
+          <span className="cnt text-label" aria-hidden="true">
             {order[0] + 1} / {n}
           </span>
         </button>
