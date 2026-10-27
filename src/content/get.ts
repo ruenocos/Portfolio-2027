@@ -1,8 +1,9 @@
 import type { Project } from "@/components/parts/ProjectRow";
 import { knownTools } from "@/lib/tools";
 import { cachedSanity, published } from "@/sanity/live";
-import { CASE_QUERY, HOME_QUERY, WORK_QUERY } from "@/sanity/queries";
+import { ABOUT_QUERY, CASE_QUERY, HOME_QUERY, WORK_QUERY } from "@/sanity/queries";
 import { FALLBACK_HOME, type HomeContent, type Track } from "./home";
+import { FALLBACK_ABOUT, type AboutContent, type Sticker } from "./about";
 import { FALLBACK_CASES, type Case, type CaseSection } from "./cases";
 import { FALLBACK_ARCHIVE, FALLBACK_PROJECTS } from "./projects";
 
@@ -183,3 +184,43 @@ export async function getCase(slug: string): Promise<Case | null> {
 }
 
 export const caseSlugs = () => FALLBACK_CASES.map((c) => c.slug);
+
+type AboutDoc = {
+  hello?: string;
+  lead?: string;
+  photos?: { src?: string; alt?: string }[];
+  facts?: { label?: string; value?: string; sub?: string }[];
+  experience?: { when?: string; place?: string; role?: string; slug?: string; hasCase?: boolean }[];
+  stickers?: { text?: string; tone?: Sticker["tone"] }[];
+};
+
+/** About: Sanity first, the approved v07 copy for whatever is still empty. */
+export async function getAbout(): Promise<AboutContent> {
+  const f = FALLBACK_ABOUT;
+  let d: AboutDoc = {};
+  try {
+    const { data } = await cachedSanity({ query: ABOUT_QUERY, perspective: published.perspective, stega: false });
+    d = (data as unknown as AboutDoc | null) ?? {};
+  } catch (e) {
+    console.warn("About: Sanity unavailable, using the fallback content.", e);
+  }
+  const photos = (d.photos ?? []).filter((p): p is { src: string; alt: string } => !!p.src && !!p.alt);
+  const facts = (d.facts ?? []).filter((x) => x.label && x.value);
+  const jobs = (d.experience ?? []).filter((j) => j.when && j.place && j.role);
+  const stickers = (d.stickers ?? []).filter((s): s is Sticker => !!s.text);
+  return {
+    hello: d.hello || f.hello,
+    lead: d.lead || f.lead,
+    photos: photos.length ? photos.map((p) => ({ ...p, src: img(p.src, 760)! })) : f.photos,
+    facts: facts.length ? facts.map((x) => ({ label: x.label!, value: x.value, sub: x.sub })) : f.facts,
+    experience: jobs.length
+      ? jobs.map((j) => ({
+          when: j.when!,
+          place: j.place!,
+          role: j.role!,
+          ...(j.hasCase && j.slug ? { href: `/work/${j.slug}`, cta: "Read the case" } : {}),
+        }))
+      : f.experience,
+    stickers: stickers.length ? stickers.map((s) => ({ text: s.text, tone: s.tone ?? "tang" })) : f.stickers,
+  };
+}

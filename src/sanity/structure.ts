@@ -1,11 +1,12 @@
 import type { StructureResolver } from "sanity/structure";
 
-// Home and Site settings are one fixed document each; everything else is a list.
+// Home, About and Site settings are one fixed document each; everything else is a list.
 export const structure: StructureResolver = (S) =>
   S.list()
     .title("Content")
     .items([
       S.listItem().title("Home").id("home").child(S.document().schemaType("home").documentId("home")),
+      S.listItem().title("About").id("about").child(S.document().schemaType("about").documentId("about")),
       S.documentTypeListItem("project").title("Projects"),
       S.divider(),
       S.listItem()

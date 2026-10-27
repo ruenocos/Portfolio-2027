@@ -34,3 +34,11 @@ export const CASE_QUERY = defineQuery(`*[_type == "project" && hasCase == true &
     "figure": figure{ "src": asset->url, alt, caption, "width": asset->metadata.dimensions.width, "height": asset->metadata.dimensions.height } }
 }`);
 
+
+export const ABOUT_QUERY = defineQuery(`*[_id == "about"][0]{
+  hello, lead,
+  "photos": photos[]{ "src": asset->url, alt },
+  facts[]{ label, value, sub },
+  experience[]{ when, place, role, "slug": case->slug.current, "hasCase": case->hasCase },
+  stickers[]{ text, tone }
+}`);
