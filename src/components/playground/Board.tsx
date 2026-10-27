@@ -22,6 +22,14 @@ type Item = {
 type Col = { x: number; items: Item[]; H: number };
 
 const mod = (a: number, n: number) => ((a % n) + n) % n;
+const shuffle = <T,>(a: readonly T[]) => {
+  const b = [...a];
+  for (let i = b.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [b[i], b[j]] = [b[j], b[i]];
+  }
+  return b;
+};
 const cl = (v: number, a: number, b: number) => Math.max(a, Math.min(b, v));
 const ease = (k: number) => (k < 0.5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2);
 const calm = () => getMotion().calm;
@@ -126,9 +134,19 @@ export function Board({ posts }: { posts: Post[] }) {
       for (let c = 0; c < n; c++) {
         const col: Col = { x: c * (CW + G), items: [], H: 0 };
         let y = c % 2 ? CW * 0.35 : 0;
-        let k = (c * 7) % posts.length;
+        // Shuffled per column, so a short list doesn't line up in rows. The
+        // next post skips one that sits right beside it (the column to the
+        // left, or the first column for the last one: the board wraps).
+        let bag: Post[] = [];
+        const near = (p: Post, at: number) =>
+          [cols[c - 1], c === n - 1 ? cols[0] : undefined].some((nb) =>
+            nb?.items.some((it) => it.p === p && it.y < at + CW * 1.4 && it.y + it.h > at - CW * 0.4),
+          );
         while (y < minH) {
-          const p = posts[k++ % posts.length];
+          if (!bag.length) bag = shuffle(posts);
+          const prev = col.items.at(-1)?.p;
+          const i = posts.length > 2 ? bag.findIndex((q) => q !== prev && !near(q, y)) : -1;
+          const p = bag.splice(Math.max(0, i), 1)[0];
           const h = Math.round(CW / p.ar);
           const el = postEl(p);
           el.style.width = `${CW}px`;
