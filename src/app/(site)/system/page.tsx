@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
-import tokens from "../../../design/tokens.json";
-import { ModeSwitch } from "./ModeSwitch";
+import tokens from "../../../../design/tokens.json";
+import { Row } from "@/components/shell/Row";
 
 // Build check for the token pipeline: every colour and text style,
 // rendered in all three modes side by side. Not a public page.
@@ -17,20 +17,16 @@ function spec(s: Style["$value"]) {
 
 export default function SystemPage() {
   return (
-    <main className="frame min-h-svh">
-      <div className="bg-dots bg-canvas" />
-      <div className="ruled">
-        <header className="bg-canvas p-inset flex flex-wrap items-end justify-between gap-6">
-          <div>
-            <p className="text-label text-mute">
-              <span className="text-tang-ink">#</span> System
-            </p>
-            <h1 className="text-statement mt-4">Tokens v02</h1>
-          </div>
-          <ModeSwitch />
-        </header>
+    <>
+      <Row className="p-inset">
+        <p className="text-label text-mute">
+          <span className="text-tang-ink">#</span> System
+        </p>
+        <h1 className="text-statement mt-4">Tokens v02</h1>
+        <p className="text-body text-mute mt-4">Use the header switch to see the page itself change mode.</p>
+      </Row>
 
-        <section className="ruled stack:grid-cols-3">
+      <Row as="section" className="ruled stack:grid-cols-3">
           {MODES.map((mode) => (
             <div key={mode} data-mode={mode} className="bg-canvas text-ink p-inset">
               <p className="text-label text-mute mb-6">
@@ -58,9 +54,9 @@ export default function SystemPage() {
               </div>
             </div>
           ))}
-        </section>
+      </Row>
 
-        <section className="bg-canvas p-inset">
+      <Row as="section" className="p-inset">
           <p className="text-label text-mute mb-6">
             <span className="text-tang-ink">#</span> Type
           </p>
@@ -76,9 +72,7 @@ export default function SystemPage() {
               </li>
             ))}
           </ul>
-        </section>
-      </div>
-      <div className="bg-dots bg-canvas" />
-    </main>
+      </Row>
+    </>
   );
 }

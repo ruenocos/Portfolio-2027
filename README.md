@@ -40,6 +40,41 @@ to sunrise in Amsterdam (computed in the browser), otherwise the system's
 light or dark. `setAsleep()` puts Wessel to bed or wakes him for the rest of
 the visit, until the sun next rises or sets. Mode changes cross-fade over 0.9s.
 
+## The shell
+
+Everything every page leans on lives in `src/app/(site)/layout.tsx` and
+`src/components/shell/`: the sticky header (nav, day/night switch, Pause
+motion, phone menu below 900px), the footer (`#contact`, where every
+"Contact ↓" lands), the grid frame (`<Row>`: dotted side | cell | dotted
+side, 1px hairlines) and the phone Contact pill. Sanity Studio sits outside
+the `(site)` group, so it gets none of it.
+
+Motion:
+
+- `src/lib/motion.ts` is the motion store. `useMotion()` gives `mode`,
+  `asleep`, `paused`, `reduced` and `calm` (paused or reduced). Anything that
+  moves by itself checks `calm` and shows its end state. `<html>` mirrors it
+  before the first paint (`.pz`, `data-motion="calm|full"`).
+- Lenis (lerp .12) runs on desktop mouse only, never while calm.
+- Page changes cross-fade: 240ms out, then 240ms in (`PageFade`, React
+  `<ViewTransition>`). Then the first screen's `main [data-row]`s play the
+  house entrance (rise 16px + fade, 80ms apart). A row can mark its own
+  blocks with `data-enter`. Home's boot intro can skip it by setting
+  `<html data-boot>`.
+- `src/components/CursorLayer.tsx` is Wessel's layer in the root layout, so
+  he survives page changes. It's an empty stage until Phase 3.
+- Status messages go to `#live` through `announce()`.
+
+## Site basics
+
+- Favicon (`src/app/icon.svg`, `favicon.ico`, `apple-icon.png`): Wessel's smiley.
+- `robots.ts` and `sitemap.ts` use Netlify's `URL` and `CONTEXT`: deploy
+  previews are never indexed; production hides `/studio`, `/system`, `/api`.
+- The phone's browser bar takes the canvas colour of the mode (theme-color).
+- `not-found.tsx` and `(site)/error.tsx` keep the shell. Their copy is a
+  placeholder (`data-mock`).
+- Security headers in `next.config.ts` (no CSP yet).
+
 ## Sanity
 
 Project `u0p6z6ze`, dataset `production` (public: never put private content in

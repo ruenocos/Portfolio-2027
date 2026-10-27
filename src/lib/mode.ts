@@ -1,3 +1,5 @@
+import tokens from "../../design/tokens.json";
+
 // Light, dark and night ("purple hour").
 // Light and dark follow the system by day. Night wins from sunset to sunrise
 // in Amsterdam, whatever the system says (DESIGN.md §3). The visitor can put
@@ -10,12 +12,16 @@ export const MODE_KEY = "wsl-mode";
 
 // Self-contained on purpose: it's also stringified into the <head> script
 // so the right mode is set before the first paint.
-export function resolveMode(now: number = Date.now()): { mode: Mode; sunDown: boolean } {
+export function resolveMode(now: number = Date.now()): {
+  mode: Mode;
+  sunDown: boolean;
+} {
   // Sun altitude for Amsterdam (52.37N 4.90E), after suncalc. No API.
   const rad = Math.PI / 180;
   const d = now / 864e5 - 10957.5;
   const M = rad * (357.5291 + 0.98560028 * d);
-  const L = M + rad * (1.9148 * Math.sin(M) + 0.02 * Math.sin(2 * M) + 0.0003 * Math.sin(3 * M)) + rad * 102.9372 + Math.PI;
+  const L =
+    M + rad * (1.9148 * Math.sin(M) + 0.02 * Math.sin(2 * M) + 0.0003 * Math.sin(3 * M)) + rad * 102.9372 + Math.PI;
   const e = rad * 23.4397;
   const dec = Math.asin(Math.sin(e) * Math.sin(L));
   const ra = Math.atan2(Math.sin(L) * Math.cos(e), Math.cos(L));
@@ -36,3 +42,16 @@ export function resolveMode(now: number = Date.now()): { mode: Mode; sunDown: bo
 }
 
 export const modeScript = `try{document.documentElement.dataset.mode=(${resolveMode.toString()})().mode}catch(e){}`;
+
+// The browser chrome (phone address bar) takes the canvas colour of the mode.
+export const CANVAS: Record<Mode, string> = {
+  light: tokens.color.light.canvas.$value,
+  dark: tokens.color.dark.canvas.$value,
+  night: tokens.color.night.canvas.$value,
+};
+
+export function paintThemeColor(mode: Mode) {
+  document.querySelector('meta[name="theme-color"]')?.setAttribute("content", CANVAS[mode]);
+}
+
+export const themeColorScript = `try{document.querySelector('meta[name="theme-color"]').content=${JSON.stringify(CANVAS)}[document.documentElement.dataset.mode]}catch(e){}`;

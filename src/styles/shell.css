@@ -1,0 +1,684 @@
+/* The site shell: canvas frame, header, phone menu, Pause motion, footer,
+   Contact pill, page fade. Values from DESIGN.md v02.1 §5, §6 and §8.
+   In the components layer, so Tailwind utilities on a Row still win. */
+
+@layer components {
+  :root {
+    --stagger: 60ms; /* motion-tokens entrance.stagger */
+  }
+
+  /* ---------- canvas ---------- */
+  .page {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-hairline);
+    background: var(--line);
+    min-height: 100svh;
+  }
+  .page-body,
+  main {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-hairline);
+    background: var(--line);
+  }
+  .page-body {
+    flex: 1;
+  }
+  .frame > .side {
+    background-color: var(--canvas);
+    background-image: radial-gradient(circle, var(--dot) 1.1px, transparent 1.2px);
+    background-size: var(--spacing-dot-step) var(--spacing-dot-step);
+    background-position: 8px 8px;
+  }
+  .cell {
+    background-color: var(--canvas);
+    position: relative;
+    min-width: 0;
+  }
+  .divider-tall > .side {
+    height: 240px;
+  }
+  .skip {
+    position: fixed;
+    left: 16px;
+    top: 16px;
+    z-index: 100;
+    padding: 12px 16px;
+    border-radius: var(--radius-pill);
+    background: var(--grape);
+    color: var(--on-grape);
+    translate: 0 -200%;
+  }
+  .skip:focus-visible {
+    translate: none;
+  }
+
+  /* ---------- header ---------- */
+  .hd {
+    position: sticky;
+    top: 0;
+    z-index: 40;
+    /* Its own bottom hairline: the page gap's line scrolls away once it
+       sticks. At rest it lies exactly on that line. */
+    box-shadow: 0 var(--spacing-hairline) 0 var(--line);
+  }
+  .hd > div {
+    height: var(--spacing-header);
+  }
+  /* Three ruled boxes: logo | nav + switch + Pause | Contact (menu on phones). */
+  .hd .bar {
+    position: relative;
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    gap: var(--spacing-hairline);
+    background: var(--line);
+  }
+  .hd .bar > * {
+    background: var(--canvas);
+    height: 100%;
+    display: flex;
+    align-items: center;
+  }
+  .hd .home {
+    padding: 0 var(--spacing-inset);
+    color: var(--tang);
+  }
+  .hd .logo {
+    width: 36px;
+    height: 36px;
+    display: block;
+  }
+  .wm {
+    font: 800 var(--type-wordmark-size) / 1 var(--font-display);
+    letter-spacing: -0.03em;
+    white-space: nowrap;
+    overflow: hidden;
+    max-width: 0;
+    margin-left: 0;
+    opacity: 0;
+    transition:
+      max-width var(--dur-spring) var(--ease-ui),
+      margin-left var(--dur-spring) var(--ease-ui),
+      opacity var(--dur-ui) var(--ease-ui);
+  }
+  .hd[data-past="true"] .wm {
+    max-width: 120px;
+    margin-left: 12px;
+    opacity: 1;
+    transition-delay: 0s, 0s, 0.12s;
+  }
+  /* The nav centres on the whole bar, not on its box. */
+  .hd .mid {
+    justify-content: flex-end;
+    padding: 0 var(--spacing-inset);
+  }
+  .hd nav {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    translate: -50% -50%;
+    display: flex;
+    gap: 28px;
+  }
+  .hd nav a,
+  .hd .ct {
+    min-height: var(--spacing-tap);
+    display: inline-flex;
+    align-items: center;
+    padding-inline: 6px;
+    transition: color var(--dur-ui) var(--ease-ui);
+  }
+  .hd nav a[aria-current="page"],
+  .hd nav a:hover,
+  .hd .ct:hover {
+    color: var(--grape);
+  }
+  .hd .ct .ar {
+    color: var(--grape);
+  }
+  .hd .ctw {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+  }
+  .hd .end {
+    justify-content: center;
+    padding: 0 calc(var(--spacing-inset) - 6px);
+  }
+
+  /* letter hop */
+  .hop i {
+    display: inline-block;
+    font-style: normal;
+    white-space: pre;
+  }
+  .hop.go i {
+    animation: hop 520ms var(--ease-spring) both;
+    animation-delay: calc(var(--i) * 22ms);
+  }
+
+  /* ---------- day/night switch ---------- */
+  .dn {
+    position: relative;
+    width: 64px;
+    height: 34px;
+    flex: none;
+    border-radius: 17px;
+    border: 1px solid var(--line);
+    background: var(--fill);
+    cursor: pointer;
+    transition:
+      border-color var(--dur-ui) var(--ease-ui),
+      background var(--dur-spring) var(--ease-ui);
+  }
+  .dn::before {
+    content: "";
+    position: absolute;
+    inset: -5px;
+  }
+  .dn .i {
+    position: absolute;
+    top: 9px;
+    width: 14px;
+    height: 14px;
+    color: var(--mute);
+    transition:
+      color var(--dur-spring) var(--ease-ui),
+      transform var(--dur-spring) var(--ease-spring);
+  }
+  .dn .sun {
+    left: 9px;
+    color: var(--on-grape);
+  }
+  .dn .moon {
+    right: 9px;
+  }
+  .dn .k {
+    position: absolute;
+    left: 3px;
+    top: 3px;
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: var(--grape);
+    transition:
+      transform var(--dur-spring) var(--ease-spring),
+      background var(--dur-spring) var(--ease-ui);
+  }
+  .dn[aria-checked="true"] .k {
+    transform: translateX(30px);
+  }
+  .dn[aria-checked="true"] .sun {
+    color: var(--mute);
+  }
+  .dn[aria-checked="true"] .moon {
+    color: var(--on-grape);
+  }
+  .dn:hover {
+    border-color: var(--grape);
+  }
+  .dn:hover .i {
+    transform: rotate(-20deg);
+  }
+
+  /* ---------- Pause motion ---------- */
+  .pzb {
+    position: relative;
+    width: 34px;
+    height: 34px;
+    flex: none;
+    margin-left: -14px; /* 10px after the switch */
+    border-radius: 50%;
+    border: 1px solid var(--line);
+    background: var(--fill);
+    color: var(--mute);
+    display: grid;
+    place-items: center;
+    cursor: pointer;
+    transition:
+      border-color var(--dur-ui) var(--ease-ui),
+      background var(--dur-spring) var(--ease-ui),
+      color var(--dur-ui) var(--ease-ui);
+  }
+  .pzb::before {
+    content: "";
+    position: absolute;
+    inset: -5px;
+  }
+  .pzb svg {
+    width: 14px;
+    height: 14px;
+    fill: currentColor;
+  }
+  .pzb:hover {
+    border-color: var(--grape);
+    color: var(--ink);
+  }
+  .pzb[aria-pressed="true"] {
+    background: var(--grape);
+    border-color: var(--grape);
+    color: var(--on-grape);
+  }
+  .pzb .tip {
+    position: absolute;
+    top: calc(100% + 10px);
+    left: 50%;
+    translate: -50% -4px;
+    font: 500 var(--type-micro-caps-size) / 14px var(--font-mono);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    background: var(--ink);
+    color: var(--canvas);
+    padding: 5px 10px;
+    border-radius: var(--radius-pill);
+    opacity: 0;
+    pointer-events: none;
+    transition:
+      opacity var(--dur-ui) var(--ease-ui),
+      translate var(--dur-ui) var(--ease-ui);
+  }
+  .pzb:hover .tip,
+  .pzb:focus-visible .tip {
+    opacity: 1;
+    translate: -50% 0;
+  }
+
+  /* ---------- phone menu button + panel ---------- */
+  .mb,
+  .mnav {
+    display: none;
+  }
+
+  /* ---------- footer ---------- */
+  .fcols {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr;
+    gap: var(--spacing-hairline);
+    background: var(--line);
+    min-width: 0;
+  }
+  .fcols .cell {
+    padding: 64px var(--spacing-inset);
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    align-items: flex-start;
+  }
+  .mail {
+    display: inline-block;
+    max-width: 100%;
+    padding-block: 12px;
+    margin-block: -12px;
+    font: 500 var(--type-email-size) / 1.1 var(--font-display);
+    overflow-wrap: anywhere;
+    text-decoration: underline 2px var(--grape);
+    text-underline-offset: 8px;
+    transition: color var(--dur-ui) var(--ease-ui);
+  }
+  .mail:hover {
+    color: var(--grape);
+  }
+  .copy {
+    min-height: var(--spacing-tap);
+    padding: 0 16px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-pill);
+    color: var(--grape);
+    cursor: pointer;
+    transition:
+      border-color var(--dur-ui) var(--ease-ui),
+      transform var(--dur-spring) var(--ease-spring);
+  }
+  .copy:hover {
+    border-color: var(--grape);
+  }
+  .copy:active {
+    transform: scale(0.95);
+  }
+  .fcols .l {
+    min-width: var(--spacing-tap);
+    min-height: var(--spacing-tap);
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3em;
+    transition: color var(--dur-ui) var(--ease-ui);
+  }
+  .fcols .l:hover {
+    color: var(--grape);
+  }
+  .fcols .ar {
+    color: var(--grape);
+  }
+  .fcols .ext {
+    font-family: var(--font-mono);
+    color: var(--mute);
+  }
+  .legal {
+    padding: 24px var(--spacing-inset);
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+    color: var(--mute);
+  }
+
+  /* ---------- Contact pill (phones and tablets) ---------- */
+  .tz {
+    display: none;
+  }
+
+  /* ---------- Wessel's layer ---------- */
+  .cursors {
+    position: fixed;
+    inset: 0;
+    z-index: 50;
+    pointer-events: none;
+    overflow: clip;
+  }
+
+  @media (hover: none) {
+    .dn {
+      height: 40px;
+      border-radius: 20px;
+    }
+    .dn .i {
+      top: 12px;
+    }
+    .dn .k {
+      width: 32px;
+      height: 32px;
+    }
+    .dn[aria-checked="true"] .k {
+      transform: translateX(24px);
+    }
+    .dn .sun {
+      left: 11px;
+    }
+    .dn .moon {
+      right: 11px;
+    }
+    .pzb {
+      width: 40px;
+      height: 40px;
+    }
+    .pzb .tip {
+      display: none;
+    }
+  }
+
+  /* ---------- below 900: logo · switch · pause · menu ---------- */
+  @media (width < 900px) {
+    .wm,
+    .hd nav,
+    .hd .ct {
+      display: none;
+    }
+    .hd .home {
+      padding: 0 var(--spacing-inset);
+    }
+    .hd .mid {
+      padding: 0 var(--spacing-side);
+    }
+    .hd .ctw {
+      gap: 14px;
+    }
+    .hd .end {
+      padding: 0 var(--spacing-side);
+    }
+
+    .mb {
+      display: grid;
+      place-items: center;
+      position: relative;
+      width: var(--spacing-tap);
+      height: var(--spacing-tap);
+      flex: none;
+      border-radius: 50%;
+      border: 1px solid var(--line);
+      background: var(--fill);
+      color: var(--ink);
+      cursor: pointer;
+      transition: border-color var(--dur-ui) var(--ease-ui);
+    }
+    .mb i {
+      position: absolute;
+      left: 13px;
+      width: 16px;
+      height: 1.5px;
+      border-radius: 2px;
+      background: currentColor;
+      transition:
+        transform var(--dur-ui) var(--ease-ui),
+        top var(--dur-ui) var(--ease-ui);
+    }
+    .mb i:first-child {
+      top: 17px;
+    }
+    .mb i:last-child {
+      top: 24px;
+    }
+    .mb[aria-expanded="true"] {
+      border-color: var(--grape);
+    }
+    .mb[aria-expanded="true"] i {
+      top: 20.5px;
+    }
+    .mb[aria-expanded="true"] i:first-child {
+      transform: rotate(45deg);
+    }
+    .mb[aria-expanded="true"] i:last-child {
+      transform: rotate(-45deg);
+    }
+
+    .mnav {
+      display: block;
+      position: fixed;
+      z-index: 61;
+      inset: var(--spacing-header) 0 0;
+      padding: 0 var(--spacing-side) env(safe-area-inset-bottom, 0px);
+      overflow-y: auto;
+      overscroll-behavior: contain;
+      background-color: var(--canvas);
+      background-image: radial-gradient(var(--dot) 1.1px, transparent 1.2px);
+      background-size: var(--spacing-dot-step) var(--spacing-dot-step);
+      border-top: 1px solid var(--line);
+      visibility: hidden;
+      opacity: 0;
+      transition:
+        opacity var(--dur-ui) var(--ease-ui),
+        visibility 0s linear var(--dur-ui);
+    }
+    .mnav[data-open="true"] {
+      visibility: visible;
+      opacity: 1;
+      transition: opacity var(--dur-ui) var(--ease-ui);
+    }
+    .mnav ul {
+      display: grid;
+      gap: var(--spacing-hairline);
+      background: var(--line);
+      border-inline: 1px solid var(--line);
+      border-bottom: 1px solid var(--line);
+    }
+    .mnav li {
+      background: var(--canvas);
+      opacity: 0;
+      translate: 0 var(--enter-rise);
+    }
+    .mnav[data-open="true"] li {
+      opacity: 1;
+      translate: 0 0;
+      transition:
+        opacity var(--dur-enter-opacity) var(--ease-enter-opacity),
+        translate var(--dur-enter-rise) var(--ease-enter-rise);
+    }
+    .mnav[data-open="true"] li:nth-child(2) {
+      transition-delay: var(--stagger);
+    }
+    .mnav[data-open="true"] li:nth-child(n + 3) {
+      transition-delay: calc(var(--stagger) * 2);
+    }
+    .mnav a {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      min-height: 88px;
+      padding: 0 var(--spacing-inset);
+      font: 500 var(--type-headline-size) / 1.05 var(--font-display);
+      letter-spacing: -0.02em;
+      transition: color var(--dur-ui) var(--ease-ui);
+    }
+    .mnav a[aria-current="page"],
+    .mnav a:active {
+      color: var(--grape);
+    }
+    .mnav .ar {
+      color: var(--grape);
+    }
+    .mnav a:focus-visible {
+      outline-offset: -6px;
+    }
+    .menu-open,
+    .menu-open body {
+      overflow: hidden;
+    }
+
+    .tz {
+      display: inline-flex;
+      align-items: center;
+      position: fixed;
+      z-index: 45;
+      right: var(--spacing-side);
+      bottom: calc(var(--spacing-side) + env(safe-area-inset-bottom, 0px));
+      min-height: var(--spacing-tap);
+      padding: 0 18px;
+      border-radius: var(--radius-pill);
+      background: var(--grape);
+      color: var(--on-grape);
+      box-shadow: 0 6px 18px -8px rgb(0 0 0 / 0.45);
+      opacity: 0;
+      translate: 0 var(--enter-rise);
+      pointer-events: none;
+      transition:
+        opacity var(--dur-enter-opacity) var(--ease-enter-opacity),
+        translate var(--dur-spring) var(--ease-spring);
+    }
+    .tz[data-on="true"] {
+      opacity: 1;
+      translate: 0 0;
+      pointer-events: auto;
+    }
+    .menu-open .tz {
+      opacity: 0;
+      pointer-events: none;
+    }
+    .tz:active {
+      transform: scale(0.96);
+    }
+
+    section[id] {
+      scroll-margin-top: var(--spacing-header);
+    }
+    .fcols {
+      grid-template-columns: 1fr 1fr;
+    }
+    .fcols .cell:first-child {
+      grid-column: 1 / -1;
+    }
+    .fcols .cell {
+      padding-block: 32px;
+      gap: 12px;
+    }
+  }
+
+  @media (width < 600px) {
+    .dn,
+    .dn[aria-checked="true"] {
+      width: var(--spacing-tap);
+      height: var(--spacing-tap);
+      border-radius: 50%;
+    }
+    .dn::before {
+      inset: 0;
+    }
+    .dn .k,
+    .dn[aria-checked="true"] .k {
+      left: 5px;
+      top: 5px;
+      width: 32px;
+      height: 32px;
+      transform: none;
+    }
+    .dn .i {
+      top: 14px;
+      left: 14px;
+      right: auto;
+      color: var(--on-grape);
+    }
+    .dn .moon,
+    .dn[aria-checked="true"] .sun {
+      opacity: 0;
+    }
+    .dn[aria-checked="true"] .moon {
+      opacity: 1;
+    }
+    .pzb {
+      width: var(--spacing-tap);
+      height: var(--spacing-tap);
+      margin-left: -8px; /* 6px after the switch */
+    }
+    .pzb::before {
+      inset: 0;
+    }
+  }
+}
+
+@keyframes hop {
+  35% {
+    transform: translateY(-4px);
+  }
+}
+
+/* ---------- motion states ---------- */
+
+/* Before the house entrance picks the first screen up (set in <head>). */
+html.entering main [data-row] > .cell {
+  opacity: 0;
+}
+
+/* Paused or reduced: things land at once. Colour still cross-fades. */
+html[data-motion="calm"]:not(.mode-fade) *,
+html[data-motion="calm"]:not(.mode-fade) *::before,
+html[data-motion="calm"]:not(.mode-fade) *::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0s !important;
+  transition-delay: 0s !important;
+  scroll-behavior: auto !important;
+}
+
+/* Page change: a canvas cross-fade, 240 out then 240 in. The rest of the
+   page (header, Wessel's layer) doesn't animate. */
+::view-transition-old(root),
+::view-transition-new(root),
+::view-transition-group(.page) {
+  animation: none;
+}
+::view-transition-old(.page) {
+  animation: page-out 240ms var(--ease-ui) both;
+}
+::view-transition-new(.page) {
+  animation: page-in 240ms var(--ease-ui) 240ms both;
+}
+@keyframes page-out {
+  to {
+    opacity: 0;
+  }
+}
+@keyframes page-in {
+  from {
+    opacity: 0;
+  }
+}
