@@ -104,9 +104,10 @@
   .hist > li[data-on="true"] .yr {
     color: var(--tang);
   }
+  /* The whole row is the layer. */
   .hsel {
-    left: calc(var(--spacing-inset) - 12px);
-    right: calc(var(--spacing-inset) - 12px);
+    left: 0;
+    right: 0;
     top: 0;
     opacity: 0;
     transition:
