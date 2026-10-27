@@ -70,7 +70,7 @@ Fonts: **Bricolage Grotesque** (display + text; opsz 12–96), **Geist Mono** (l
 | Body | Bricolage 400 · 16px/24 | running text |
 | Small | Bricolage 400 · 14px/20 | comment-pin bubbles, legal bar |
 | Link | Bricolage 500 · 16px/20 · sentence case | text links, buttons and pills you press (Contact, Copy email, Show all) |
-| Label | Geist Mono 500 · 12px/16 · uppercase · +6% | section labels, nav, meta, the status line. Not for links or buttons (2026-10-27) |
+| Label | Geist Mono 500 · 12px/16 · uppercase · +6% | section labels, meta, the status line. Not for links or buttons (2026-10-27) |
 | Micro | Geist Mono 500 · 11px/14 · +4% · tabular figures | numbers and keys: size pills ("203 × 116"), ⌘C/⌘V chips, counters |
 | Micro caps | Geist Mono 500 · 11px/14 · uppercase · +6% | word pills: "▶ Reel", "Case study soon", frame and layer labels |
 | Wordmark | Bricolage 800 · 28px · ls -3% | header wordmark only |
@@ -114,7 +114,7 @@ Header (sticky, 90px) → Hero → `{ About }` → About (story + photo deck) �
 
 | Component | Spec |
 |---|---|
-| **Header** | Logo smiley (eyes follow the pointer) + "Wessel" wordmark that slides in once the hero name scrolls away · mono nav Work/About · day/night switch (grape) · Pause motion button · "Contact ↓". Sticky. **Below 900px:** logo · switch · pause · 44px menu button (two lines that turn into ×). |
+| **Header** | Logo smiley (eyes follow the pointer) + "Wessel" wordmark that slides in once the hero name scrolls away · sentence-case nav Work/About/Playground (Link style) · day/night switch (grape) · Pause motion button · "Contact ↓". Sticky. **Below 900px:** logo · switch · pause · 44px menu button (two lines that turn into ×). |
 | **Phone menu** | Wons 2026-10-27. A ruled panel under the header on the dot canvas: Work, About, Contact ↓ as 88px rows in Mobile/Headline (34), arrow in grape. Rows enter with the house entrance (60ms stagger). Closes on a link, Esc, the button or the empty canvas; locks page scroll; focus moves in and back. Built from the header's own links. |
 | **Contact pill** | Phones and tablets: grape "Contact ↓" pill docks bottom-right once the hero has gone (stage spring), hides at the footer, in the reel and while the menu is open. |
 | **Hero** | Height `clamp(480px, 80svh − 91px, 720px)`, or `clamp(420px, 72svh − 70px, 620px)` on mobile. Mono meta top-left (Based in / Local time). Name row WESSEL [reel] OUD. Role bottom-right in Accent. Letters are split into spans for the intro. |
