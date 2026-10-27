@@ -264,6 +264,30 @@ export function Hero({ hero: c }: { hero: HomeContent["hero"] }) {
     return () => n.removeEventListener("click", tap);
   }, []);
 
+  // The reel opens like a Playground post: it lifts out of its frame and
+  // springs to the middle over a canvas wash, then drops back on close.
+  const fly = (to: boolean) => {
+    const d = dlg.current;
+    const m = d?.querySelector<HTMLElement>(".rbm");
+    const r = reel.current?.getBoundingClientRect();
+    if (!d || !m || !r) return;
+    const f = m.getBoundingClientRect();
+    const s = r.width / f.width;
+    const from = `translate(${r.left - f.left}px,${r.top - f.top}px) scale(${s})`;
+    if (to) {
+      m.style.transition = "none";
+      m.style.transform = from;
+      m.getBoundingClientRect();
+      m.style.transition = "";
+      requestAnimationFrame(() => {
+        d.dataset.on = "";
+        m.style.transform = "";
+      });
+    } else {
+      delete d.dataset.on;
+      m.style.transform = from;
+    }
+  };
   const openReel = (e: React.MouseEvent) => {
     e.preventDefault();
     const d = dlg.current;
@@ -273,6 +297,21 @@ export function Hero({ hero: c }: { hero: HomeContent["hero"] }) {
     loop.current?.pause();
     v.currentTime = 0;
     v.play().catch(() => {});
+    fly(true);
+  };
+  const closeReel = () => {
+    const d = dlg.current;
+    if (!d?.open || d.dataset.closing != null) return;
+    d.dataset.closing = "";
+    full.current?.pause();
+    fly(false);
+    setTimeout(
+      () => {
+        delete d.dataset.closing;
+        d.close();
+      },
+      calm() ? 0 : 560,
+    );
   };
   const closedReel = () => {
     full.current?.pause();
@@ -564,14 +603,24 @@ export function Hero({ hero: c }: { hero: HomeContent["hero"] }) {
         <br />
         {c.role[1]}
       </p>
-      <dialog ref={dlg} className="reelbox" aria-label="Reel" onClose={closedReel} onClick={(e) => e.target === e.currentTarget && dlg.current?.close()}>
-        {c.reel.full && <video ref={full} controls playsInline loop preload="none" poster={c.reel.poster} src={c.reel.full} />}
-        <div className="db">
-          <span className="text-label">Reel {c.reel.mock && <MockTag>placeholder</MockTag>}</span>
-          <button type="button" className="text-link" onClick={() => dlg.current?.close()}>
-            Close
-          </button>
+      <dialog
+        ref={dlg}
+        className="reelbox"
+        aria-label="Reel"
+        onClose={closedReel}
+        onCancel={(e) => {
+          e.preventDefault();
+          closeReel();
+        }}
+        onClick={(e) => e.target === e.currentTarget && closeReel()}
+      >
+        <div className="rbm">
+          {c.reel.full && <video ref={full} controls playsInline loop preload="none" poster={c.reel.poster} src={c.reel.full} />}
         </div>
+        <p className="rbc text-label">Reel {c.reel.mock && <MockTag>placeholder</MockTag>}</p>
+        <button type="button" className="rbx gpill text-micro-caps" data-size="tap" onClick={closeReel}>
+          Close
+        </button>
       </dialog>
       </div>
       <div className="side" />

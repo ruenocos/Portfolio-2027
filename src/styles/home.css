@@ -198,38 +198,80 @@
       display: none;
     }
   }
+  /* The reel player matches a Playground post: lifted over a canvas wash
+     (no blur), caption bottom left, a Close pill top right. */
   .reelbox {
+    position: fixed;
+    inset: 0;
     width: 100%;
-    max-width: min(1200px, 92vw);
-    margin: auto;
+    height: 100%;
+    max-width: none;
+    max-height: none;
+    --rw: min(80vw, calc(80svh * 16 / 9), 1200px);
+    margin: 0;
     padding: 0;
     border: 0;
-    background: transparent;
+    overflow: hidden;
+    cursor: zoom-out;
     color: var(--ink);
+    background: color-mix(in srgb, var(--canvas) 88%, transparent);
+    opacity: 0;
+    transition: opacity 300ms var(--ease-ui);
+  }
+  .reelbox[data-on] {
+    opacity: 1;
   }
   .reelbox::backdrop {
-    background: color-mix(in srgb, var(--canvas) 90%, transparent);
+    background: transparent;
+  }
+  .reelbox .rbm {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: var(--rw);
+    aspect-ratio: 16 / 9;
+    translate: -50% -50%;
+    transform-origin: 0 0;
+    overflow: hidden;
+    cursor: auto;
+    border-radius: 24px;
+    background: var(--fill);
+    transition:
+      transform var(--dur-spring) var(--ease-spring),
+      border-radius var(--dur-spring) var(--ease-spring);
   }
   .reelbox video {
     display: block;
     width: 100%;
-    aspect-ratio: 16 / 9;
-    border-radius: var(--radius-media);
+    height: 100%;
+    object-fit: cover;
     background: #000;
   }
-  .reelbox .db {
+  /* Under the frame's left edge (the corner is the night switch's). */
+  .reelbox .rbc {
+    position: absolute;
+    left: calc(50% - var(--rw) / 2);
+    top: calc(50% + var(--rw) * 9 / 32 + 12px);
     display: flex;
-    justify-content: space-between;
     align-items: center;
-    gap: 12px;
-    padding: 12px 0;
+    gap: 8px;
+    color: var(--mute);
   }
-  .reelbox .db button {
-    min-height: var(--spacing-tap);
-    cursor: pointer;
+  .reelbox .rbx {
+    position: absolute;
+    right: var(--spacing-inset);
+    top: 20px;
   }
-  .reelbox .db button:hover {
-    color: var(--grape);
+  @media (max-width: 899px) {
+    .reelbox {
+      --rw: 90vw;
+    }
+    .reelbox .rbm {
+      border-radius: 16px;
+    }
+  }
+  html[data-motion="calm"] .reelbox .rbm {
+    transition: none;
   }
 
   /* The first visit's boot: named empty frames draw in, then fill. */
