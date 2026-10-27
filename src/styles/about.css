@@ -190,7 +190,7 @@
     }
     .stackc {
       min-height: 440px;
-      padding-bottom: 64px;
+      padding-bottom: 80px;
     }
     .pstk {
       width: min(260px, 72%);

@@ -442,7 +442,7 @@ export function Board({ posts }: { posts: Post[] }) {
       if (!o || o.closing) return;
       o.closing = true;
       delete o.lb.dataset.on;
-      o.m.style.transform = `translate(${o.it.x}px,${o.it.yy}px) scale(${1 / o.s})`;
+      o.m.style.transform = `translate(${o.it.x + o.it.lx}px,${o.it.yy + o.it.ly}px) scale(${1 / o.s})`;
       o.m.style.borderRadius = `${o.R / o.s}px`;
       later(
         () => {
@@ -533,7 +533,9 @@ export function Board({ posts }: { posts: Post[] }) {
       let bd = Infinity;
       cols.forEach((c) =>
         c.items.forEach((it) => {
-          const d = Math.hypot(it.x + CW / 2 - W / 2, it.yy + it.h / 2 - H / 2);
+          // Real work first: a blank placeholder only when nothing else is near.
+          const d =
+            Math.hypot(it.x + CW / 2 - W / 2, it.yy + it.h / 2 - H / 2) + (it.p.src || it.p.video ? 0 : CW);
           if (d < bd) {
             bd = d;
             best = it;
@@ -582,9 +584,14 @@ export function Board({ posts }: { posts: Post[] }) {
     };
     const leave = () => (mptr = null);
     let rz = 0;
+    // Only a new width rebuilds the board (a phone's address bar changes
+    // only the height).
+    let rw = cv.clientWidth;
     const resize = () => {
       clearTimeout(rz);
       rz = window.setTimeout(() => {
+        if (cv.clientWidth === rw) return;
+        rw = cv.clientWidth;
         if (opened) {
           opened.it.pi.style.visibility = "";
           opened.lb.remove();

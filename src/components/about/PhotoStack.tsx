@@ -50,17 +50,25 @@ export function PhotoStack({ photos }: { photos: Photo[] }) {
       d = { x: ev.clientX - sx, y: ev.clientY - sy };
       setDrag(d);
     };
-    const up = () => {
+    const stop = () => {
       card.removeEventListener("pointermove", move);
       card.removeEventListener("pointerup", up);
-      card.removeEventListener("pointercancel", up);
+      card.removeEventListener("pointercancel", cancel);
+    };
+    // The browser took over (a scroll on touch): it settles back, never tosses.
+    const cancel = () => {
+      stop();
+      setDrag(null);
+    };
+    const up = () => {
+      stop();
       // A real throw, or a tap: it goes. A small nudge: it settles back.
       if (Math.abs(d.x) > 90 || Math.hypot(d.x, d.y) < 6) toss(d.x, d.y);
       else setDrag(null);
     };
     card.addEventListener("pointermove", move);
     card.addEventListener("pointerup", up);
-    card.addEventListener("pointercancel", up);
+    card.addEventListener("pointercancel", cancel);
   };
 
   const beat = useBeat<HTMLDivElement>({
