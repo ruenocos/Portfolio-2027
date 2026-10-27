@@ -29,7 +29,8 @@
     background-color: var(--canvas);
     background-image: radial-gradient(circle, var(--dot) 1.1px, transparent 1.2px);
     background-size: var(--spacing-dot-step) var(--spacing-dot-step);
-    background-position: 8px 8px;
+    background-repeat: space; /* dots fit the box, never on a line */
+    background-position: center;
   }
   .cell {
     background-color: var(--canvas);
@@ -483,6 +484,8 @@
       background-color: var(--canvas);
       background-image: radial-gradient(var(--dot) 1.1px, transparent 1.2px);
       background-size: var(--spacing-dot-step) var(--spacing-dot-step);
+      background-repeat: space;
+      background-position: center;
       border-top: 1px solid var(--line);
       visibility: hidden;
       opacity: 0;

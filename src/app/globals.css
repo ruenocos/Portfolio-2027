@@ -37,10 +37,13 @@
   transition-timing-function: var(--ease-mode);
 }
 
-/* Dot grid: 1.1px dots every 16px. */
+/* Dot grid: 1.1px dots every 16px. Each box spreads its dots evenly with a
+   clear margin, so no dot ever sits on a hairline (Wons, 2026-10-27). */
 @utility bg-dots {
   background-image: radial-gradient(circle, var(--dot) 1.1px, transparent 1.2px);
   background-size: var(--spacing-dot-step) var(--spacing-dot-step);
+  background-repeat: space;
+  background-position: center;
 }
 
 /* Ruled cells: siblings share 1px hairlines through the gap. */
