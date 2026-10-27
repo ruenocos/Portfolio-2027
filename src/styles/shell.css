@@ -3,6 +3,10 @@
    In the components layer, so Tailwind utilities on a Row still win. */
 
 @layer components {
+  :root {
+    --stagger: 60ms; /* motion-tokens entrance.stagger */
+  }
+
   /* ---------- canvas ---------- */
   .page {
     display: flex;
@@ -334,8 +338,8 @@
     transform: scale(0.95);
   }
   .fcols .l {
-    min-width: 44px;
-    min-height: 44px;
+    min-width: var(--spacing-tap);
+    min-height: var(--spacing-tap);
     display: inline-flex;
     align-items: center;
     gap: 0.3em;
@@ -412,24 +416,24 @@
       display: none;
     }
     .hd .home {
-      padding: 0 20px;
+      padding: 0 var(--spacing-inset);
     }
     .hd .mid {
-      padding: 0 16px;
+      padding: 0 var(--spacing-side);
     }
     .hd .ctw {
       gap: 14px;
     }
     .hd .end {
-      padding: 0 16px;
+      padding: 0 var(--spacing-side);
     }
 
     .mb {
       display: grid;
       place-items: center;
       position: relative;
-      width: 44px;
-      height: 44px;
+      width: var(--spacing-tap);
+      height: var(--spacing-tap);
       flex: none;
       border-radius: 50%;
       border: 1px solid var(--line);
@@ -511,17 +515,17 @@
         translate var(--dur-enter-rise) var(--ease-enter-rise);
     }
     .mnav[data-open="true"] li:nth-child(2) {
-      transition-delay: 60ms;
+      transition-delay: var(--stagger);
     }
     .mnav[data-open="true"] li:nth-child(n + 3) {
-      transition-delay: 120ms;
+      transition-delay: calc(var(--stagger) * 2);
     }
     .mnav a {
       display: flex;
       align-items: center;
       justify-content: space-between;
       min-height: 88px;
-      padding: 0 20px;
+      padding: 0 var(--spacing-inset);
       font: 500 var(--type-headline-size) / 1.05 var(--font-display);
       letter-spacing: -0.02em;
       transition: color var(--dur-ui) var(--ease-ui);
@@ -546,8 +550,8 @@
       align-items: center;
       position: fixed;
       z-index: 45;
-      right: 16px;
-      bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+      right: var(--spacing-side);
+      bottom: calc(var(--spacing-side) + env(safe-area-inset-bottom, 0px));
       min-height: var(--spacing-tap);
       padding: 0 18px;
       border-radius: var(--radius-pill);
@@ -555,7 +559,7 @@
       color: var(--on-grape);
       box-shadow: 0 6px 18px -8px rgb(0 0 0 / 0.45);
       opacity: 0;
-      translate: 0 16px;
+      translate: 0 var(--enter-rise);
       pointer-events: none;
       transition:
         opacity var(--dur-enter-opacity) var(--ease-enter-opacity),
@@ -592,8 +596,8 @@
   @media (width < 600px) {
     .dn,
     .dn[aria-checked="true"] {
-      width: 44px;
-      height: 44px;
+      width: var(--spacing-tap);
+      height: var(--spacing-tap);
       border-radius: 50%;
     }
     .dn::before {
@@ -621,8 +625,8 @@
       opacity: 1;
     }
     .pzb {
-      width: 44px;
-      height: 44px;
+      width: var(--spacing-tap);
+      height: var(--spacing-tap);
       margin-left: -8px; /* 6px after the switch */
     }
     .pzb::before {
