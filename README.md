@@ -1,6 +1,6 @@
 # Wessel Oud
 
-Portfolio 2027. Next.js 16.4 (App Router), Tailwind 4, Sanity, hosted on Vercel.
+Portfolio 2027. Next.js 16.4 (App Router), Tailwind 4, Sanity, hosted on Netlify (wonsfolio).
 The old site is kept on the `archive/old-site` branch.
 
 ## Run it
