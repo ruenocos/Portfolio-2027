@@ -23,9 +23,6 @@ export function Footer() {
         <div className="fcols">
           <div className="cell">
             <h3 className="text-lead">Email</h3>
-            <a id="mail" className="mail" href={`mailto:${EMAIL}`}>
-              {EMAIL}
-            </a>
             <CopyEmail email={EMAIL} />
           </div>
           <div className="cell">

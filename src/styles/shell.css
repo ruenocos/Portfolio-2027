@@ -324,15 +324,34 @@
     text-underline-offset: 8px;
     transition: color var(--dur-ui) var(--ease-ui);
   }
+  .mail {
+    position: relative;
+    cursor: copy;
+  }
   .mail:hover {
     color: var(--grape);
   }
-  /* Copy email is an OutlinePill tap face (components.css); only the cursor is its own. */
-  .copy {
-    cursor: pointer;
+  /* Copied: the address flashes like a text selection and a pill pops up. */
+  .mail[data-copied] {
+    background: color-mix(in srgb, var(--grape) 18%, transparent);
   }
-  .copy:hover {
-    border-color: var(--grape);
+  .mail .copied {
+    position: absolute;
+    left: 0;
+    top: calc(100% + 6px);
+    opacity: 0;
+    translate: 0 6px;
+    pointer-events: none;
+    transition:
+      opacity var(--dur-ui) var(--ease-ui),
+      translate var(--dur-spring) var(--ease-spring);
+  }
+  /* Touch has no You tag to say it, so the pill does. */
+  @media (hover: none) {
+    .mail[data-copied] .copied {
+      opacity: 1;
+      translate: 0 0;
+    }
   }
   .fcols .l {
     min-width: var(--spacing-tap);

@@ -138,9 +138,3 @@
     scale: 1;
   }
 }
-
-/* The board fills the screen, so this page has no footer (unlayered: the
-   footer rows are .frame utilities). */
-.page:has(.pgcv) :is(.footer-air, #contact, .legal) {
-  display: none;
-}
