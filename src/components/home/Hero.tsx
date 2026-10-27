@@ -304,6 +304,7 @@ export function Hero({ hero: c }: { hero: HomeContent["hero"] }) {
       live(g);
       // It skips once the hero is scrolled 45% away, or on any key or click.
       let skip = false;
+      let su: ReturnType<typeof select> | null = null;
       const away = () => {
         if (scrollY > h.offsetHeight * 0.45) skip = true;
       };
@@ -366,7 +367,7 @@ export function Hero({ hero: c }: { hero: HomeContent["hero"] }) {
         // The crooked u: select it, drag it straight, it snaps on a guide.
         await wessel.go(wessel.at(U, 0.5, 0.5), { k: 140, timeout: 1300 });
         chk();
-        const su = select(U, { label: false, ms: 0 });
+        su = select(U, { label: false, ms: 0 });
         await breath(420);
         wessel.press(true);
         await breath(120);
@@ -388,6 +389,7 @@ export function Hero({ hero: c }: { hero: HomeContent["hero"] }) {
         await breath(600);
         U.classList.remove("snap");
         su.done();
+        su = null;
         await breath(250);
         // The reel: he drags a selection open, the size pops, and he invites you in.
         await wessel.go(wessel.at(r, 0, 0, -2, -2), { k: 140, timeout: 1300 });
@@ -424,6 +426,7 @@ export function Hero({ hero: c }: { hero: HomeContent["hero"] }) {
         unprep();
         playReel();
       } finally {
+        su?.done();
         removeEventListener("scroll", away);
         removeEventListener("keydown", input);
         removeEventListener("pointerdown", input);
@@ -546,7 +549,7 @@ export function Hero({ hero: c }: { hero: HomeContent["hero"] }) {
           {c.reel.loop && <video ref={loop} data-src={c.reel.loop} muted loop playsInline preload="none" aria-hidden="true" />}
           <i ref={bar} className="ph" />
           <span className="gpill text-micro-caps play" data-size="small">
-            <Play /> Reel
+            <Play /> <span className="pt">Reel</span>
           </span>
         </a>
         <span className="w" aria-hidden="true">

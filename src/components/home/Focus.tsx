@@ -42,6 +42,7 @@ function useTyping(text: string) {
           i = Math.min(text.length, i + 1);
           setN(i);
           if (i < text.length) id = window.setTimeout(step, text[i - 1] === "," ? 140 : 26);
+          else setN(null);
         };
         id = window.setTimeout(step, 200);
       },
@@ -164,7 +165,7 @@ function Card({
   // Keyboard: Enter or Space plays the scene (D duplicates on the AI card,
   // like Figma's ⌘D, but only while the card has focus).
   const key = (e: React.KeyboardEvent) => {
-    if (e.target !== e.currentTarget || e.metaKey || e.ctrlKey || e.altKey) return;
+    if (e.target !== e.currentTarget || e.repeat || e.metaKey || e.ctrlKey || e.altKey) return;
     const d = dio();
     if (!d) return;
     if (e.key === "Enter" || e.key === " " || (k === "ai" && e.key.toLowerCase() === "d")) {
@@ -184,6 +185,7 @@ function Card({
       data-on={lit}
       tabIndex={0}
       aria-label={track.title}
+      aria-describedby="fig-hint"
       aria-keyshortcuts={k === "ai" ? "D" : undefined}
       onKeyDown={key}
       onPointerEnter={() => !touch() && light(k)}
@@ -306,6 +308,9 @@ export function Focus({ focus: c }: { focus: HomeContent["focus"] }) {
             </ul>
           </div>
         </div>
+        <p id="fig-hint" className="sr-only">
+          Press Enter to play the scene.
+        </p>
         <div className="tracks">
           {c.tracks.map((t) => (
             <Card key={t.key} track={t} lit={lit === t.key} light={setLit} dios={dios} />

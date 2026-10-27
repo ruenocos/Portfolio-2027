@@ -113,6 +113,26 @@
     background: var(--fill);
     will-change: transform;
   }
+  /* Phones: the reel is small, so its hit area grows to the tap size. */
+  @media (hover: none) {
+    .reel {
+      overflow: visible;
+    }
+    .reel::after {
+      content: "";
+      position: absolute;
+      inset: min(0px, calc((100% - var(--spacing-tap)) / 2));
+    }
+    .reel img,
+    .reel video {
+      border-radius: inherit;
+    }
+    .reel .ph {
+      left: clamp(8px, 0.1em, 22px);
+      right: clamp(8px, 0.1em, 22px);
+      width: auto;
+    }
+  }
   .reel img,
   .reel video {
     position: absolute;
@@ -161,6 +181,21 @@
     .reel .play {
       opacity: 1;
       transform: none;
+    }
+    /* Keyboard chips mean nothing on a phone. */
+    .cur .wchip {
+      display: none;
+    }
+  }
+  /* A small reel on phones: the pill is just the play glyph. */
+  @media (width < 900px) {
+    .reel .play {
+      left: 6px;
+      bottom: 6px;
+      padding-inline: 8px;
+    }
+    .reel .play .pt {
+      display: none;
     }
   }
   .reelbox {
@@ -218,7 +253,7 @@
   .frm {
     position: absolute;
     z-index: 2;
-    border: 1px solid var(--line);
+    border: 1px solid color-mix(in srgb, var(--mute) 55%, transparent);
     background: color-mix(in srgb, var(--fill) 40%, transparent);
     border-radius: var(--radius-focus);
     pointer-events: none;
@@ -236,7 +271,7 @@
     white-space: nowrap;
   }
   .frm.f {
-    background: var(--fill);
+    background: color-mix(in srgb, var(--fill), var(--mute) 14%);
   }
   .frm.out {
     opacity: 0;
@@ -472,7 +507,8 @@
     background: var(--fill);
     transform-origin: 50% 260%;
     box-shadow: 0 14px 32px -18px rgb(0 0 0 / 0.6);
-    transform: translate(var(--tx, 0px), var(--ty, -130px)) rotate(var(--r2, calc(var(--k) * 1.2deg))) scale(var(--s, 0.86));
+    /* At rest it's a loose hand, so it reads as cards, not one card. */
+    transform: translate(var(--tx, 0px), var(--ty, -190px)) rotate(var(--r2, calc(var(--k) * 4deg))) scale(var(--s, 0.92));
     transition:
       transform var(--dur-spring) var(--ease-spring),
       transform-origin var(--dur-spring) var(--ease-ui),
@@ -835,11 +871,12 @@ html.entering main [data-row][data-still] > .cell {
   }
 }
 @keyframes frm {
+  /* Negative top inset: the frame's name label sits above the box. */
   from {
-    clip-path: inset(0 100% 100% 0);
+    clip-path: inset(-28px 100% 100% 0);
   }
   to {
-    clip-path: inset(0 0 0 0);
+    clip-path: inset(-28px 0 0 0);
   }
 }
 @keyframes ring {
