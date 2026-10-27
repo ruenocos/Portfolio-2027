@@ -55,6 +55,9 @@
     position: sticky;
     top: 0;
     z-index: 40;
+    /* Its own bottom hairline: the page gap's line scrolls away once it
+       sticks. At rest it lies exactly on that line. */
+    box-shadow: 0 var(--spacing-hairline) 0 var(--line);
   }
   .hd > div {
     height: var(--spacing-header);
