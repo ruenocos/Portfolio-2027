@@ -44,6 +44,17 @@
       ],
       "ms": 900,
       "use": "light/dark/night token cross-fade"
+    },
+    "press": {
+      "bezier": [
+        0.2,
+        0,
+        0,
+        1
+      ],
+      "ms": 120,
+      "distance": "1px",
+      "use": "tactile objects sink 1px while pressed. Off when calm (Pause or reduced motion)"
     }
   },
   "entrance": {

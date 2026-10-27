@@ -335,9 +335,6 @@
   .copy:hover {
     border-color: var(--grape);
   }
-  .copy:active {
-    transform: scale(0.95);
-  }
   .fcols .l {
     min-width: var(--spacing-tap);
     min-height: var(--spacing-tap);
@@ -558,13 +555,14 @@
       border-radius: var(--radius-pill);
       background: var(--grape);
       color: var(--on-grape);
-      box-shadow: 0 6px 18px -8px rgb(0 0 0 / 0.45);
       opacity: 0;
       translate: 0 var(--enter-rise);
       pointer-events: none;
       transition:
         opacity var(--dur-enter-opacity) var(--ease-enter-opacity),
-        translate var(--dur-spring) var(--ease-spring);
+        translate var(--dur-spring) var(--ease-spring),
+        transform var(--dur-press) var(--ease-press),
+        box-shadow var(--dur-press) var(--ease-press);
     }
     .tz[data-on="true"] {
       opacity: 1;
@@ -574,9 +572,6 @@
     .menu-open .tz {
       opacity: 0;
       pointer-events: none;
-    }
-    .tz:active {
-      transform: scale(0.96);
     }
 
     section[id] {

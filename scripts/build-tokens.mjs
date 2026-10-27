@@ -62,6 +62,7 @@ push("}", "");
 push(":root {");
 for (const [name, e] of Object.entries(motion.easing)) push(`  --dur-${name}: ${e.ms}ms;`);
 push(`  --enter-rise: ${motion.easing["enter-rise"].distance};`);
+push(`  --press-y: ${motion.easing.press.distance};`);
 for (const [name, t] of Object.entries(tokens.type)) push(`  --type-${name}-size: ${t.$value.fontSize};`);
 push("}", "");
 
@@ -70,6 +71,9 @@ for (const mode of MODES) {
   const selector = mode === "light" ? `:root, [data-mode="light"]` : `[data-mode="${mode}"]`;
   push(`${selector} {`, `  color-scheme: ${SCHEME[mode]};`);
   for (const name of colorNames) push(`  --${name}: ${v(tokens.color[mode][name])};`);
+  // Tactile objects: top-edge light and how much colour goes into the drop.
+  const tac = tokens.tactile[mode];
+  push(`  --tac-lit: ${v(tac.lit)};`, `  --tac-lit-outline: ${v(tac.litOutline)};`, `  --tac-drop: ${v(tac.drop)};`);
   push("}", "");
 }
 

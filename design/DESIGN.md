@@ -88,7 +88,7 @@ Rules:
 - **Insets and rhythm:** content inset is 40px desktop and 20px mobile. Sections use 96px vertical padding (40 mobile). Section dividers are 168px rows (96 mobile; the tall ones are 240 at every width), with the label at bottom-left (inset 40, 20px from the bottom; mobile inset 20, 16px from the bottom).
 - **Section labels:** `{ About }` in Label style, ink. Only the braces are tangerine (`tang-ink`). No counter (dropped 2026-10-27).
 - **Round things inside the square frame:** media radius 24 (`--rm`), pills 999, handles round, chips are circles.
-- **Tactile pills** (2026-10-27): grape and tangerine pills get a lit top edge (inset 1px white 32%), a faint top sheen and a soft drop tinted in their own colour; outline pills get a light inset edge and a soft shadow. No flat fills.
+- **Tactile objects** (2026-10-27): things you can press (pills, Contact, Copy email, Pause, the switch knob) plus cursor tags, pins and key chips get a lit top edge and a short drop tinted in their own colour; key chips are keycaps with a 2px darker base. Marks stay flat: selections, redlines, bot tags at night, section labels, text links, the status pill, tool chips, media. Strength per mode in tokens.json `tactile` (night is about a fifth). Pressed: sinks 1px (`easing.press`, 120ms), off while calm.
 - **Breakpoint:** one main switch at 900px (stack to one column, 20px insets), plus 600px for small tweaks. Use `hover:none` for touch behaviour.
 - **Tap targets:** at least 44px. Grow the hit box, not the visible thing (`::before` inset, padding with negative margin, or a JS hit-slop when Wessel measures the element, like the reel).
 - **Tablet (600–900):** project rows go text | media (two columns); Focus stays one card per row.

@@ -28,32 +28,70 @@
   }
 
   /* ---------- pills and chips ---------- */
-  /* Tactile pills: a lit top edge, a faint sheen and a soft drop tinted in
-     the pill's own colour, so the fills don't sit flat on the canvas. */
+  /* Tactile objects (DESIGN.md §6): things you can press, plus tags, pins
+     and key chips, get a lit top edge and a short drop in their own colour.
+     Marks (selections, redlines, labels, links) stay flat. Strength per
+     mode comes from --tac-lit / --tac-lit-outline / --tac-drop. */
   .szp,
-  .gpill {
-    --pill-c: var(--grape);
-    background-image: linear-gradient(180deg, rgb(255 255 255 / 0.16), rgb(255 255 255 / 0) 55%);
+  .gpill,
+  .tz,
+  .cur .tag,
+  .dn .k {
+    --tac-c: var(--grape);
+    background-image: linear-gradient(180deg, rgb(255 255 255 / calc(var(--tac-lit) / 2)), rgb(255 255 255 / 0) 55%);
     box-shadow:
-      inset 0 1px 0 rgb(255 255 255 / 0.32),
+      inset 0 1px 0 rgb(255 255 255 / var(--tac-lit)),
       inset 0 -1px 0 rgb(0 0 0 / 0.12),
-      0 1px 1px rgb(0 0 0 / 0.1),
-      0 6px 14px -6px color-mix(in srgb, var(--pill-c) 70%, transparent);
+      0 1px 1px rgb(0 0 0 / 0.12),
+      0 4px 8px -4px color-mix(in srgb, var(--tac-c) var(--tac-drop), transparent);
   }
   .szp {
-    --pill-c: var(--tang);
+    --tac-c: var(--tang);
   }
-  .opill {
+  .cur .tag {
+    --tac-c: var(--c);
+  }
+  .dn .k {
+    background-image: linear-gradient(180deg, rgb(255 255 255 / calc(var(--tac-lit) / 2)), rgb(255 255 255 / 0) 60%);
     box-shadow:
-      inset 0 1px 0 rgb(255 255 255 / 0.6),
+      inset 0 1px 0 rgb(255 255 255 / var(--tac-lit)),
+      0 1px 1px rgb(0 0 0 / 0.14),
+      0 3px 6px -3px color-mix(in srgb, var(--grape) var(--tac-drop), transparent);
+  }
+  [data-mode="night"] .cur.bot .tag {
+    background-image: none;
+    box-shadow: none;
+  }
+  /* Canvas-coloured objects you can press: an edge of light and a soft drop. */
+  .opill[data-tap],
+  .copy,
+  .pzb {
+    box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / var(--tac-lit-outline)),
       0 1px 2px rgb(0 0 0 / 0.06),
       0 4px 10px -6px rgb(0 0 0 / 0.18);
   }
-  [data-mode="dark"] .opill,
-  [data-mode="night"] .opill {
+  :is([data-mode="dark"], [data-mode="night"]) :is(.opill[data-tap], .copy, .pzb) {
     box-shadow:
-      inset 0 1px 0 rgb(255 255 255 / 0.06),
+      inset 0 1px 0 rgb(255 255 255 / var(--tac-lit-outline)),
       0 4px 10px -6px rgb(0 0 0 / 0.5);
+  }
+  .dn {
+    box-shadow: inset 0 1px 2px rgb(0 0 0 / 0.1);
+  }
+  /* Pressed: it sinks 1px and its drop tucks in. Not while calm. */
+  :root:not([data-motion="calm"]) :is(a, button):is(.gpill, .opill, .copy, .pzb) {
+    transition:
+      transform var(--dur-press) var(--ease-press),
+      box-shadow var(--dur-press) var(--ease-press),
+      border-color var(--dur-ui) var(--ease-ui),
+      background-color var(--dur-spring) var(--ease-ui),
+      color var(--dur-ui) var(--ease-ui),
+      opacity var(--dur-ui) var(--ease-ui);
+  }
+  :root:not([data-motion="calm"]) :is(a, button):is(.gpill, .tz, .opill, .copy, .pzb):active {
+    transform: translateY(var(--press-y));
+    box-shadow: inset 0 1px 0 rgb(255 255 255 / calc(var(--tac-lit) / 2)), 0 0 0 rgb(0 0 0 / 0);
   }
   /* Size pill: Wessel's measurements and Handoff's redline numbers. */
   .szp {
@@ -122,9 +160,22 @@
     height: 22px;
     padding: 0 6px;
     border-radius: 6px;
+    padding-bottom: 2px;
     background: var(--ink);
     color: var(--canvas);
     white-space: nowrap;
+    /* A keycap: lit top, a 2px darker base like the side of the key. */
+    background-image: linear-gradient(180deg, rgb(255 255 255 / 0.12), rgb(255 255 255 / 0) 60%);
+    box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / 0.2),
+      inset 0 -2px 0 rgb(0 0 0 / 0.45),
+      0 1px 2px rgb(0 0 0 / 0.2);
+  }
+  :is([data-mode="dark"], [data-mode="night"]) .kchip {
+    box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / 0.8),
+      inset 0 -2px 0 rgb(0 0 0 / 0.18),
+      0 1px 2px rgb(0 0 0 / 0.4);
   }
   /* Mock tag: placeholder copy or data, so nothing invented ships unmarked. */
   .mock {
@@ -533,7 +584,6 @@
     color: var(--on);
     white-space: nowrap;
     transform-origin: 0 0;
-    box-shadow: 0 2px 6px -2px rgb(0 0 0 / 0.35);
   }
   .cur[data-flip="true"] .lab {
     position: absolute;
@@ -662,7 +712,10 @@
     background: var(--canvas);
     color: var(--ink);
     white-space: nowrap;
-    box-shadow: 0 4px 14px -8px rgb(0 0 0 / 0.22);
+    box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / var(--tac-lit-outline)),
+      0 1px 2px rgb(0 0 0 / 0.08),
+      0 4px 10px -6px rgb(0 0 0 / 0.25);
   }
   /* The note variant: tinted with Wessel's ink and tilted, like a sticky. */
   .pin .bub[data-note],
@@ -674,7 +727,10 @@
     background: color-mix(in srgb, var(--tang) 16%, var(--canvas));
     border: 1px solid color-mix(in srgb, var(--tang) 35%, var(--canvas));
     color: var(--ink);
-    box-shadow: 0 6px 16px -10px rgb(0 0 0 / 0.3);
+    box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / var(--tac-lit-outline)),
+      0 1px 2px rgb(0 0 0 / 0.08),
+      0 4px 10px -6px rgb(0 0 0 / 0.25);
     rotate: -2deg;
   }
   /* At night the tint goes muddy on indigo: night fill, ember edge instead. */
