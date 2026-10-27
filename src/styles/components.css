@@ -104,6 +104,10 @@
     border-radius: var(--radius-pill);
     color: var(--mute);
   }
+  /* Build marker only: deploy previews and dev show it, the live site never does. */
+  html[data-live] .mock {
+    display: none;
+  }
   /* Slot: an inline gap where a real value is still missing. */
   .slot {
     display: inline;
