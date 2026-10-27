@@ -31,11 +31,8 @@ export function PhotoStack({ photos }: { photos: Photo[] }) {
     const done = () => {
       setGone(null);
       setDrag(null);
-      setOrder((o) => {
-        const next = [...o.slice(1), o[0]];
-        announce(photos[next[0]].alt);
-        return next;
-      });
+      setOrder((o) => [...o.slice(1), o[0]]);
+      announce(photos[order[1] ?? order[0]].alt);
     };
     if (getMotion().calm) return done();
     setGone({ dir, dy, w: stack.current?.offsetWidth ?? 280 });

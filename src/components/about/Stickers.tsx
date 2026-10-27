@@ -104,8 +104,16 @@ export function Stickers({ items }: { items: Sticker[] }) {
   }, [items]);
 
   useLayoutEffect(mess, [mess]);
+  // Only a change of width lays them out again: a phone's address bar
+  // showing or hiding shouldn't undo the ones you moved.
   useEffect(() => {
-    const rs = () => (tidy ? neat() : mess());
+    let w = innerWidth;
+    const rs = () => {
+      if (innerWidth === w) return;
+      w = innerWidth;
+      if (tidy) neat();
+      else mess();
+    };
     addEventListener("resize", rs);
     return () => removeEventListener("resize", rs);
   }, [tidy, mess, neat]);

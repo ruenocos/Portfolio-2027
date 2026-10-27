@@ -3,7 +3,7 @@
 @layer components {
   .pgcv {
     position: relative;
-    height: calc(100svh - var(--spacing-header) - 1px);
+    height: calc(100svh - var(--spacing-header) - 2px);
     min-height: 520px;
     overflow: hidden;
     cursor: grab;

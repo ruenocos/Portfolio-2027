@@ -3,7 +3,7 @@
 import { useEffect, useRef } from "react";
 import { useMotion } from "@/components/useMotion";
 import type { Post } from "@/content/playground";
-import { announce, getMotion } from "@/lib/motion";
+import { announce, getMotion, subscribeMotion } from "@/lib/motion";
 import { isAsleep, wessel, type XY } from "@/lib/wessel";
 
 type Item = {
@@ -525,31 +525,45 @@ export function Board({ posts }: { posts: Post[] }) {
       vx = vy = 0;
       poke();
     };
+    // The post nearest the middle: the one Enter opens.
+    const middle = () => {
+      const W = cv.clientWidth;
+      const H = cv.clientHeight;
+      let best: Item | null = null;
+      let bd = Infinity;
+      cols.forEach((c) =>
+        c.items.forEach((it) => {
+          const d = Math.hypot(it.x + CW / 2 - W / 2, it.yy + it.h / 2 - H / 2);
+          if (d < bd) {
+            bd = d;
+            best = it;
+          }
+        }),
+      );
+      return best as Item | null;
+    };
+    // After a keyboard pan, say which post is in the middle now.
+    let said = 0;
+    const sayMiddle = () => {
+      clearTimeout(said);
+      said = window.setTimeout(() => {
+        const it = middle();
+        if (it && !opened) announce(`${it.p.title}. Enter opens it.`);
+      }, 500);
+    };
     const key = (e: KeyboardEvent) => {
       if (e.key === "Escape" && opened) return closePost();
       if (opened || e.target !== cv) return;
       if (e.key === "Enter" || e.key === " ") {
-        // The post nearest the middle.
         e.preventDefault();
-        const W = cv.clientWidth;
-        const H = cv.clientHeight;
-        let best: Item | null = null;
-        let bd = Infinity;
-        cols.forEach((c) =>
-          c.items.forEach((it) => {
-            const d = Math.hypot(it.x + CW / 2 - W / 2, it.yy + it.h / 2 - H / 2);
-            if (d < bd) {
-              bd = d;
-              best = it;
-            }
-          }),
-        );
-        if (best) openPost((best as Item).el);
+        const it = middle();
+        if (it) openPost(it.el);
         return;
       }
       const d = ({ ArrowLeft: [1, 0], ArrowRight: [-1, 0], ArrowUp: [0, 1], ArrowDown: [0, -1] } as Record<string, number[]>)[e.key];
       if (!d) return;
       e.preventDefault();
+      sayMiddle();
       tx = px;
       ty = py;
       if (calm()) {
@@ -591,11 +605,29 @@ export function Board({ posts }: { posts: Post[] }) {
     cv.addEventListener("pointermove", hover);
     cv.addEventListener("pointerleave", leave);
     addEventListener("resize", resize);
+    // Pause or reduced motion stops the loops (and lets them play again after).
+    const offMotion = subscribeMotion(() => {
+      const q = calm();
+      cols.forEach((c) =>
+        c.items.forEach((it) => {
+          if (!it.v) return;
+          if (it.vis && !q) it.v.play().catch(() => {});
+          else it.v.pause();
+        }),
+      );
+      const lv = opened?.m.querySelector("video");
+      if (lv) {
+        if (q) lv.pause();
+        else lv.play().catch(() => {});
+      }
+    });
     raf = requestAnimationFrame((t) => {
       last = idle = t;
       frame(t);
     });
     return () => {
+      offMotion();
+      clearTimeout(said);
       cancelAnimationFrame(raf);
       clearTimeout(rz);
       timers.forEach(clearTimeout);
