@@ -25,6 +25,8 @@ export function Entrance() {
     const rows = [
       ...document.querySelectorAll<HTMLElement>("main [data-row]"),
     ].filter((r) => {
+      // The home hero has its own intro.
+      if (r.hasAttribute("data-still")) return false;
       const b = r.getBoundingClientRect();
       return b.top < fold && b.bottom > 0;
     });

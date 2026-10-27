@@ -17,6 +17,7 @@
 
 import motionTokens from "../../design/motion-tokens.json";
 import { getMotion } from "./motion";
+import { smileySvg } from "./smiley";
 
 const { wessel: T } = motionTokens;
 const S = T.spring;
@@ -81,7 +82,15 @@ export function fade(marks: HTMLElement[], after: number) {
 }
 
 // ---------- selections: glued to their element, gone by themselves ----------
-type Sel = { el: HTMLElement; box: HTMLElement; done: () => void };
+type Sel = {
+  el: HTMLElement;
+  box: HTMLElement;
+  /** How far the box is drawn open from its top-left corner (0–1), for a drag-select. */
+  grow: number;
+  done: () => void;
+  /** Pops the size pill in after a drag-select. */
+  size: () => void;
+};
 const sels = new Set<Sel>();
 let selRaf = 0;
 function fitSels() {
@@ -90,23 +99,26 @@ function fitSels() {
     const r = pageBox(s.el);
     const w = s.el.offsetWidth;
     const h = s.el.offsetHeight;
-    place(s.box, [r.x + r.w / 2 - w / 2, r.y + r.h / 2 - h / 2, w, h]);
+    place(s.box, [r.x + r.w / 2 - w / 2, r.y + r.h / 2 - h / 2, w * s.grow, h * s.grow]);
   }
   selRaf = sels.size ? requestAnimationFrame(fitSels) : 0;
 }
-export function select(el: HTMLElement, { label = true, ms = 1500, bot = false } = {}) {
+export function select(el: HTMLElement, { label = true, ms = 1500, bot = false, grow = 1 } = {}) {
   const box = put("sel");
   box.dataset.bot = String(bot);
   box.innerHTML = "<i></i><i></i><i></i><i></i>";
-  if (label) {
+  const sizePill = (pop = false) => {
     const z = document.createElement("span");
-    z.className = "szp text-micro";
+    z.className = `szp text-micro${pop ? " pop" : ""}`;
     z.textContent = `${el.offsetWidth} × ${el.offsetHeight}`;
     box.appendChild(z);
-  }
+  };
+  if (label) sizePill();
   const s: Sel = {
     el,
     box,
+    grow,
+    size: () => sizePill(true),
     done: () => {
       box.style.opacity = "0";
       setTimeout(() => {
@@ -130,6 +142,16 @@ export function showPin(pin: HTMLElement) {
   pin.classList.remove("pop");
   void pin.offsetWidth;
   pin.classList.add("pop");
+}
+
+/** A comment pin Wessel drops on the page layer at a page point. It pops
+ *  in empty; say() types into its bubble. */
+export function putPin(at: XY, text = "") {
+  const pin = put("pin hi-pin", "", at);
+  pin.innerHTML = `<span class="av">${smileySvg()}</span><span class="bub text-small"></span>`;
+  const bub = pin.querySelector<HTMLElement>(".bub")!;
+  bub.textContent = text;
+  return { pin, bub };
 }
 
 // ---------- cursor markup (shared with <Cursor>) ----------
@@ -386,6 +408,22 @@ export const wessel = {
     W.anchor = [W.x + scrollX, W.y + scrollY];
   },
 
+  /** Where he is now, on screen. */
+  pos: (): XY => [W.x, W.y],
+
+  /** A keyboard chip (⌘C, ⌘V) that rides along with his pointer for a moment. */
+  chip(text: string) {
+    if (!W.el) return;
+    const c = document.createElement("span");
+    c.className = "kchip wchip text-micro";
+    c.textContent = text;
+    W.el.appendChild(c);
+    setTimeout(() => {
+      c.dataset.out = "";
+      setTimeout(() => c.remove(), 300);
+    }, 650);
+  },
+
   show() {
     if (W.shown || !W.el) return;
     W.shown = true;
@@ -480,6 +518,8 @@ type Beat = BeatSpec & { el: HTMLElement; done: { day?: boolean; night?: boolean
 const beats = new Set<Beat>();
 let chain = Promise.resolve();
 let busy = false;
+/** True at night, once the engine has put him to bed. */
+export const isAsleep = () => W.asleep;
 /** True while Wessel or a bot is mid-job (entrances can wait a moment). */
 export const isBusy = () => busy;
 

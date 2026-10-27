@@ -1,0 +1,890 @@
+/* Home sections (DESIGN.md §5–§7, prototype v90): hero, About deck,
+   Focus, archive hand, bookend, plus the marks Wessel puts on the page
+   while he works them. Type comes from the text-* utilities. */
+
+@layer components {
+  /* Figure colours for the Focus dioramas only (DESIGN.md §3). */
+  :root,
+  [data-mode="light"] {
+    --d-t: #f1ece3;
+    --d-l: #ded6c9;
+    --d-r: #e8e1d5;
+    --d-s: #b3aa9b;
+    --d-h: #cfc6b7;
+  }
+  [data-mode="dark"] {
+    --d-t: #2a2622;
+    --d-l: #1a1714;
+    --d-r: #221f1b;
+    --d-s: #4c463e;
+    --d-h: #3a352f;
+  }
+  [data-mode="night"] {
+    --d-t: #232039;
+    --d-l: #141228;
+    --d-r: #1b1930;
+    --d-s: #3e3a63;
+    --d-h: #322e52;
+  }
+
+  /* ---------- hero ---------- */
+  .hero {
+    height: clamp(480px, calc(80svh - 91px), 720px);
+    overflow: hidden;
+    isolation: isolate;
+  }
+  .hmeta {
+    position: absolute;
+    left: var(--spacing-inset);
+    top: 32px;
+    z-index: 1;
+    display: grid;
+    grid-template-columns: auto auto;
+    gap: 4px 24px;
+    margin: 0;
+    color: var(--mute);
+  }
+  .hmeta b {
+    font-weight: 500;
+    color: var(--ink);
+    font-variant-numeric: tabular-nums;
+  }
+  .name {
+    position: absolute;
+    left: var(--spacing-inset);
+    right: var(--spacing-inset);
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    color: var(--tang);
+    white-space: nowrap;
+    text-transform: uppercase;
+  }
+  .name .w {
+    position: relative;
+    display: inline-block;
+  }
+  .name .lt,
+  .name .grp {
+    display: inline-block;
+    transition:
+      transform 520ms var(--ease-spring),
+      font-weight 480ms var(--ease-ui);
+  }
+  .name .lt {
+    position: relative;
+    transform-origin: 50% 55%;
+  }
+  /* Before Wessel arrives: an outlined W and a crooked u. */
+  .name .lt.ol {
+    color: transparent;
+    -webkit-text-stroke: 0.022em var(--tang);
+  }
+  .name .lt.off {
+    transform: translate(0.05em, 0.11em) rotate(-7deg);
+    transition: none;
+  }
+  .name .lt.plop {
+    animation: plop 760ms cubic-bezier(0.3, 1.5, 0.5, 1);
+  }
+  .name .lt.snap {
+    animation: snap 520ms cubic-bezier(0.3, 1.6, 0.5, 1);
+  }
+  .role {
+    position: absolute;
+    right: var(--spacing-inset);
+    bottom: 40px;
+    z-index: 1;
+    margin: 0;
+    text-align: right;
+  }
+
+  /* The reel: 1.05em × .6em of the name, magnetic, "▶ Reel" on hover. */
+  .reel {
+    position: relative;
+    display: block;
+    flex: none;
+    width: 1.05em;
+    height: 0.6em;
+    border-radius: clamp(8px, 0.1em, 22px);
+    overflow: hidden;
+    background: var(--fill);
+    will-change: transform;
+  }
+  .reel img,
+  .reel video {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .reel video {
+    opacity: 0;
+    transition: opacity 300ms var(--ease-ui);
+  }
+  .reel video[data-on="true"] {
+    opacity: 1;
+  }
+  .reel .ph {
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    z-index: 2;
+    width: 100%;
+    height: 3px;
+    background: var(--grape);
+    transform: scaleX(0);
+    transform-origin: 0 50%;
+  }
+  .reel .play {
+    position: absolute;
+    left: 10px;
+    bottom: 10px;
+    z-index: 3;
+    opacity: 0;
+    transform: scale(0.8);
+    transform-origin: 0 100%;
+    transition:
+      opacity var(--dur-ui) var(--ease-ui),
+      transform var(--dur-spring) var(--ease-spring);
+  }
+  .reel:hover .play,
+  .reel:focus-visible .play,
+  .reel[data-invite] .play {
+    opacity: 1;
+    transform: none;
+  }
+  @media (hover: none) {
+    .reel .play {
+      opacity: 1;
+      transform: none;
+    }
+  }
+  .reelbox {
+    width: 100%;
+    max-width: min(1200px, 92vw);
+    margin: auto;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: var(--ink);
+  }
+  .reelbox::backdrop {
+    background: color-mix(in srgb, var(--canvas) 90%, transparent);
+  }
+  .reelbox video {
+    display: block;
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    border-radius: var(--radius-media);
+    background: #000;
+  }
+  .reelbox .db {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 0;
+  }
+  .reelbox .db button {
+    min-height: var(--spacing-tap);
+    cursor: pointer;
+  }
+  .reelbox .db button:hover {
+    color: var(--grape);
+  }
+
+  /* The first visit's boot: named empty frames draw in, then fill. */
+  .hero .hmeta,
+  .hero .name > *,
+  .hero .role {
+    transition:
+      opacity 420ms var(--ease-ui),
+      transform var(--dur-spring) var(--ease-spring);
+  }
+  html[data-boot] .hero .hmeta,
+  html[data-boot] .hero .name > *,
+  html[data-boot] .hero .role {
+    opacity: 0;
+    transform: translateY(8px) scale(0.97);
+  }
+  .frm {
+    position: absolute;
+    z-index: 2;
+    border: 1px dashed var(--mute);
+    border-radius: var(--radius-focus);
+    pointer-events: none;
+    animation: frm 420ms var(--ease-ui) both;
+    animation-delay: calc(var(--i) * 70ms);
+    transition:
+      background-color 300ms var(--ease-ui),
+      opacity 360ms var(--ease-ui);
+  }
+  .frm span {
+    position: absolute;
+    left: -1px;
+    bottom: calc(100% + 6px);
+    color: var(--mute);
+    white-space: nowrap;
+  }
+  .frm.f {
+    background: var(--fill);
+  }
+  .frm.out {
+    opacity: 0;
+  }
+
+  /* ---------- about ---------- */
+  .about {
+    padding: var(--spacing-section) var(--spacing-inset);
+    display: grid;
+    grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+    gap: 56px;
+    align-items: center;
+  }
+  .atext {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 32px;
+    max-width: 600px;
+    min-width: 0;
+  }
+  .atext h3 {
+    max-width: 20ch;
+    overflow-wrap: break-word;
+    hyphens: auto;
+  }
+  .deck {
+    position: relative;
+    display: block;
+    width: 100%;
+    height: 580px;
+    min-width: 0;
+    cursor: pointer;
+    touch-action: pan-y;
+  }
+  .deck .dk {
+    position: absolute;
+    left: 50%;
+    top: 46%;
+    margin: 0;
+    width: min(340px, 70%);
+    aspect-ratio: 3 / 4;
+    border-radius: var(--radius-media);
+    overflow: hidden;
+    background: var(--fill);
+    box-shadow: 0 24px 48px -26px rgb(0 0 0 / 0.55);
+    transform: translate(-50%, -50%) var(--pose);
+    transition:
+      transform 620ms cubic-bezier(0.22, 1, 0.36, 1),
+      filter 620ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .deck .dk img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    user-select: none;
+    pointer-events: none;
+  }
+  .deck .dk[data-p="0"] {
+    --pose: rotate(-2deg);
+    z-index: 3;
+  }
+  .deck .dk[data-p="1"] {
+    --pose: translate(32px, -14px) rotate(4deg) scale(0.95);
+    z-index: 2;
+    filter: brightness(0.92);
+  }
+  .deck .dk[data-p="2"] {
+    --pose: translate(58px, -26px) rotate(9deg) scale(0.9);
+    z-index: 1;
+    filter: brightness(0.84);
+  }
+  .deck:hover .dk[data-p="1"] {
+    --pose: translate(44px, -18px) rotate(6deg) scale(0.95);
+  }
+  .deck:hover .dk[data-p="2"] {
+    --pose: translate(80px, -32px) rotate(12deg) scale(0.9);
+  }
+  .deck .dk[data-out] {
+    --pose: translate(-30%, -3%) rotate(-9deg);
+    transition-duration: 340ms;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .deck .cnt {
+    position: absolute;
+    left: 50%;
+    bottom: 0;
+    transform: translateX(-50%);
+    color: var(--mute);
+  }
+  .deck:focus-visible {
+    outline-offset: 6px;
+    border-radius: var(--radius-media);
+  }
+
+  /* ---------- focus ---------- */
+  .fx {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
+    gap: var(--spacing-hairline);
+    background: var(--line);
+    min-width: 0;
+  }
+  .fl {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+  .stmt {
+    padding: 64px var(--spacing-inset);
+  }
+  .stmt p {
+    margin: 0;
+    max-width: 820px;
+    text-wrap: balance;
+    overflow-wrap: break-word;
+    hyphens: auto;
+  }
+  .kitc {
+    padding: var(--spacing-inset);
+    border-top: 1px solid var(--line);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 24px;
+  }
+  .kit {
+    gap: 12px;
+  }
+  .kit > li {
+    list-style: none;
+  }
+  .kit button.tool {
+    cursor: pointer;
+  }
+  .tracks {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--spacing-hairline);
+    background: var(--line);
+    min-width: 0;
+  }
+  .fig {
+    padding: 64px 28px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    outline: none;
+  }
+  .fig:focus-visible {
+    outline: 2px solid var(--grape);
+    outline-offset: -8px;
+    border-radius: var(--radius-media);
+  }
+  .fig .obj {
+    position: relative;
+    height: 210px;
+    margin-bottom: 12px;
+    display: grid;
+    place-items: center;
+    cursor: pointer;
+    touch-action: pan-y;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .fig .iso {
+    width: 100%;
+    max-width: 340px;
+    height: 100%;
+    overflow: visible;
+    display: block;
+  }
+  .fig .iso * {
+    vector-effect: non-scaling-stroke;
+  }
+  .fig h3 {
+    margin: 0;
+    transition: color var(--dur-ui) var(--ease-ui);
+  }
+  .fig[data-on="true"] h3 {
+    color: var(--grape);
+  }
+  .fig p {
+    margin: 0;
+    max-width: 340px;
+  }
+  /* Frame names: only at night, when Rename layers tidies them. */
+  .lyr {
+    position: absolute;
+    left: 28px;
+    top: 14px;
+    display: none;
+    align-items: center;
+    gap: 6px;
+    color: var(--mute);
+  }
+  .lyr::before {
+    content: "#";
+    color: var(--tang-ink);
+  }
+  [data-mode="night"] .lyr {
+    display: inline-flex;
+  }
+
+  /* ---------- archive: a hand of cards ---------- */
+  .arch {
+    height: 678px;
+    overflow: hidden;
+    --cw: clamp(280px, 18vw, 320px);
+    --spread: 9deg;
+    --lift: calc(var(--cw) * -0.6);
+  }
+  .arch .hand {
+    position: absolute;
+    left: 50%;
+    top: 64%;
+    width: var(--cw);
+    aspect-ratio: 4 / 3;
+    margin-left: calc(var(--cw) / -2);
+    transform: translateY(-50%);
+    scale: 0.82;
+    transition: scale var(--dur-spring) var(--ease-spring);
+  }
+  .arch[data-open="true"] .hand {
+    scale: 1;
+  }
+  .fcard {
+    position: absolute;
+    inset: 0;
+    border-radius: 16px;
+    overflow: hidden;
+    background: var(--fill);
+    transform-origin: 50% 260%;
+    box-shadow: 0 14px 32px -18px rgb(0 0 0 / 0.6);
+    transform: translate(var(--tx, 0px), var(--ty, -130px)) rotate(var(--r2, calc(var(--k) * 1.2deg))) scale(var(--s, 0.86));
+    transition:
+      transform var(--dur-spring) var(--ease-spring),
+      transform-origin var(--dur-spring) var(--ease-ui),
+      filter var(--dur-ui) var(--ease-ui);
+    transition-delay: calc(var(--d, 0) * 28ms);
+  }
+  .fcard img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    pointer-events: none;
+  }
+  .fcard::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--ink) 8%, transparent);
+    pointer-events: none;
+  }
+  .arch[data-tidy="true"]:not([data-open="true"]) .fcard {
+    transform-origin: 50% 50%;
+    --tx: calc(var(--k) * var(--step, 0px));
+    --ty: -70px;
+    --r2: 0deg;
+    --s: var(--ts, 0.4);
+  }
+  .arch[data-open="true"] .fcard {
+    --tx: 0px;
+    --ty: var(--lift);
+    --s: 1;
+    --r2: calc(var(--k) * var(--spread));
+  }
+  .arch[data-open="true"] .fcard[data-hot="true"] {
+    --ty: calc(var(--lift) - 18px);
+    transition-delay: 0ms;
+  }
+  .arch[data-open="true"] .hand:has([data-hot="true"]) .fcard:not([data-hot="true"]) {
+    filter: brightness(0.82);
+  }
+  .fcap {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: calc(64% + 36px);
+    margin: 0;
+    text-align: center;
+    color: var(--ink);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity var(--dur-ui) var(--ease-ui);
+  }
+  .arch[data-open="true"] .fcap[data-on="true"] {
+    opacity: 1;
+  }
+  .allw {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: calc(64% + 88px);
+    z-index: 12;
+    display: flex;
+    justify-content: center;
+    pointer-events: none;
+  }
+  .allw a {
+    pointer-events: auto;
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.2em;
+    white-space: nowrap;
+  }
+  .allw .ar {
+    display: inline-flex;
+    transition:
+      transform var(--dur-spring) var(--ease-spring),
+      color var(--dur-ui) var(--ease-ui);
+  }
+  .allw a::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: -6px;
+    height: 2px;
+    border-radius: 2px;
+    background: var(--grape);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform var(--dur-spring) var(--ease-ui);
+  }
+  .arch[data-open="true"] .allw .ar {
+    transform: translateX(10px);
+    color: var(--grape);
+  }
+  .arch[data-open="true"] .allw a::after {
+    transform: scaleX(1);
+  }
+
+  /* ---------- bookend ---------- */
+  .bk {
+    padding: 56px var(--spacing-inset) 72px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 28px;
+  }
+  .bkn {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 192px;
+    line-height: 1;
+    color: var(--tang);
+  }
+  .bkn .wd {
+    height: 0.716em;
+    display: block;
+    overflow: visible;
+    fill: currentColor;
+  }
+  .bkn .smi {
+    width: 1.04em;
+    height: 1.04em;
+    flex: none;
+    display: block;
+  }
+  .bkn .smi svg {
+    width: 100%;
+    height: 100%;
+    display: block;
+  }
+  [data-mode="night"] .bkn .smi {
+    cursor: pointer;
+  }
+  /* Each piece lands slightly off, like a fresh paste, then snaps home. */
+  html:not([data-motion="calm"]) .bkn > * {
+    opacity: 0;
+    transform: translate(0.08em, 0.08em);
+    transition:
+      opacity 90ms var(--ease-ui),
+      transform 560ms var(--ease-spring);
+  }
+  html:not([data-motion="calm"]) .bkn > [data-in] {
+    opacity: 1;
+    transform: none;
+  }
+  .crew {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    gap: 10px 18px;
+    min-height: 32px;
+  }
+
+  /* ---------- Wessel's marks on the page layer ---------- */
+  .ovl > .pin {
+    position: absolute;
+  }
+  .hi-pin {
+    z-index: 6;
+    transform-origin: 0 100%;
+    animation: pinpop 520ms cubic-bezier(0.3, 1.6, 0.5, 1) backwards;
+    transition:
+      transform 420ms var(--ease-spring),
+      opacity 300ms var(--ease-ui);
+  }
+  .hi-pin.bye {
+    animation: none;
+    transform: scale(0.6);
+    opacity: 0;
+    transition:
+      transform 240ms var(--ease-ui),
+      opacity 240ms var(--ease-ui);
+  }
+  .hi-ring {
+    position: absolute;
+    width: 0;
+    height: 0;
+    z-index: 5;
+  }
+  .hi-ring::before {
+    content: "";
+    position: absolute;
+    left: -60px;
+    top: -60px;
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    border: 2px solid var(--tang);
+    animation: ring 800ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  }
+  .hi-guide {
+    position: absolute;
+    height: 1px;
+    z-index: 6;
+    background: var(--tang);
+    animation: hig 700ms var(--ease-ui) both;
+  }
+  .lt-lab {
+    position: absolute;
+    z-index: 6;
+    translate: -50% -100%;
+    padding: 3px 6px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-tag);
+    background: var(--canvas);
+    color: var(--mute);
+    animation: ltl 260ms var(--ease-spring) both;
+  }
+  .ovl > .hi-chip {
+    position: absolute;
+    z-index: 6;
+  }
+  .hi-chip b {
+    font-weight: 500;
+    color: var(--tang-ink);
+  }
+  .sweep {
+    position: absolute;
+    height: 2px;
+    background: var(--tang);
+    transition:
+      transform 700ms var(--ease-ui),
+      opacity 200ms;
+  }
+  /* ⌘C / ⌘V riding along with Wessel's pointer. */
+  .cur .wchip {
+    position: absolute;
+    left: 22px;
+    top: -26px;
+    animation: kin 260ms var(--ease-spring) both;
+  }
+  .cur .wchip[data-out] {
+    opacity: 0;
+    transition: opacity 260ms var(--ease-ui);
+  }
+
+  /* ---------- below 900 ---------- */
+  @media (width < 900px) {
+    .hero {
+      height: clamp(420px, calc(72svh - 70px), 620px);
+    }
+    .name {
+      top: max(120px, 30%);
+      transform: none;
+    }
+    .role {
+      bottom: 32px;
+    }
+    .about {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 32px;
+      overflow: hidden;
+    }
+    .deck {
+      height: 460px;
+    }
+    .deck .dk[data-out] {
+      --pose: translate(-18%, -2%) rotate(-7deg);
+    }
+    .fx,
+    .tracks {
+      grid-template-columns: minmax(0, 1fr);
+    }
+    .stmt {
+      padding: 32px var(--spacing-inset);
+    }
+    .kitc {
+      padding: 24px var(--spacing-inset);
+    }
+    /* Five chips fit at 320: the gap gives way first, then the chips. */
+    .kit {
+      gap: clamp(6px, calc((100vw - 356px) / 4), 12px);
+      flex-wrap: nowrap;
+    }
+    .kit .tool,
+    .kit .tool img {
+      width: min(56px, calc((100vw - 100px) / 5));
+      height: auto;
+      aspect-ratio: 1;
+    }
+    .fig {
+      padding: 40px var(--spacing-inset) 56px;
+    }
+    .fig .obj {
+      height: 240px;
+    }
+    .lyr {
+      left: var(--spacing-inset);
+    }
+    .arch {
+      height: 520px;
+      --cw: 160px;
+      --spread: 8deg;
+      --lift: -120px;
+    }
+    .arch .hand {
+      top: 56%;
+    }
+    .fcard {
+      transform-origin: 50% 300%;
+      --ty: -80px;
+    }
+    .arch[data-open="true"] .fcard[data-hot="true"] {
+      --ty: calc(var(--lift) - 20px);
+    }
+    .arch[data-tidy="true"]:not([data-open="true"]) .fcard {
+      --ty: -40px;
+    }
+    .fcap {
+      top: calc(56% + 20px);
+    }
+    .allw {
+      top: calc(56% + 64px);
+    }
+    .bk {
+      padding-top: 40px;
+    }
+  }
+  @media (hover: none) {
+    .allw a {
+      min-height: var(--spacing-tap);
+    }
+  }
+}
+
+/* The hero has its own intro, so the house entrance leaves it alone. */
+html.entering main [data-row][data-still] > .cell {
+  opacity: 1;
+}
+
+@keyframes plop {
+  0% {
+    transform: scale(0.8, 0.8);
+  }
+  35% {
+    transform: scale(1.14, 0.9);
+  }
+  60% {
+    transform: scale(0.96, 1.06);
+  }
+  100% {
+    transform: none;
+  }
+}
+@keyframes snap {
+  0% {
+    transform: translateY(-0.03em);
+  }
+  50% {
+    transform: translateY(0.012em);
+  }
+  100% {
+    transform: none;
+  }
+}
+@keyframes frm {
+  from {
+    clip-path: inset(0 100% 100% 0);
+  }
+  to {
+    clip-path: inset(0 0 0 0);
+  }
+}
+@keyframes ring {
+  from {
+    transform: scale(0.2);
+    opacity: 1;
+  }
+  to {
+    transform: scale(1.9);
+    opacity: 0;
+  }
+}
+@keyframes hig {
+  0% {
+    opacity: 0;
+    transform: scaleX(0.2);
+  }
+  20% {
+    opacity: 1;
+    transform: none;
+  }
+  80% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+@keyframes pinpop {
+  from {
+    transform: scale(0.4) rotate(-8deg);
+    opacity: 0;
+  }
+}
+@keyframes ltl {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+}
+@keyframes kin {
+  from {
+    opacity: 0;
+    transform: translateY(4px) scale(0.9);
+  }
+}
+
+/* The bookend takes the footer's spacer's place on home. Unlayered, since
+   .frame is a utility and would win over the components layer. */
+.page:has(.bk) .footer-air {
+  display: none;
+}

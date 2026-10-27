@@ -9,7 +9,8 @@ import { Divider } from "@/components/parts/Divider";
 import { Facts } from "@/components/parts/Facts";
 import { Media, MediaFigure } from "@/components/parts/Media";
 import { GrapePill, KeyChip, MockTag, OutlinePill, SizePill, Slot } from "@/components/parts/Pills";
-import { ProjectRows, type Project } from "@/components/parts/ProjectRow";
+import { ProjectRows } from "@/components/parts/ProjectRow";
+import { FALLBACK_PROJECTS as PROJECTS } from "@/content/projects";
 import { SectionLabel } from "@/components/parts/SectionLabel";
 import { Status } from "@/components/parts/Status";
 import { TextLink } from "@/components/parts/TextLink";
@@ -34,48 +35,6 @@ function spec(s: Style["$value"]) {
 
 const ALL_TOOLS: ToolId[] = ["figma", "illustrator", "after-effects", "lottiefiles", "claude"];
 
-// The home's three rows from the prototype (web/site-prototype, v90).
-// Summaries, roles and pin notes are its placeholder copy; the video per
-// row is a guess until the real media is in Sanity.
-const PROJECTS: Project[] = [
-  {
-    title: "De Saak",
-    summary:
-      "Visitors reached the old site but rarely found what they came for. Services were buried, articles were hard to reach, and search engines barely noticed it. The new site puts the answer first, and gets found.",
-    timeline: "2023–now",
-    role: "Designer and developer",
-    tools: ["figma", "illustrator", "claude"],
-    media: { poster: "/system/pixelup-portrait.jpg", video: "/system/pixelup-portrait.mp4" },
-    href: "/work/de-saak",
-    label: "De Saak case study. Design, dev and SEO, 2023 to now.",
-    note: { text: "The menu took longest.", spot: { fx: 0.72, dy: 30, rot: -3 } },
-    mock: ["summary", "role", "note"],
-  },
-  {
-    title: "UI motion study",
-    summary:
-      "Users tapped through the interface without knowing what had changed. A panel opened, a list updated, a state flipped, and nothing told them where to look. Now each moment moves just enough to explain itself.",
-    timeline: "2026",
-    role: "Motion designer",
-    tools: ["figma", "after-effects", "lottiefiles"],
-    media: { poster: "/system/supabase-portrait.jpg", video: "/system/supabase-portrait.mp4" },
-    label: "UI motion study. Self-initiated, 2026.",
-    note: { text: "Every ease is hand-tuned.", spot: { fx: 0.38, dy: 36, rot: 2.5 } },
-    mock: ["summary", "role", "note"],
-  },
-  {
-    title: "Designer tool",
-    summary:
-      "Designers could finish the work but lost time on the handoff: exporting assets, renaming layers and writing specs by hand, every time. The tool does that part, so the time goes back to design.",
-    timeline: "2026",
-    role: "Designer and maker",
-    tools: ["figma", "claude"],
-    media: { poster: "/system/calcom-portrait.jpg", video: "/system/calcom-portrait.mp4" },
-    label: "Designer tool. Self-initiated, 2026.",
-    note: { text: "Named every layer. Once.", spot: { fx: 0.6, dy: 28, rot: -1.5 } },
-    mock: ["summary", "role", "note"],
-  },
-];
 
 function Specimen({ name, children, className = "" }: { name: string; children: React.ReactNode; className?: string }) {
   return (
@@ -192,8 +151,8 @@ export default function SystemPage() {
         <MediaFigure
           ratio="wide"
           squareSmall
-          poster="/system/desaak-hero_poster_v01.jpg"
-          video="/system/desaak-hero_web_v01.mp4"
+          poster="/media/desaak-hero_poster_v01.jpg"
+          video="/media/desaak-hero_web_v01.mp4"
           rate={1}
           alt="De Saak homepage header loop"
           caption="desaak.com, homepage header loop."

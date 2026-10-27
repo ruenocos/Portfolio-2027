@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Bricolage_Grotesque, Geist_Mono, Instrument_Serif } from "next/font/google";
 import { ModeProvider } from "@/components/ModeProvider";
-import { motionScript } from "@/lib/motion";
+import { bootScript, motionScript } from "@/lib/motion";
 import { modeScript, themeColorScript } from "@/lib/mode";
 import { IS_PRODUCTION, SITE_URL } from "@/lib/site";
 import "./globals.css";
@@ -33,7 +33,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         {/* Sets the mode and the motion state before the first paint,
             so night never flashes light and a paused visit never moves. */}
         <meta name="theme-color" content="#FAF8F4" />
-        <script dangerouslySetInnerHTML={{ __html: [modeScript, themeColorScript, motionScript].join(";") }} />
+        <script dangerouslySetInnerHTML={{ __html: [modeScript, themeColorScript, bootScript, motionScript].join(";") }} />
       </head>
       <body>
         {children}
