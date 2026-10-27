@@ -43,5 +43,14 @@ export const FALLBACK_ABOUT: AboutContent = {
     { text: "Friends", tone: "ink" },
     { text: "A bit of gaming", tone: "outline" },
     { text: "Learning new things", tone: "tang" },
+    // Added by Wons 2026-10-27 ("more items … react to each other").
+    { text: "Catan", tone: "grape" },
+    { text: "Flip 7", tone: "tang" },
+    { text: "Dalmuti", tone: "outline" },
+    { text: "Monopoly", tone: "ink" },
+    { text: "Gym", tone: "tang" },
+    { text: "Tinkering", tone: "grape" },
+    { text: "YouTube", tone: "outline" },
+    { text: "MoveEeE", tone: "ink" },
   ],
 };
