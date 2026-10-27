@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Bricolage_Grotesque, Geist_Mono, Instrument_Serif } from "next/font/google";
+import { CursorLayer } from "@/components/CursorLayer";
 import { ModeProvider } from "@/components/ModeProvider";
+import { motionScript } from "@/lib/motion";
 import { modeScript } from "@/lib/mode";
 import "./globals.css";
 
@@ -22,11 +24,15 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       className={`${display.variable} ${mono.variable} ${serif.variable}`}
     >
       <head>
-        {/* Sets data-mode before the first paint, so night never flashes light. */}
-        <script dangerouslySetInnerHTML={{ __html: modeScript }} />
+        {/* Sets the mode and the motion state before the first paint,
+            so night never flashes light and a paused visit never moves. */}
+        <script dangerouslySetInnerHTML={{ __html: modeScript + ";" + motionScript }} />
       </head>
       <body>
         {children}
+        {/* Wessel's layer sits here so he survives every page change. */}
+        <CursorLayer />
+        <p id="live" className="sr-only" aria-live="polite" />
         <ModeProvider />
       </body>
     </html>
