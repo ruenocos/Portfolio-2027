@@ -78,10 +78,7 @@
   .ly a[aria-current] .hash {
     opacity: 1;
   }
-  /* Wessel's selection on the layer you're reading. Positioned against the
-     list, which starts below the "Layers" label. */
-  .lp {
-  }
+  /* Wessel's selection on the layer you're reading. */
   .lsel {
     left: calc(var(--spacing-inset) - 10px);
     right: calc(var(--spacing-inset) - 2px);
@@ -161,6 +158,10 @@
   html[data-motion="calm"] .sc .fpin {
     opacity: 1;
     scale: 1;
+  }
+  /* His notes, so not while he sleeps. */
+  html[data-mode="night"] .sc .fpin {
+    display: none;
   }
   .sc .fpin .bub {
     white-space: normal;

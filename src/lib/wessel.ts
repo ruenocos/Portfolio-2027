@@ -624,5 +624,12 @@ export function registerBeat(el: HTMLElement, spec: BeatSpec) {
 
 /** Shows Wessel after a moment, even before his first beat. */
 export function arrive(ms = 600) {
-  setTimeout(() => wessel.show(), calm() ? 0 : ms);
+  const g = gen;
+  const wait = calm() ? 0 : ms;
+  setTimeout(() => wessel.show(), wait);
+  // No job on the new page after a moment: he stops holding his old spot
+  // (which may now be over copy) and goes back to resting.
+  setTimeout(() => {
+    if (g === gen && !W.drive && !busy) W.hold = null;
+  }, wait + 1200);
 }

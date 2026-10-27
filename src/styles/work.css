@@ -32,6 +32,15 @@
     .wfbar .tools .tool {
       --s: min(56px, calc((100vw - 120px) / 5));
     }
+    /* Show all sits on the title's row, so its empty slot costs no height. */
+    .wfbar {
+      position: relative;
+    }
+    .wfbar .clr {
+      position: absolute;
+      top: calc(var(--spacing-inset) - 10px);
+      right: var(--spacing-inset);
+    }
   }
 }
 

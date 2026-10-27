@@ -178,7 +178,7 @@ export async function getCase(slug: string): Promise<Case | null> {
   try {
     const { data } = await cachedSanity({ query: CASE_QUERY, params: { slug }, perspective: published.perspective, stega: false });
     const d = data as unknown as CaseDoc | null;
-    if (d?.sections?.length) return toCase(slug, d);
+    if (d?.sections?.some((s) => s.name && s.heading)) return toCase(slug, d);
   } catch (e) {
     console.warn(`Case ${slug}: Sanity unavailable, using the fallback content.`, e);
   }

@@ -21,7 +21,7 @@ const REST_X = 110;
  * ("Wessel · 42%"). It's the one Wessel (the shell's), driven to the layer, so
  * there's never a second one on screen. At night he sleeps in his corner
  * and the Handoff bot does it, dashed. Each figure gets its pin the first
- * time it's half in view. Phones: panel and cursor hide.
+ * time it's half in view. Phones: the cursor hides.
  */
 export function Read({ sections }: { sections: CaseSection[] }) {
   const { calm, asleep } = useMotion();
@@ -179,7 +179,7 @@ export function Read({ sections }: { sections: CaseSection[] }) {
                 {s.name}
                 {s.mock && <MockTag className="ml-2">{s.mock === "wording" ? "Numbers real · wording mock" : "mock"}</MockTag>}
               </p>
-              <h2 id={`h-${s.key}`} className="text-headline" data-enter data-mock={s.mock === "all" ? "" : undefined}>
+              <h2 id={`h-${s.key}`} className="text-headline" data-enter data-mock={s.mock ? "" : undefined}>
                 {s.heading}
               </h2>
               <p className={`sl ${s.key === "takeaway" ? "text-accent" : "text-body"}`} data-enter data-mock={s.mock ? "" : undefined}>
