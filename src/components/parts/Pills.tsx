@@ -17,10 +17,10 @@ export function GrapePill({ children, size = "small", className = "" }: Children
   );
 }
 
-/** Outline pill. With a lamp it's the About status ("Wessel is awake"). */
-export function OutlinePill({ children, lamp = false, className = "" }: Children & { lamp?: boolean }) {
+/** Outline pill. With a lamp it's the About status ("Wessel is awake"); tap = a 44-tall button face (Copy email). */
+export function OutlinePill({ children, lamp = false, tap = false, className = "" }: Children & { lamp?: boolean; tap?: boolean }) {
   return (
-    <span className={`opill text-label ${className}`}>
+    <span className={`opill text-label ${className}`} data-tap={tap ? "" : undefined}>
       {lamp && <span className="lamp" aria-hidden="true" />}
       {children}
     </span>

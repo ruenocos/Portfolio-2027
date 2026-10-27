@@ -112,7 +112,7 @@ export default function SystemPage() {
               <GrapePill size="tap">Contact ↓</GrapePill>
             </Specimen>
             <Specimen name="Outline pill · status">
-              <OutlinePill>Copy email</OutlinePill>
+              <OutlinePill tap>Copy email</OutlinePill>
               <OutlinePill lamp>
                 <span data-mock>Wessel is awake</span>
                 <span className="tm">Amsterdam</span>

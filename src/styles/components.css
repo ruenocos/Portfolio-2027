@@ -51,7 +51,7 @@
     white-space: nowrap;
   }
   .gpill[data-size="small"] {
-    padding: 5px 10px;
+    padding: 3px 8px;
   }
   .gpill[data-size="tap"] {
     min-height: var(--spacing-tap);
@@ -68,6 +68,11 @@
     border-radius: var(--radius-pill);
     background: var(--canvas);
     white-space: nowrap;
+  }
+  .opill[data-tap] {
+    min-height: var(--spacing-tap);
+    padding: 0 16px;
+    color: var(--grape);
   }
   .opill .lamp {
     width: 8px;
@@ -87,8 +92,11 @@
   }
   /* Ink chip: ⌘C / ⌘V keys (r6). The Pause tip is the pill version of it. */
   .kchip {
-    display: inline-block;
-    padding: 5px 7px;
+    display: inline-grid;
+    place-items: center;
+    min-width: 24px;
+    height: 22px;
+    padding: 0 6px;
     border-radius: 6px;
     background: var(--ink);
     color: var(--canvas);
@@ -151,6 +159,18 @@
   .tools[data-size="56"] .tool {
     --s: 56px;
   }
+  /* A hairline ring, so light logo tiles keep their edge on the canvas. */
+  .tool::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    box-shadow: inset 0 0 0 1px var(--line);
+    pointer-events: none;
+  }
+  .tool.empty::after {
+    content: none;
+  }
   .tool img {
     display: block;
     width: 100%;
@@ -209,6 +229,8 @@
   }
   .tlink .ar {
     color: var(--grape);
+    font-size: 1.15em;
+    translate: 0 -1px;
   }
   .tlink .ar.ext {
     font-family: var(--font-mono);
@@ -403,6 +425,13 @@
   }
   .facts dt {
     color: var(--mute);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 22px;
+  }
+  .facts dt .mock {
+    padding: 1px 6px;
   }
   .facts dd {
     margin: 0;
@@ -447,7 +476,7 @@
     flex-direction: column;
     align-items: flex-start;
     gap: 4px;
-    margin: 17px 0 0 -6px;
+    margin: 14px 0 0 -8px;
   }
   .cur .tag {
     display: inline-flex;
@@ -567,8 +596,8 @@
     position: relative;
   }
   .pin .av {
-    width: 30px;
-    height: 30px;
+    width: 32px;
+    height: 32px;
     flex: none;
     display: grid;
     place-items: center;
@@ -578,8 +607,8 @@
     box-shadow: 0 2px 8px -2px rgb(0 0 0 / 0.4);
   }
   .pin .av svg {
-    width: 18px;
-    height: 18px;
+    width: 20px;
+    height: 20px;
   }
   .pin .bub {
     padding: 8px 12px;
@@ -588,7 +617,7 @@
     background: var(--canvas);
     color: var(--ink);
     white-space: nowrap;
-    box-shadow: 0 6px 18px -8px rgb(0 0 0 / 0.45);
+    box-shadow: 0 4px 14px -8px rgb(0 0 0 / 0.22);
   }
   /* The note variant: tinted with Wessel's ink and tilted, like a sticky. */
   .pin .bub[data-note],
@@ -600,8 +629,14 @@
     background: color-mix(in srgb, var(--tang) 16%, var(--canvas));
     border: 1px solid color-mix(in srgb, var(--tang) 35%, var(--canvas));
     color: var(--ink);
-    box-shadow: 0 8px 20px -10px rgb(0 0 0 / 0.5);
+    box-shadow: 0 6px 16px -10px rgb(0 0 0 / 0.3);
     rotate: -2deg;
+  }
+  /* At night the tint goes muddy on indigo: night fill, ember edge instead. */
+  [data-mode="night"] .pin .bub[data-note],
+  [data-mode="night"] .cur .note {
+    background: var(--fill);
+    border-color: color-mix(in srgb, var(--tang) 45%, var(--fill));
   }
   .pin[data-dot="true"] .bub {
     display: none;

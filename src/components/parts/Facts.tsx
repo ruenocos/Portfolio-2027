@@ -14,7 +14,7 @@ export function Facts({ items, label = "Facts" }: { items: Fact[]; label?: strin
           <div key={f.label} className="cell">
             <dt className="text-label">
               {f.label}
-              {f.mock && <MockTag className="ml-2">mock</MockTag>}
+              {f.mock && <MockTag>mock</MockTag>}
             </dt>
             <dd className="text-accent">{f.value ?? <Slot>{f.label.toLowerCase()} to come</Slot>}</dd>
             {f.sub && <dd className="sub text-body">{f.sub}</dd>}
