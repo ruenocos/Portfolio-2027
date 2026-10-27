@@ -229,6 +229,8 @@ const W = {
   drive: null as (() => XY | null) | null,
   spring: S.beat as Spring,
   anchor: null as XY | null,
+  /** After a page change: the screen spot he holds until his next job. */
+  hold: null as XY | null,
   parked: false,
   asleep: false,
   shown: false,
@@ -261,6 +263,10 @@ function home(): XY {
         : [r.left + r.width * 0.8, r.top + r.height * 0.17];
     }
     return [innerWidth - (mobile() ? 70 : 110), innerHeight - (mobile() ? 150 : 110)];
+  }
+  if (W.hold) {
+    W.parked = true;
+    return W.hold;
   }
   if (W.anchor) {
     // He stays where he last worked, like a collaborator in a shared file…
@@ -376,6 +382,7 @@ export const wessel = {
     W.drive = null;
     W.lean = false;
     wessel.press(false);
+    W.hold = null;
     W.anchor = [W.x + scrollX, W.y + scrollY];
   },
 
@@ -428,11 +435,19 @@ export function setWesselAsleep(asleep: boolean) {
   requestAnimationFrame(() => beats.forEach(trigger));
 }
 
-/** A page change: new generation, fresh marks, he forgets his parking spot. */
+/** A page is about to change: he stays where he is on screen. Taken before
+ *  the route swaps, as a shorter new page can clamp the scroll under him. */
+export function holdWessel() {
+  W.hold = W.el && W.el.dataset.hide !== "true" ? [W.x, W.y] : null;
+}
+
+/** A page change: new generation, fresh marks, he forgets his parking spot
+ *  but holds still on screen (like the header) until the new page gives him a job. */
 export function newPage() {
   newGeneration();
   W.lean = false;
   W.anchor = null;
+  if (!W.hold) holdWessel();
   W.drive = null;
   hero = document.querySelector<HTMLElement>("[data-hero]");
 }

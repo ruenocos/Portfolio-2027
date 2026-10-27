@@ -656,26 +656,14 @@ html[data-motion="calm"]:not(.mode-fade) *::after {
   scroll-behavior: auto !important;
 }
 
-/* Page change: a canvas cross-fade, 160 out then 240 in (motion tokens). The rest of the
-   page (header, Wessel's layer) doesn't animate. */
-::view-transition-old(root),
-::view-transition-new(root),
-::view-transition-group(.page) {
-  animation: none;
+/* Page change (PageSwitch): the veil is a canvas-coloured cover over the
+   content column, under the header so that holds still. */
+.veil {
+  position: fixed;
+  top: var(--spacing-header);
+  bottom: 0;
+  z-index: 30;
+  background: var(--canvas);
+  pointer-events: none;
 }
-::view-transition-old(.page) {
-  animation: page-out var(--dur-page-out) var(--ease-ui) both;
-}
-::view-transition-new(.page) {
-  animation: page-in var(--dur-page-in) var(--ease-ui) var(--dur-page-out) both;
-}
-@keyframes page-out {
-  to {
-    opacity: 0;
-  }
-}
-@keyframes page-in {
-  from {
-    opacity: 0;
-  }
-}
+

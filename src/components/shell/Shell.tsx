@@ -4,6 +4,7 @@ import { Entrance } from "./Entrance";
 import { Footer } from "./Footer";
 import { Header } from "./Header";
 import { PageFade } from "./PageFade";
+import { PageSwitch } from "./PageSwitch";
 import { SmoothScroll } from "./SmoothScroll";
 
 // The site shell: the ruled canvas with the header on top and the footer
@@ -27,6 +28,7 @@ export function Shell({ children }: { children: React.ReactNode }) {
       <ContactPill />
       {/* Wessel's layer: the shell stays mounted between pages, so he survives every page change. */}
       <CursorLayer />
+      <PageSwitch />
       <Entrance />
       <SmoothScroll />
     </>
