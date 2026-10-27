@@ -11,7 +11,7 @@ import { resolve } from "./src/sanity/presentation";
 
 export default defineConfig({
   name: "wessel-cv",
-  title: "wessel.cv",
+  title: "Wessel Oud",
   basePath: "/studio",
   projectId,
   dataset,
