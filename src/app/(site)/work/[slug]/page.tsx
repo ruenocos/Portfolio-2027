@@ -7,6 +7,7 @@ import { Facts } from "@/components/parts/Facts";
 import { MediaFigure } from "@/components/parts/Media";
 import { MockTag } from "@/components/parts/Pills";
 import { caseSlugs, getCase, getWork } from "@/content/get";
+import { getDraftFetchOptions } from "@/sanity/live";
 
 export function generateStaticParams() {
   return caseSlugs().map((slug) => ({ slug }));
@@ -33,7 +34,8 @@ export default function CasePage({ params }: PageProps<"/work/[slug]">) {
 
 async function Case({ params }: Pick<PageProps<"/work/[slug]">, "params">) {
   const { slug } = await params;
-  const [c, { selected }] = await Promise.all([getCase(slug), getWork()]);
+  const o = await getDraftFetchOptions();
+  const [c, { selected }] = await Promise.all([getCase(slug, o), getWork(o)]);
   if (!c) notFound();
 
   // Where this case sits in the selected work, and the one after it.

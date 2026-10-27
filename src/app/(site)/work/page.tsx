@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { WorkList } from "@/components/work/WorkList";
 import { getWork } from "@/content/get";
+import { getDraftFetchOptions } from "@/sanity/live";
 
 export const metadata: Metadata = {
   title: "Work",
@@ -8,7 +9,7 @@ export const metadata: Metadata = {
 };
 
 export default async function WorkPage() {
-  const { selected, archive } = await getWork();
+  const { selected, archive } = await getWork(await getDraftFetchOptions());
   return (
     <>
       <section className="frame" data-row aria-label="Work">

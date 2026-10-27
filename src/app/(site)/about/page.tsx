@@ -6,6 +6,7 @@ import { Divider } from "@/components/parts/Divider";
 import { Facts } from "@/components/parts/Facts";
 import { Status } from "@/components/parts/Status";
 import { getAbout } from "@/content/get";
+import { getDraftFetchOptions } from "@/sanity/live";
 
 export const metadata: Metadata = {
   title: "About",
@@ -18,7 +19,7 @@ export const metadata: Metadata = {
  * stickers. Concise on purpose: the toys are the fun, not the copy.
  */
 export default async function AboutPage() {
-  const c = await getAbout();
+  const c = await getAbout(await getDraftFetchOptions());
   return (
     <>
       <section className="frame" data-row aria-labelledby="ab-hi">

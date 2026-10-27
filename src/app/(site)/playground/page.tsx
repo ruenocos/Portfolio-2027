@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Board } from "@/components/playground/Board";
 import { getPosts } from "@/content/get";
+import { getDraftFetchOptions } from "@/sanity/live";
 
 export const metadata: Metadata = {
   title: "Playground",
@@ -10,7 +11,7 @@ export const metadata: Metadata = {
 // Playground (v08): no copy, just the board. It fills the screen under the
 // header, so this page has no footer (Contact goes to the home's).
 export default async function PlaygroundPage() {
-  const posts = await getPosts();
+  const posts = await getPosts(await getDraftFetchOptions());
   return (
     <>
       <h1 className="sr-only">Playground</h1>

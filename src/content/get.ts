@@ -1,6 +1,6 @@
 import type { Project } from "@/components/parts/ProjectRow";
 import { knownTools } from "@/lib/tools";
-import { cachedSanity, published } from "@/sanity/live";
+import { cachedSanity, published, type FetchOptions } from "@/sanity/live";
 import { ABOUT_QUERY, CASE_QUERY, HOME_QUERY, PLAYGROUND_QUERY, WORK_QUERY } from "@/sanity/queries";
 import { FALLBACK_HOME, type HomeContent, type Track } from "./home";
 import { FALLBACK_ABOUT, type AboutContent, type Sticker } from "./about";
@@ -61,12 +61,12 @@ function toProject(r: Row, i: number): Project {
  * Home content: Sanity first, the approved copy for whatever is still empty.
  * If Sanity can't be reached the page still renders, from the fallback.
  */
-export async function getHome(): Promise<HomeContent> {
+export async function getHome(o: FetchOptions = published): Promise<HomeContent> {
   const f = FALLBACK_HOME;
   let doc: HomeDoc | null = null;
   let rows: Row[] = [];
   try {
-    const { data } = await cachedSanity({ query: HOME_QUERY, perspective: published.perspective, stega: false });
+    const { data } = await cachedSanity({ query: HOME_QUERY, perspective: o.perspective, stega: o.stega });
     const d = data as unknown as { home: HomeDoc | null; projects: Row[] | null };
     doc = d.home;
     rows = d.projects ?? [];
@@ -105,10 +105,10 @@ export async function getHome(): Promise<HomeContent> {
  * Work: the selected work and the archive. Each list falls back on its own:
  * the placeholder archive shows only while Sanity has no archive projects.
  */
-export async function getWork(): Promise<{ selected: Project[]; archive: Project[] }> {
+export async function getWork(o: FetchOptions = published): Promise<{ selected: Project[]; archive: Project[] }> {
   let d: { selected: Row[] | null; archive: Row[] | null } = { selected: null, archive: null };
   try {
-    const { data } = await cachedSanity({ query: WORK_QUERY, perspective: published.perspective, stega: false });
+    const { data } = await cachedSanity({ query: WORK_QUERY, perspective: o.perspective, stega: o.stega });
     d = data as unknown as typeof d;
   } catch (e) {
     console.warn("Work: Sanity unavailable, using the fallback content.", e);
@@ -174,9 +174,9 @@ function toCase(slug: string, d: CaseDoc): Case {
 }
 
 /** A case page: Sanity once it has the story, the mock draft until then. */
-export async function getCase(slug: string): Promise<Case | null> {
+export async function getCase(slug: string, o: FetchOptions = published): Promise<Case | null> {
   try {
-    const { data } = await cachedSanity({ query: CASE_QUERY, params: { slug }, perspective: published.perspective, stega: false });
+    const { data } = await cachedSanity({ query: CASE_QUERY, params: { slug }, perspective: o.perspective, stega: o.stega });
     const d = data as unknown as CaseDoc | null;
     if (d?.sections?.some((s) => s.name && s.heading)) return toCase(slug, d);
   } catch (e) {
@@ -197,11 +197,11 @@ type AboutDoc = {
 };
 
 /** About: Sanity first, the approved v07 copy for whatever is still empty. */
-export async function getAbout(): Promise<AboutContent> {
+export async function getAbout(o: FetchOptions = published): Promise<AboutContent> {
   const f = FALLBACK_ABOUT;
   let d: AboutDoc = {};
   try {
-    const { data } = await cachedSanity({ query: ABOUT_QUERY, perspective: published.perspective, stega: false });
+    const { data } = await cachedSanity({ query: ABOUT_QUERY, perspective: o.perspective, stega: o.stega });
     d = (data as unknown as AboutDoc | null) ?? {};
   } catch (e) {
     console.warn("About: Sanity unavailable, using the fallback content.", e);
@@ -227,9 +227,9 @@ export async function getAbout(): Promise<AboutContent> {
 }
 
 /** Playground posts: Sanity's, or the v08 placeholders while there are none. */
-export async function getPosts(): Promise<Post[]> {
+export async function getPosts(o: FetchOptions = published): Promise<Post[]> {
   try {
-    const { data } = await cachedSanity({ query: PLAYGROUND_QUERY, perspective: published.perspective, stega: false });
+    const { data } = await cachedSanity({ query: PLAYGROUND_QUERY, perspective: o.perspective, stega: o.stega });
     const rows = (data as unknown as { title: string; src: string; video?: string; w?: number; h?: number }[] | null) ?? [];
     if (rows.length)
       return rows.map((r) => ({ title: r.title, src: img(r.src, 640), video: r.video, ar: r.w && r.h ? r.w / r.h : 1 }));

@@ -7,6 +7,7 @@ import { Hero } from "@/components/home/Hero";
 import { Divider } from "@/components/parts/Divider";
 import { ProjectRows } from "@/components/parts/ProjectRow";
 import { getHome } from "@/content/get";
+import { getDraftFetchOptions } from "@/sanity/live";
 
 // Page meta from the approved copy (home-copy_v01.md, S16).
 export const metadata: Metadata = {
@@ -18,7 +19,7 @@ export const metadata: Metadata = {
 // Home (DESIGN.md §5 page order): hero → About → Selected work → Focus →
 // See more → bookend, then the shell's footer.
 export default async function Home() {
-  const c = await getHome();
+  const c = await getHome(await getDraftFetchOptions());
   return (
     <>
       <Hero hero={c.hero} />
