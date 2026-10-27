@@ -42,3 +42,8 @@ export const ABOUT_QUERY = defineQuery(`*[_id == "about"][0]{
   experience[]{ when, place, role, "slug": case->slug.current, "hasCase": case->hasCase },
   stickers[]{ text, tone }
 }`);
+
+export const PLAYGROUND_QUERY = defineQuery(`*[_type == "playgroundPiece" && defined(image.asset)] | order(order asc){
+  title, "src": image.asset->url, "video": video.asset->url,
+  "w": image.asset->metadata.dimensions.width, "h": image.asset->metadata.dimensions.height
+}`);

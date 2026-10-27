@@ -1,10 +1,11 @@
 import type { Project } from "@/components/parts/ProjectRow";
 import { knownTools } from "@/lib/tools";
 import { cachedSanity, published } from "@/sanity/live";
-import { ABOUT_QUERY, CASE_QUERY, HOME_QUERY, WORK_QUERY } from "@/sanity/queries";
+import { ABOUT_QUERY, CASE_QUERY, HOME_QUERY, PLAYGROUND_QUERY, WORK_QUERY } from "@/sanity/queries";
 import { FALLBACK_HOME, type HomeContent, type Track } from "./home";
 import { FALLBACK_ABOUT, type AboutContent, type Sticker } from "./about";
 import { FALLBACK_CASES, type Case, type CaseSection } from "./cases";
+import { FALLBACK_POSTS, type Post } from "./playground";
 import { FALLBACK_ARCHIVE, FALLBACK_PROJECTS } from "./projects";
 
 type Row = {
@@ -223,4 +224,17 @@ export async function getAbout(): Promise<AboutContent> {
       : f.experience,
     stickers: stickers.length ? stickers.map((s) => ({ text: s.text, tone: s.tone ?? "tang" })) : f.stickers,
   };
+}
+
+/** Playground posts: Sanity's, or the v08 placeholders while there are none. */
+export async function getPosts(): Promise<Post[]> {
+  try {
+    const { data } = await cachedSanity({ query: PLAYGROUND_QUERY, perspective: published.perspective, stega: false });
+    const rows = (data as unknown as { title: string; src: string; video?: string; w?: number; h?: number }[] | null) ?? [];
+    if (rows.length)
+      return rows.map((r) => ({ title: r.title, src: img(r.src, 640), video: r.video, ar: r.w && r.h ? r.w / r.h : 1 }));
+  } catch (e) {
+    console.warn("Playground: Sanity unavailable, using the fallback posts.", e);
+  }
+  return FALLBACK_POSTS;
 }

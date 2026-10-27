@@ -1,16 +1,24 @@
 import type { Metadata } from "next";
-import { Row } from "@/components/shell/Row";
+import { Board } from "@/components/playground/Board";
+import { getPosts } from "@/content/get";
 
-export const metadata: Metadata = { title: "Playground" };
+export const metadata: Metadata = {
+  title: "Playground",
+  description: "Experiments, loops and pictures on one big board you can drag around.",
+};
 
-// Placeholder so the shell can be tried end to end. Built in Phase 4.
-export default function PlaygroundPage() {
+// Playground (v08): no copy, just the board. It fills the screen under the
+// header, so this page has no footer (Contact goes to the home's).
+export default async function PlaygroundPage() {
+  const posts = await getPosts();
   return (
-    <Row as="section" className="p-inset min-h-[60svh] flex flex-col justify-end gap-4">
-      <p className="text-label text-mute" data-mock>
-        <span className="text-tang-ink">#</span> Placeholder · Phase 4
-      </p>
-      <h1 className="text-statement">Playground</h1>
-    </Row>
+    <>
+      <h1 className="sr-only">Playground</h1>
+      <section className="frame" data-row aria-label="Playground">
+        <div className="side" />
+        <Board posts={posts} />
+        <div className="side" />
+      </section>
+    </>
   );
 }

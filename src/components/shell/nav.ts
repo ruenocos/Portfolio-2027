@@ -8,3 +8,8 @@ export const NAV = [
 
 export const EMAIL = "wessel.oud@outlook.com";
 export const LINKEDIN = "https://www.linkedin.com/in/wesseloud/";
+
+// Pages without the footer (the Playground board fills the screen). Their
+// "Contact ↓" goes to the home footer instead.
+export const FOOTERLESS: readonly string[] = ["/playground"];
+export const contactHref = (path: string) => (FOOTERLESS.includes(path) ? "/#contact" : "#contact");

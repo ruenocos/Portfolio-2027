@@ -7,7 +7,7 @@ import { useEffect, useRef, useState } from "react";
 import { getLenis } from "@/lib/scroll";
 import { DayNight } from "./DayNight";
 import { Hop } from "./Hop";
-import { NAV } from "./nav";
+import { NAV, contactHref } from "./nav";
 import { PauseButton } from "./PauseButton";
 import { Smiley } from "./Smiley";
 
@@ -83,7 +83,7 @@ export function Header() {
 
   const links = [
     ...NAV.map((l) => ({ ...l, arrow: undefined })),
-    { href: "#contact", label: "Contact", arrow: "down" as const },
+    { href: contactHref(pathname), label: "Contact", arrow: "down" as const },
   ];
 
   return (
@@ -116,12 +116,12 @@ export function Header() {
             </div>
           </div>
           <div className="end">
-            <a href="#contact" className="ct text-link">
+            <Link href={contactHref(pathname)} className="ct text-link">
               <Hop text="Contact" />
               <span className="ar" aria-hidden="true">
                 <Arrow dir="down" />
               </span>
-            </a>
+            </Link>
             <button
               ref={button}
               type="button"

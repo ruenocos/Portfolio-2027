@@ -1,18 +1,25 @@
 import { defineArrayMember, defineField, defineType } from "sanity";
 
+// A Playground post: one picture or loop on the masonry board (v08). The
+// board sizes it from the image, so the still sets the ratio.
 export const playgroundPiece = defineType({
   name: "playgroundPiece",
-  title: "Playground piece",
+  title: "Playground post",
   type: "document",
   fields: [
-    defineField({ name: "title", type: "string", validation: (rule) => rule.required() }),
-    defineField({ name: "kind", type: "string", description: "Like \"Micro-interaction\" or \"Type motion\"." }),
-    defineField({ name: "media", type: "media", validation: (rule) => rule.required() }),
-    defineField({ name: "note", type: "text", rows: 2 }),
-    defineField({ name: "link", type: "url" }),
+    defineField({ name: "title", type: "string", description: "What it shows. Read out, and shown when opened.", validation: (rule) => rule.required() }),
+    defineField({
+      name: "image",
+      title: "Still / poster",
+      type: "image",
+      description: "Any ratio. For a loop, its first frame.",
+      validation: (rule) => rule.required(),
+    }),
+    defineField({ name: "video", title: "Loop", type: "file", options: { accept: "video/mp4,video/webm" }, description: "Optional. Muted, plays while on screen." }),
     defineField({ name: "order", type: "number", initialValue: 10 }),
   ],
-  preview: { select: { title: "title", subtitle: "kind", media: "media.image" } },
+  orderings: [{ title: "Order", name: "order", by: [{ field: "order", direction: "asc" }] }],
+  preview: { select: { title: "title", media: "image" } },
 });
 
 export const timelineEntry = defineType({

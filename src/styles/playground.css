@@ -1,0 +1,146 @@
+/* Playground (v08): the looping masonry board. */
+
+@layer components {
+  .pgcv {
+    position: relative;
+    height: calc(100svh - var(--spacing-header) - 1px);
+    min-height: 520px;
+    overflow: hidden;
+    cursor: grab;
+    touch-action: none;
+    user-select: none;
+    outline: none;
+    background: var(--canvas);
+  }
+  .pgcv[data-drag] {
+    cursor: grabbing;
+  }
+  .pgcv:focus-visible {
+    box-shadow: inset 0 0 0 2px var(--grape);
+  }
+  .pgcv .post {
+    position: absolute;
+    left: 0;
+    top: 0;
+    margin: 0;
+    will-change: transform;
+  }
+  .pgcv .pi {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    border-radius: var(--radius-media);
+    overflow: hidden;
+    background: var(--fill);
+    opacity: 0;
+    scale: 0.92;
+    transition:
+      scale var(--dur-spring) var(--ease-spring),
+      translate var(--dur-spring) var(--ease-spring),
+      opacity 500ms var(--ease-ui);
+    transition-delay: var(--d, 0ms);
+  }
+  .pgcv .pi.in {
+    opacity: 1;
+    scale: 1;
+  }
+  .pgcv[data-moving] .pi.in {
+    scale: 0.95;
+    transition-delay: 0ms;
+  }
+  .pgcv .pi :is(img, video),
+  .pgcv .lbm :is(img, video) {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    pointer-events: none;
+  }
+  .pgcv .pi :is(img, video) {
+    opacity: 0;
+    transition: opacity 400ms var(--ease-ui);
+  }
+  .pgcv .pi .ok {
+    opacity: 1;
+  }
+  .pgcv [data-tint="tang"] {
+    background: color-mix(in srgb, var(--tang) 22%, var(--canvas));
+  }
+  .pgcv [data-tint="grape"] {
+    background: color-mix(in srgb, var(--grape) 18%, var(--canvas));
+  }
+  .pgcv :is(.pi, .lbm) > .mock {
+    position: absolute;
+    left: 12px;
+    top: 12px;
+    background: var(--canvas);
+  }
+
+  /* An open post: lifted over a canvas wash (no blur: the system has none). */
+  .pgcv .lb {
+    position: absolute;
+    inset: 0;
+    z-index: 10;
+    cursor: zoom-out;
+    background: color-mix(in srgb, var(--canvas) 88%, transparent);
+    opacity: 0;
+    transition: opacity 300ms var(--ease-ui);
+  }
+  .pgcv .lb[data-on] {
+    opacity: 1;
+  }
+  .pgcv .lbm {
+    position: absolute;
+    left: 0;
+    top: 0;
+    transform-origin: 0 0;
+    overflow: hidden;
+    background: var(--fill);
+    transition:
+      transform var(--dur-spring) var(--ease-spring),
+      border-radius var(--dur-spring) var(--ease-spring);
+  }
+  .pgcv .lbc {
+    position: absolute;
+    left: var(--spacing-inset);
+    bottom: 20px;
+    color: var(--mute);
+  }
+  .pgcv .lbx {
+    position: absolute;
+    right: var(--spacing-inset);
+    top: 20px;
+    z-index: 11;
+  }
+  .pgsel {
+    left: 0;
+    top: 0;
+    z-index: 6;
+    opacity: 0;
+  }
+  .pgsel[data-on] {
+    opacity: 1;
+  }
+
+  @media (width < 900px) {
+    .pgcv .pi,
+    .pgcv .lbm {
+      border-radius: 16px;
+    }
+    .pgsel {
+      display: none;
+    }
+  }
+  html[data-motion="calm"] .pgcv :is(.pi, .lbm, .lb) {
+    transition: opacity 200ms var(--ease-ui);
+  }
+  html[data-motion="calm"] .pgcv[data-moving] .pi.in {
+    scale: 1;
+  }
+}
+
+/* The board fills the screen, so this page has no footer (unlayered: the
+   footer rows are .frame utilities). */
+.page:has(.pgcv) :is(.footer-air, #contact, .legal) {
+  display: none;
+}
