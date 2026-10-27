@@ -12,7 +12,13 @@ export function CopyEmail({ email }: { email: string }) {
   const timer = useRef(0);
 
   const done = (ok: boolean) => {
-    announce(ok ? (asleep ? "Copied. Morning me will answer." : "Copied. Talk soon.") : "Couldn’t copy. Select it instead.");
+    announce(
+      ok
+        ? asleep
+          ? "Copied. Morning me will answer."
+          : "Copied. Talk soon."
+        : "Couldn’t copy. Select it instead.",
+    );
     setLabel(ok ? "Copied" : "Select it");
     window.clearTimeout(timer.current);
     timer.current = window.setTimeout(() => setLabel("Copy email"), 2400);

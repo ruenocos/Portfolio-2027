@@ -9,7 +9,13 @@ export function PauseButton() {
   const { paused } = useMotion();
   const label = paused ? "Play motion" : "Pause motion";
   return (
-    <button type="button" className="pzb" aria-pressed={paused} aria-label={label} onClick={() => setPaused(!paused)}>
+    <button
+      type="button"
+      className="pzb"
+      aria-pressed={paused}
+      aria-label={label}
+      onClick={() => setPaused(!paused)}
+    >
       {paused ? (
         <svg viewBox="0 0 16 16" aria-hidden="true">
           <path d="M4.5 2.9v10.2c0 .6.6.9 1.1.6l8-5.1c.5-.3.5-.9 0-1.2l-8-5.1c-.5-.3-1.1 0-1.1.6z" />

@@ -15,8 +15,14 @@ export function SmoothScroll() {
   const pathname = usePathname();
 
   useEffect(() => {
-    if (calm || !matchMedia("(hover: hover) and (pointer: fine)").matches) return;
-    const lenis = new Lenis({ lerp, wheelMultiplier, autoRaf: true, anchors: { offset: 0 } });
+    if (calm || !matchMedia("(hover: hover) and (pointer: fine)").matches)
+      return;
+    const lenis = new Lenis({
+      lerp,
+      wheelMultiplier,
+      autoRaf: true,
+      anchors: { offset: 0 },
+    });
     setLenis(lenis);
     return () => {
       lenis.destroy();
@@ -26,7 +32,8 @@ export function SmoothScroll() {
 
   // A new page starts at the top, without gliding there.
   useEffect(() => {
-    if (!location.hash) getLenis()?.scrollTo(0, { immediate: true, force: true });
+    if (!location.hash)
+      getLenis()?.scrollTo(0, { immediate: true, force: true });
   }, [pathname]);
 
   return null;

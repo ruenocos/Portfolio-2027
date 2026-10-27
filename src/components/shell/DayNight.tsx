@@ -26,7 +26,10 @@ export function DayNight() {
         />
       </svg>
       <svg className="i moon" viewBox="0 0 16 16" aria-hidden="true">
-        <path fill="currentColor" d="M10.6 1.4a6.6 6.6 0 1 0 4 10.4A5.6 5.6 0 0 1 10.6 1.4z" />
+        <path
+          fill="currentColor"
+          d="M10.6 1.4a6.6 6.6 0 1 0 4 10.4A5.6 5.6 0 0 1 10.6 1.4z"
+        />
       </svg>
     </button>
   );

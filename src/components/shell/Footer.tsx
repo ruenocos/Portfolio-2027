@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { CopyEmail } from "./CopyEmail";
+import { Hop } from "./Hop";
 import { EMAIL, LINKEDIN, NAV } from "./nav";
 import { Row } from "./Row";
 
@@ -29,7 +30,7 @@ export function Footer() {
           <div className="cell">
             <h3 className="text-lead">Elsewhere</h3>
             <a className="l" href={LINKEDIN} target="_blank" rel="noopener">
-              LinkedIn{" "}
+              <Hop text="LinkedIn" />
               <span className="ext" aria-hidden="true">
                 ↗
               </span>
@@ -39,11 +40,11 @@ export function Footer() {
             <h3 className="text-lead">More</h3>
             {NAV.map(({ href, label }) => (
               <Link key={href} className="l" href={href}>
-                {label}
+                <Hop text={label} />
               </Link>
             ))}
             <a className="l" href="#top">
-              Back to top{" "}
+              <Hop text="Back to top" />
               <span className="ar" aria-hidden="true">
                 ↑
               </span>

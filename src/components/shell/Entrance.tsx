@@ -22,17 +22,25 @@ export function Entrance() {
     const root = document.documentElement;
     const delay = first.current ? 0 : PAGE_IN;
     first.current = false;
-    if (getMotion().calm || root.dataset.boot) return root.classList.remove("entering");
+    if (getMotion().calm || root.dataset.boot)
+      return root.classList.remove("entering");
 
     const fold = innerHeight * 0.92;
-    const rows = [...document.querySelectorAll<HTMLElement>("main [data-row]")].filter((r) => {
+    const rows = [
+      ...document.querySelectorAll<HTMLElement>("main [data-row]"),
+    ].filter((r) => {
       const b = r.getBoundingClientRect();
       return b.top < fold && b.bottom > 0;
     });
     rows.slice(0, 12).forEach((row, i) => {
       const own = [...row.querySelectorAll<HTMLElement>("[data-enter]")];
-      const blocks = own.length ? own : [row.children[1] as HTMLElement].filter(Boolean);
-      const d = delay + Math.min(i, transition.loadEntrance.maxSteps) * transition.loadEntrance.rowStaggerMs;
+      const blocks = own.length
+        ? own
+        : [row.children[1] as HTMLElement].filter(Boolean);
+      const d =
+        delay +
+        Math.min(i, transition.loadEntrance.maxSteps) *
+          transition.loadEntrance.rowStaggerMs;
       for (const el of blocks) {
         el.animate([{ opacity: 0 }, { opacity: 1 }], {
           duration: easing["enter-opacity"].ms,
@@ -40,12 +48,18 @@ export function Entrance() {
           easing: bezier(easing["enter-opacity"].bezier),
           fill: "backwards",
         });
-        el.animate([{ translate: `0 ${easing["enter-rise"].distance}` }, { translate: "0 0" }], {
-          duration: easing["enter-rise"].ms,
-          delay: d,
-          easing: bezier(easing["enter-rise"].bezier),
-          fill: "backwards",
-        });
+        el.animate(
+          [
+            { translate: `0 ${easing["enter-rise"].distance}` },
+            { translate: "0 0" },
+          ],
+          {
+            duration: easing["enter-rise"].ms,
+            delay: d,
+            easing: bezier(easing["enter-rise"].bezier),
+            fill: "backwards",
+          },
+        );
       }
     });
     root.classList.remove("entering");

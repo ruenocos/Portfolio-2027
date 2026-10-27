@@ -103,7 +103,6 @@ export function Header() {
                   key={href}
                   href={href}
                   className="text-label"
-                  aria-label={label}
                   aria-current={pathname.startsWith(href) ? "page" : undefined}
                 >
                   <Hop text={label} />
@@ -116,7 +115,7 @@ export function Header() {
             </div>
           </div>
           <div className="end">
-            <a href="#contact" className="ct text-label" aria-label="Contact">
+            <a href="#contact" className="ct text-label">
               <Hop text="Contact" />
               <span className="ar" aria-hidden="true">
                 &nbsp;↓
