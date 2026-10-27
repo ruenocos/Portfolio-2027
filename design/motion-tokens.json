@@ -1,0 +1,153 @@
+{
+  "$description": "Wessel motion tokens v02 (2026-10-27), locked to home preview v89. See DESIGN.md section 8. v01 (cell swarm) is in _archive/.",
+  "easing": {
+    "ui": {
+      "bezier": [
+        0.2,
+        0,
+        0,
+        1
+      ],
+      "ms": 180,
+      "use": "hover, focus, toggles"
+    },
+    "spring": {
+      "css": "linear(0,.06 2%,.24 6%,.52 11%,.84 17%,1.06 23%,1.14 28%,1.15 31%,1.1 37%,1.03 44%,.98 52%,.97 59%,.99 70%,1)",
+      "ms": 600,
+      "use": "objects Wessel moves, pills, chips, pins popping in. Never on running text"
+    },
+    "enter-opacity": {
+      "bezier": [
+        0.33,
+        1,
+        0.68,
+        1
+      ],
+      "ms": 560
+    },
+    "enter-rise": {
+      "bezier": [
+        0.16,
+        1,
+        0.3,
+        1
+      ],
+      "ms": 720,
+      "distance": "16px"
+    },
+    "mode": {
+      "bezier": [
+        0.2,
+        0,
+        0,
+        1
+      ],
+      "ms": 900,
+      "use": "light/dark/night token cross-fade"
+    }
+  },
+  "entrance": {
+    "start": "block crosses 92% of the viewport",
+    "stagger": {
+      "ms": 60,
+      "maxSteps": 3,
+      "skipIfAbove": "60% of viewport"
+    },
+    "holdWhileWesselWorks": {
+      "ms": 120
+    }
+  },
+  "magnetism": {
+    "reel": {
+      "max": "28px x / 18px y",
+      "rotate": "x * 0.07deg"
+    },
+    "projectMedia": {
+      "zone": "side columns only, still over the middle column"
+    }
+  },
+  "wessel": {
+    "beatTrigger": "~40% of section in view, once per mode",
+    "fastScroll": {
+      "waitAbovePxPerSec": 1500,
+      "waitMs": 360,
+      "skipAbovePxPerSec": 4500,
+      "skipped": "replays on return"
+    },
+    "follow": {
+      "drag": 0.55,
+      "springBoost": "k * min(2.6, 1 + v/1200)"
+    },
+    "entranceHoldMs": 300,
+    "pinTypeMsPerChar": 85,
+    "idleNod": {
+      "afterMs": [
+        7000,
+        12000,
+        17000
+      ],
+      "max": 3
+    }
+  },
+  "video": {
+    "playbackRate": 0.75
+  },
+  "scroll": {
+    "lenis": {
+      "lerp": 0.12,
+      "wheelMultiplier": 0.9,
+      "when": "desktop mouse only"
+    }
+  },
+  "boot": {
+    "maxMs": 2400,
+    "skipOnInput": true
+  },
+  "reducedMotion": {
+    "all": "end states, no travel; keep colour changes"
+  },
+  "never": [
+    "overshoot on running text",
+    "glow, blur trails, sparkle",
+    "page-wide colour changes on scroll",
+    "snapshot/overlay transitions tied to scroll (view-transition circles)",
+    "more than one expressive move per screen",
+    "motion that hides the name, role or work",
+    "stacked effects (fade + wave + chip at once)"
+  ],
+  "transition": {
+    "page": {
+      "out": {
+        "ms": 240,
+        "easing": "ui"
+      },
+      "in": {
+        "ms": 240,
+        "easing": "ui"
+      },
+      "veil": "canvas"
+    },
+    "loadEntrance": {
+      "uses": "entrance grammar (enter-opacity 560 + enter-rise 720, 16px)",
+      "rowStaggerMs": 80,
+      "maxSteps": 4,
+      "skip": "home first-visit boot, paused, reduced"
+    },
+    "pausedOrReduced": "fade only",
+    "dropped": "case video morph (2026-10-27)"
+  },
+  "pause": {
+    "control": "Pause motion button beside the day/night switch",
+    "stops": [
+      "videos + reel loop",
+      "playground drift",
+      "Wessel travel + beats",
+      "bots",
+      "hello intro",
+      "entrances"
+    ],
+    "state": "reduced-motion path",
+    "persist": "localStorage wsl-pause (visit)",
+    "exempt": "reel dialog the visitor opens"
+  }
+}
