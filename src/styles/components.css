@@ -4,18 +4,15 @@
    Type comes from the text-* utilities in the markup, not from here. */
 
 @layer components {
-  /* ---------- section label: "# Selected work · 2/4" ---------- */
+  /* ---------- section label: "{ Selected work }" ---------- */
   .slab {
-    color: var(--mute);
+    display: inline-flex;
+    gap: 0.6em;
+    color: var(--ink);
     margin: 0;
   }
-  .slab .hash {
+  .slab .br {
     color: var(--tang-ink);
-    margin-right: 6px;
-  }
-  .slab b {
-    color: var(--ink);
-    font-weight: 500;
   }
 
   /* ---------- divider row: the label sits bottom-left of a dotted band ---------- */
@@ -31,6 +28,33 @@
   }
 
   /* ---------- pills and chips ---------- */
+  /* Tactile pills: a lit top edge, a faint sheen and a soft drop tinted in
+     the pill's own colour, so the fills don't sit flat on the canvas. */
+  .szp,
+  .gpill {
+    --pill-c: var(--grape);
+    background-image: linear-gradient(180deg, rgb(255 255 255 / 0.16), rgb(255 255 255 / 0) 55%);
+    box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / 0.32),
+      inset 0 -1px 0 rgb(0 0 0 / 0.12),
+      0 1px 1px rgb(0 0 0 / 0.1),
+      0 6px 14px -6px color-mix(in srgb, var(--pill-c) 70%, transparent);
+  }
+  .szp {
+    --pill-c: var(--tang);
+  }
+  .opill {
+    box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / 0.6),
+      0 1px 2px rgb(0 0 0 / 0.06),
+      0 4px 10px -6px rgb(0 0 0 / 0.18);
+  }
+  [data-mode="dark"] .opill,
+  [data-mode="night"] .opill {
+    box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / 0.06),
+      0 4px 10px -6px rgb(0 0 0 / 0.5);
+  }
   /* Size pill: Wessel's measurements and Handoff's redline numbers. */
   .szp {
     display: inline-block;
@@ -496,7 +520,7 @@
     flex-direction: column;
     align-items: flex-start;
     gap: 4px;
-    margin: 18px 0 0 -6px;
+    margin: 22px 0 0 -3px;
   }
   .cur .tag {
     display: inline-flex;
@@ -514,7 +538,7 @@
   .cur[data-flip="true"] .lab {
     position: absolute;
     right: 10px;
-    top: 17px;
+    top: 21px;
     margin: 0;
     align-items: flex-end;
   }

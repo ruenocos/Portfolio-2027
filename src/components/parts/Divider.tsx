@@ -8,7 +8,7 @@ export function Divider({
   tall = false,
   id,
 }: {
-  label?: { name: string; n?: number; of?: number };
+  label?: { name: string };
   tall?: boolean;
   id?: string;
 }) {

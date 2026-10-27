@@ -86,8 +86,9 @@ Rules:
 - **Ruled cells:** cells sit on a `line` background with `gap: 1px`, so siblings share single hairlines. No shadows on cells and no card borders. Cells are square-cornered (radius 0).
 - **Dot grid:** 1.1px dots every 16px, in `dot`. It sits on the side columns, the hero, the dividers and the bookend.
 - **Insets and rhythm:** content inset is 40px desktop and 20px mobile. Sections use 96px vertical padding (40 mobile). Section dividers are 168px rows (96 mobile; the tall ones are 240 at every width), with the label at bottom-left (inset 40, 20px from the bottom; mobile inset 20, 16px from the bottom).
-- **Section labels:** `# About · 1/4` in Label style. Only `#` is tangerine (`tang-ink`); the counter is ink.
+- **Section labels:** `{ About }` in Label style, ink. Only the braces are tangerine (`tang-ink`). No counter (dropped 2026-10-27).
 - **Round things inside the square frame:** media radius 24 (`--rm`), pills 999, handles round, chips are circles.
+- **Tactile pills** (2026-10-27): grape and tangerine pills get a lit top edge (inset 1px white 32%), a faint top sheen and a soft drop tinted in their own colour; outline pills get a light inset edge and a soft shadow. No flat fills.
 - **Breakpoint:** one main switch at 900px (stack to one column, 20px insets), plus 600px for small tweaks. Use `hover:none` for touch behaviour.
 - **Tap targets:** at least 44px. Grow the hit box, not the visible thing (`::before` inset, padding with negative margin, or a JS hit-slop when Wessel measures the element, like the reel).
 - **Tablet (600–900):** project rows go text | media (two columns); Focus stays one card per row.
@@ -103,7 +104,7 @@ Rules:
 | All work | Linked from the archive hand. Not designed yet. |
 
 ### Page order (home)
-Header (sticky, 90px) → Hero → `# About 1/4` → About (story + photo deck) → `# Selected work 2/4` → 3 project rows → `# Focus 3/4` → Focus (statement + Daily kit | 3 dioramas) → `# See more 4/4` → Archive hand + "All work" → Bookend (Wessel ☺ Oud) + Email / Elsewhere / More → legal bar.
+Header (sticky, 90px) → Hero → `{ About }` → About (story + photo deck) → `{ Selected work }` → 3 project rows → `{ Focus }` → Focus (statement + Daily kit | 3 dioramas) → `{ See more }` → Archive hand + "All work" → Bookend (Wessel ☺ Oud) + Email / Elsewhere / More → legal bar.
 
 ## 6. Components
 
@@ -120,7 +121,7 @@ Header (sticky, 90px) → Hero → `# About 1/4` → About (story + photo deck) 
 | **Archive** | A fanned hand of cards resting at .82 scale, with "All work →" in Statement. |
 | **Bookend** | The name again in Display with the smiley in the middle. It starts empty and Wessel copy-pastes it in (⌘C from the header wordmark, then ⌘V three times). Hidden until pasted, with a 3s fallback. |
 | **Contact** | Email style with a grape underline (`mailto`) + "Copy email" pill (copy feedback in Wessel's voice) · LinkedIn · More links. |
-| **Cursor tag** | Figma-style pointer (rounded arrowhead, 23px, 1.75 outline in canvas colour) + pill tag with a square corner toward the tip. Wessel = tangerine, You = grape, bots = ink (dashed outline at night). |
+| **Cursor tag** | Figma-style pointer (rounded arrowhead, 23px, 1.75 outline in canvas colour) + pill tag with a square corner toward the tip, about 6px clear of the arrow's notch. Wessel = tangerine, You = grape, bots = ink (dashed outline at night). |
 | **Comment pin** | Round avatar (smiley) + bubble, radius 4/16/16/16, Small style, canvas fill + line border + soft shadow. Pops in on a spring, text types at 85ms per character, shrinks to a dot when done. **One pin visible at a time.** |
 | **Selection** | 1.5px tangerine box + 4 round handles + Micro size pill below ("203 × 116"). Only Wessel and the bots make them. |
 | **Chips** | ⌘C / ⌘V key chips: Micro, `ink` fill with `canvas` text, radius 6. Size pills: Micro, `tang` fill, `on-tang` text, radius 999. |
@@ -169,7 +170,7 @@ The values are in `motion-tokens.json`. In short:
 - **Frames:** Home v89 at 1440 in Light, Dark and Night, and at 390 in Light and Night. Each frame sets its Color mode explicitly, so one build serves all modes. The mobile frames also set Space to Mobile.
 - **Variables:** `Color` collection (Light / Dark / Night) with the 12 colour tokens from section 3, named `color/<token>`. `Space` collection (Desktop / Mobile): `space/pad` (inset 40/20), `space/cell` (section 96/40), `space/section-air` (divider 168/96), `space/divider-tall` (240), `space/header` (90), `space/dot-step` (16), `space/tap` (44), `space/radius/media` (24), `space/radius/pill`, `space/radius/focus`.
 - **Text styles:** the 13 styles from section 4 with the same names, plus `Mobile/Display` (51 at 390), `Mobile/Statement` (40), `Mobile/Headline` (34) and `Mobile/Email` (24).
-- **Components** (frame "Components · v89" above the page): Dot field, Smiley, Tool / Figma · Illustrator · After Effects · LottieFiles · Claude, Section label (Name + Count props), Pill / Outline · Size · Grape, Cursor / Wessel · You.
+- **Components** (frame "Components · v89" above the page): Dot field, Smiley, Tool / Figma · Illustrator · After Effects · LottieFiles · Claude, Section label (Name prop), Pill / Outline · Size · Grape, Cursor / Wessel · You.
 - **Rules:** use only variables and text styles. No raw hex. The page sits on a `line` fill with 1px gaps between cells, so corners never show canvas. Dioramas are raster captures per mode. Motion, Wessel's beats and the hello intro live in the preview, not in Figma.
 - Leave Wons's sketch (node 1-4) untouched. "Hero locked" means design-locked, not a Figma layer lock.
 

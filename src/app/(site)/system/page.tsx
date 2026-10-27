@@ -97,14 +97,14 @@ export default function SystemPage() {
         </p>
       </Row>
 
-      <Divider label={{ name: "Parts", n: 1, of: 3 }} />
+      <Divider label={{ name: "Parts" }} />
 
       <Row as="section" className="ruled stack:grid-cols-3" aria-label="Parts in every mode">
         {MODES.map((mode) => (
           <div key={mode} data-mode={mode} className="bg-canvas text-ink p-inset flex flex-col gap-12 min-w-0">
             <SectionLabel as="p" name={mode} />
             <Specimen name="Section label">
-              <SectionLabel as="p" name="Selected work" n={2} of={4} />
+              <SectionLabel as="p" name="Selected work" />
             </Specimen>
             <Specimen name="Pills">
               <SizePill>203 × 116</SizePill>
@@ -169,7 +169,7 @@ export default function SystemPage() {
         ))}
       </Row>
 
-      <Divider label={{ name: "Live", n: 2, of: 3 }} />
+      <Divider label={{ name: "Live" }} />
 
       <Row className="p-inset flex flex-col gap-6">
         <p className="text-micro-caps text-mute">Tool filter (work page)</p>
@@ -200,7 +200,7 @@ export default function SystemPage() {
         />
       </Row>
 
-      <Divider label={{ name: "Tokens", n: 3, of: 3 }} />
+      <Divider label={{ name: "Tokens" }} />
 
       <Row as="section" className="ruled stack:grid-cols-3" aria-label="Colour tokens">
         {MODES.map((mode) => (
