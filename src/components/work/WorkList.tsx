@@ -4,10 +4,13 @@ import { useEffect, useRef, useState } from "react";
 import { Divider } from "@/components/parts/Divider";
 import { ProjectRow, type Project } from "@/components/parts/ProjectRow";
 import { ToolFilter } from "@/components/parts/ToolFilter";
+import { useBeat } from "@/components/canvas/useBeat";
 import { getMotion } from "@/lib/motion";
+import { live, select, wait, wessel } from "@/lib/wessel";
 import { TOOLS, knownTools, type ToolId } from "@/lib/tools";
 
 const LEAVE_MS = 200;
+const rand = (n: number) => Math.floor(Math.random() * n);
 const fits = (p: Project, picked: ToolId[]) => !picked.length || picked.some((t) => p.tools.includes(t));
 
 /**
@@ -44,11 +47,33 @@ export function WorkList({ selected, archive }: { selected: Project[]; archive: 
     }, LEAVE_MS);
   };
 
+  // By day he runs over his kit first: a few chips, each selected and named.
+  const bar = useBeat<HTMLDivElement>({
+    need: 0.6,
+    async day(g) {
+      const chips = [...bar.current!.querySelectorAll<HTMLElement>("button.tool")];
+      if (!chips.length) return;
+      await wait(500);
+      live(g);
+      const n = Math.min(3, chips.length);
+      const start = rand(chips.length - n + 1);
+      for (const c of chips.slice(start, start + n)) {
+        await wessel.go(wessel.at(c, 0.7, 0.75), { k: 280, timeout: 600 });
+        live(g);
+        select(c, { label: false, ms: 900 });
+        wessel.chip(c.getAttribute("aria-label") ?? "");
+        await wait(650);
+        live(g);
+      }
+      wessel.free();
+    },
+  });
+
   return (
     <>
       <section className="frame" data-row aria-label="Filter by tool">
         <div className="side" />
-        <div className="cell wfbar">
+        <div ref={bar} className="cell wfbar">
           <h2 className="text-lead">Filter by tool</h2>
           <ToolFilter ids={used} single onChange={pick} />
         </div>

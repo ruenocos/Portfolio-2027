@@ -4,7 +4,7 @@ import { useRef, useState } from "react";
 import { useBeat } from "@/components/canvas/useBeat";
 import type { Photo } from "@/content/home";
 import { announce, getMotion } from "@/lib/motion";
-import { live, wessel } from "@/lib/wessel";
+import { live, wait, wessel, type XY } from "@/lib/wessel";
 
 // Where the three cards rest: the top one nearly straight, the rest peeking.
 const REST: [number, number, number][] = [
@@ -17,7 +17,7 @@ const TOSS_MS = 260;
 /**
  * About's toy (v07): a stack of photos. Drag the top one off (or tap it,
  * or Enter) and it flies away and tucks in at the back. By day Wessel
- * holds the stack's corner, like he's showing it to you.
+ * pulls the top one off once, to show you how.
  */
 export function PhotoStack({ photos }: { photos: Photo[] }) {
   const [order, setOrder] = useState(() => photos.map((_, i) => i));
@@ -72,12 +72,41 @@ export function PhotoStack({ photos }: { photos: Photo[] }) {
   };
 
   const beat = useBeat<HTMLDivElement>({
+    // By day he shows you the next photo: grabs the top one by its corner,
+    // pulls it aside and lets it fly to the back.
     async day(g) {
       const s = stack.current!;
-      await wessel.go(wessel.at(s, 1, 1, -30, -36));
+      if (photos.length < 2) return;
+      await wait(400);
+      live(g);
+      const at = (): XY => {
+        const r = s.getBoundingClientRect();
+        return [r.right - 34, r.bottom - 40];
+      };
+      await wessel.go(at, { k: 260 });
       live(g);
       wessel.press(true);
-      setTimeout(() => wessel.press(false), 160);
+      const [x0, y0] = at();
+      try {
+        await wessel.drag(
+          () => [x0, y0],
+          () => [x0 + 110, y0 - 24],
+          520,
+          (e) => setDrag({ x: 110 * e, y: -24 * e }),
+        );
+        live(g);
+        toss(1, -24);
+      } catch (e) {
+        setDrag(null);
+        throw e;
+      } finally {
+        wessel.press(false);
+      }
+      await wait(500);
+      wessel.free();
+    },
+    reset() {
+      setDrag(null);
     },
   });
 

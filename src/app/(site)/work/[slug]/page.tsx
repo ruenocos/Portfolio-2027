@@ -8,6 +8,7 @@ import { MediaFigure } from "@/components/parts/Media";
 import { MockTag } from "@/components/parts/Pills";
 import { caseSlugs, getCase, getWork } from "@/content/get";
 import { getDraftFetchOptions } from "@/sanity/live";
+import { HeroBeat } from "@/components/case/HeroBeat";
 
 export function generateStaticParams() {
   return caseSlugs().map((slug) => ({ slug }));
@@ -87,7 +88,7 @@ async function Case({ params }: Pick<PageProps<"/work/[slug]">, "params">) {
       {(c.hero.video || c.hero.poster) && (
         <section className="frame" data-row aria-label="Project video">
           <div className="side" />
-          <div className="cell chero">
+          <HeroBeat>
             {/* The header loop runs at full speed: it was cut for 1×, unlike the project loops. */}
             <div data-enter>
               <MediaFigure
@@ -100,7 +101,7 @@ async function Case({ params }: Pick<PageProps<"/work/[slug]">, "params">) {
                 caption={c.hero.caption ? <span data-mock={mock("caption")}>{c.hero.caption}</span> : undefined}
               />
             </div>
-          </div>
+          </HeroBeat>
           <div className="side" />
         </section>
       )}

@@ -341,10 +341,16 @@ function tick(n: number) {
     const sp = driving ? W.spring : W.asleep ? S.asleep : S.free;
     const k = sp.k * Math.min(S.maxBoost, 1 + SV / S.boostPerPxSec);
     const ky = k * S.yScale;
-    W.vx += (-k * (W.x - t[0]) - 2 * sp.z * Math.sqrt(k) * W.vx) * dt;
-    W.vy += (-ky * (W.y - t[1]) - 2 * sp.z * Math.sqrt(ky) * W.vy) * dt;
-    W.x += W.vx * dt;
-    W.y += W.vy * dt;
+    // Small steps: a stiff spring (a drag, a fast scroll) on a slow frame
+    // would otherwise overshoot further each frame and fling him away.
+    const n = Math.ceil(dt * Math.sqrt(ky) / 0.25);
+    const h = dt / n;
+    for (let i = 0; i < n; i++) {
+      W.vx += (-k * (W.x - t[0]) - 2 * sp.z * Math.sqrt(k) * W.vx) * h;
+      W.vy += (-ky * (W.y - t[1]) - 2 * sp.z * Math.sqrt(ky) * W.vy) * h;
+      W.x += W.vx * h;
+      W.y += W.vy * h;
+    }
   }
   W.dist = Math.hypot(W.x - t[0], W.y - t[1]);
   W.sp = Math.hypot(W.vx, W.vy);

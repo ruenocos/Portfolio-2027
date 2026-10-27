@@ -149,8 +149,14 @@ export function Board({ posts }: { posts: Post[] }) {
     };
 
     // ---------- Wessel drives the board (desktop, by day, not paused) ----------
-    const wesOn = () => !mode.current.asleep && !mode.current.still && wide();
-    const S = { s: "rest", t: performance.now() + 1800, it: null as Item | null, D: [0, 0], from: [0, 0], g: [0, 0], t0: 0, dur: 0 };
+    // Only while the board is mostly on screen: scrolled away to the footer,
+    // he lets go instead of hanging on at the edge.
+    const onScreen = () => {
+      const r = cv.getBoundingClientRect();
+      return r.top < innerHeight * 0.4 && r.bottom > innerHeight * 0.6;
+    };
+    const wesOn = () => !mode.current.asleep && !mode.current.still && wide() && onScreen();
+    const S = { s: "rest", t: performance.now() + 900, it: null as Item | null, D: [0, 0], from: [0, 0], g: [0, 0], t0: 0, dur: 0 };
     let pausedTill = 0;
     let target: XY | null = null;
     let driving = false;
@@ -201,7 +207,7 @@ export function Board({ posts }: { posts: Post[] }) {
           wessel.free();
         }
         S.s = "rest";
-        S.t = now + 1800;
+        S.t = now + 900;
         return;
       }
       if (now < pausedTill || dragging || opened) {
@@ -223,7 +229,7 @@ export function Board({ posts }: { posts: Post[] }) {
           }),
         );
         if (!c.length) {
-          S.t = now + 1500;
+          S.t = now + 700;
           return;
         }
         const it = c[Math.floor(Math.random() * c.length)];
@@ -279,7 +285,7 @@ export function Board({ posts }: { posts: Post[] }) {
         if (now > S.t) {
           sel(null);
           S.s = "rest";
-          S.t = now + 2400;
+          S.t = now + 900;
         }
       }
     };
