@@ -30,7 +30,9 @@ export function Header() {
   useEffect(() => {
     const hero = document.querySelector("[data-hero]");
     if (!hero) return;
-    const io = new IntersectionObserver(([e]) => setHeroIn(e.isIntersecting), { rootMargin: "-90px 0px 0px 0px" });
+    const io = new IntersectionObserver(([e]) => setHeroIn(e.isIntersecting), {
+      rootMargin: "-90px 0px 0px 0px",
+    });
     io.observe(hero);
     return () => io.disconnect();
   }, [pathname]);
@@ -42,14 +44,20 @@ export function Header() {
     const root = document.documentElement;
     root.classList.add("menu-open");
     getLenis()?.stop();
-    const first = window.setTimeout(() => panel.current?.querySelector("a")?.focus({ preventScroll: true }), 60);
+    const first = window.setTimeout(
+      () => panel.current?.querySelector("a")?.focus({ preventScroll: true }),
+      60,
+    );
     const key = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
         setOpen(false);
         button.current?.focus();
       }
       if (e.key !== "Tab") return;
-      const items: HTMLElement[] = [button.current!, ...panel.current!.querySelectorAll("a")];
+      const items: HTMLElement[] = [
+        button.current!,
+        ...panel.current!.querySelectorAll("a"),
+      ];
       const i = items.indexOf(document.activeElement as HTMLElement);
       if (e.shiftKey && i <= 0) {
         e.preventDefault();
@@ -72,7 +80,10 @@ export function Header() {
     };
   }, [open]);
 
-  const links = [...NAV.map((l) => ({ ...l, arrow: "" })), { href: "#contact", label: "Contact", arrow: "↓" }];
+  const links = [
+    ...NAV.map((l) => ({ ...l, arrow: "" })),
+    { href: "#contact", label: "Contact", arrow: "↓" },
+  ];
 
   return (
     <>
@@ -85,22 +96,26 @@ export function Header() {
               Wessel
             </span>
           </Link>
-          <nav aria-label="Main">
-            {NAV.map(({ href, label }) => (
-              <Link
-                key={href}
-                href={href}
-                className="text-label"
-                aria-label={label}
-                aria-current={pathname.startsWith(href) ? "page" : undefined}
-              >
-                <Hop text={label} />
-              </Link>
-            ))}
-          </nav>
-          <div className="ctw">
-            <DayNight />
-            <PauseButton />
+          <div className="mid">
+            <nav aria-label="Main">
+              {NAV.map(({ href, label }) => (
+                <Link
+                  key={href}
+                  href={href}
+                  className="text-label"
+                  aria-label={label}
+                  aria-current={pathname.startsWith(href) ? "page" : undefined}
+                >
+                  <Hop text={label} />
+                </Link>
+              ))}
+            </nav>
+            <div className="ctw">
+              <DayNight />
+              <PauseButton />
+            </div>
+          </div>
+          <div className="end">
             <a href="#contact" className="ct text-label" aria-label="Contact">
               <Hop text="Contact" />
               <span className="ar" aria-hidden="true">
@@ -131,12 +146,19 @@ export function Header() {
         aria-label="Menu"
         data-open={open}
         inert={!open}
-        onClick={(e) => (e.target === e.currentTarget || (e.target as Element).closest("a")) && setOpen(false)}
+        onClick={(e) =>
+          (e.target === e.currentTarget ||
+            (e.target as Element).closest("a")) &&
+          setOpen(false)
+        }
       >
         <ul>
           {links.map(({ href, label, arrow }) => (
             <li key={href}>
-              <Link href={href} aria-current={pathname.startsWith(href) ? "page" : undefined}>
+              <Link
+                href={href}
+                aria-current={pathname.startsWith(href) ? "page" : undefined}
+              >
                 {label}
                 {arrow && (
                   <span className="ar" aria-hidden="true">
