@@ -1,5 +1,5 @@
 import { forwardRef } from "react";
-import { POINTER } from "@/lib/wessel";
+import { POINTER, POINTER_BOX } from "@/lib/wessel";
 
 // A cursor on the canvas: pointer arrow + name tag (DESIGN.md §6).
 // wes = Wessel (tangerine, his ink), you = the visitor (grape),
@@ -31,7 +31,7 @@ export const Cursor = forwardRef<HTMLDivElement, Props>(function Cursor(
       data-fixed={fixed ? "" : undefined}
       data-hide={fixed ? "true" : undefined}
     >
-      <svg className="ptr" viewBox="0 0 22 24" aria-hidden="true">
+      <svg className="ptr" viewBox={POINTER_BOX} aria-hidden="true">
         <path d={POINTER} />
       </svg>
       <span className="lab">

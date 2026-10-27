@@ -133,12 +133,17 @@ export function showPin(pin: HTMLElement) {
 }
 
 // ---------- cursor markup (shared with <Cursor>) ----------
-export const POINTER = "M3 2.5v16.4l4.5-4.2 3.1 6.7 3.1-1.4-3.1-6.6h6.3z";
+// Figma-style multiplayer pointer: a rounded arrowhead, no stem (Wons,
+// 2026-10-27). TIP is where it points, in CSS px from its top-left.
+export const POINTER =
+  "M3.4 2.6c-.5-.3-1.1.2-.9.8l4.6 13.9c.2.6 1 .7 1.3.1l2.4-4.7c.1-.3.4-.5.7-.5l5.2-.7c.6-.1.8-.9.3-1.3z";
+export const POINTER_BOX = "0 0 20 20";
+export const TIP: XY = [3, 3];
 function cursorEl(kind: "bot", name: string) {
   const el = document.createElement("div");
   el.className = `cur ${kind}`;
   el.setAttribute("aria-hidden", "true");
-  el.innerHTML = `<svg class="ptr" viewBox="0 0 22 24"><path d="${POINTER}"/></svg><span class="lab"><span class="tag text-cursor-tag"></span></span>`;
+  el.innerHTML = `<svg class="ptr" viewBox="${POINTER_BOX}"><path d="${POINTER}"/></svg><span class="lab"><span class="tag text-cursor-tag"></span></span>`;
   el.querySelector(".tag")!.textContent = name;
   return el;
 }
@@ -161,7 +166,7 @@ export class Bot {
     return Math.max(4, Math.min(x, w - (this.el.offsetWidth || 110) - 6));
   }
   private draw() {
-    this.el.style.transform = `translate(${(this.x - 3).toFixed(1)}px,${(this.y - 2.5).toFixed(1)}px)`;
+    this.el.style.transform = `translate(${(this.x - TIP[0]).toFixed(1)}px,${(this.y - TIP[1]).toFixed(1)}px)`;
   }
   place(x: number, y: number) {
     cancelAnimationFrame(this.raf);
@@ -308,7 +313,7 @@ function tick(n: number) {
   const heroIn = !!hero && inView(hero);
   el.dataset.note = String(W.asleep && heroIn);
   el.dataset.dock = String(W.asleep && !heroIn);
-  el.style.transform = `translate(${(W.x - 3).toFixed(1)}px,${(W.y - 2.5).toFixed(1)}px)`;
+  el.style.transform = `translate(${(W.x - TIP[0]).toFixed(1)}px,${(W.y - TIP[1]).toFixed(1)}px)`;
   raf = requestAnimationFrame(tick);
 }
 tick.last = 0;

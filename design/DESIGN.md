@@ -120,7 +120,7 @@ Header (sticky, 90px) → Hero → `# About 1/4` → About (story + photo deck) 
 | **Archive** | A fanned hand of cards resting at .82 scale, with "All work →" in Statement. |
 | **Bookend** | The name again in Display with the smiley in the middle. It starts empty and Wessel copy-pastes it in (⌘C from the header wordmark, then ⌘V three times). Hidden until pasted, with a 3s fallback. |
 | **Contact** | Email style with a grape underline (`mailto`) + "Copy email" pill (copy feedback in Wessel's voice) · LinkedIn · More links. |
-| **Cursor tag** | Pointer arrow + pill tag. Wessel = tangerine, You = grape, bots = ink (dashed outline at night). |
+| **Cursor tag** | Figma-style pointer (rounded arrowhead, 23px, 1.75 outline in canvas colour) + pill tag with a square corner toward the tip. Wessel = tangerine, You = grape, bots = ink (dashed outline at night). |
 | **Comment pin** | Round avatar (smiley) + bubble, radius 4/16/16/16, Small style, canvas fill + line border + soft shadow. Pops in on a spring, text types at 85ms per character, shrinks to a dot when done. **One pin visible at a time.** |
 | **Selection** | 1.5px tangerine box + 4 round handles + Micro size pill below ("203 × 116"). Only Wessel and the bots make them. |
 | **Chips** | ⌘C / ⌘V key chips: Micro, `ink` fill with `canvas` text, radius 6. Size pills: Micro, `tang` fill, `on-tang` text, radius 999. |

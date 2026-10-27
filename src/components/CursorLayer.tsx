@@ -4,7 +4,7 @@ import { usePathname } from "next/navigation";
 import { useEffect, useRef } from "react";
 import { setAsleep } from "@/components/ModeProvider";
 import { useMotion } from "@/components/useMotion";
-import { arrive, attachWessel, newPage, setWesselAsleep } from "@/lib/wessel";
+import { TIP, arrive, attachWessel, newPage, setWesselAsleep } from "@/lib/wessel";
 import { Cursor } from "./canvas/Cursor";
 
 // Wessel's layer. It lives in the root layout so he survives page changes:
@@ -57,7 +57,7 @@ export function CursorLayer() {
     let soon = 0;
     const move = (e: PointerEvent) => {
       if (e.pointerType !== "mouse") return;
-      y.style.transform = `translate(${e.clientX - 3}px,${e.clientY - 2.5}px)`;
+      y.style.transform = `translate(${e.clientX - TIP[0]}px,${e.clientY - TIP[1]}px)`;
       y.dataset.hide = String(!!document.querySelector("dialog[open]"));
       const t = e.target as Element;
       y.dataset.on = String(!!t.closest?.("a,button,[role=button],label,[data-you]"));

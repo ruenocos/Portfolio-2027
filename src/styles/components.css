@@ -478,17 +478,17 @@
     position: relative;
   }
   .cur .ptr {
-    width: 22px;
-    height: 24px;
+    width: 23px;
+    height: 23px;
     flex: none;
-    transform-origin: 3px 2.5px;
+    transform-origin: 3px 3px;
     transition: transform 260ms var(--ease-spring);
     filter: drop-shadow(0 1px 1.5px rgb(0 0 0 / 0.28));
   }
   .cur .ptr path {
     fill: var(--c);
     stroke: var(--canvas);
-    stroke-width: 1.5;
+    stroke-width: 1.75;
     stroke-linejoin: round;
   }
   .cur .lab {
@@ -496,14 +496,15 @@
     flex-direction: column;
     align-items: flex-start;
     gap: 4px;
-    margin: 14px 0 0 -8px;
+    margin: 18px 0 0 -5px;
   }
   .cur .tag {
     display: inline-flex;
     align-items: center;
     height: 24px;
     padding: 0 10px;
-    border-radius: var(--radius-pill);
+    /* The square corner points back at the tip. */
+    border-radius: 4px var(--radius-pill) var(--radius-pill) var(--radius-pill);
     background: var(--c);
     color: var(--on);
     white-space: nowrap;
