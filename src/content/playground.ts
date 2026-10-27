@@ -14,22 +14,18 @@ export type Post = {
 const M = "/media";
 
 // Playground v08 (studio/web/hifi/playground, approved): a big looping
-// masonry. Only the De Saak loop is real; the rest are placeholders until
+// masonry. Only the De Saak loop and the game reel are real; the rest are placeholders until
 // Wons adds his experiments in Sanity (Playground posts).
 export const FALLBACK_POSTS: Post[] = [
   { title: "De Saak header loop", video: `${M}/de-saak/desaak-hero.mp4`, src: `${M}/de-saak/desaak-hero.jpg`, ar: 16 / 9 },
-  { title: "Portrait", src: `${M}/portrait.jpg`, ar: 3 / 4, mock: true },
+  { title: "Match Monsters and Hold’em, game screens", video: `${M}/game-reel.mp4`, src: `${M}/game-reel.jpg`, ar: 720 / 1548 },
   { title: "PNG post", ar: 1, tint: "tang", mock: true },
   { title: "Cal.com loop", video: `${M}/calcom-portrait.mp4`, src: `${M}/calcom-portrait.jpg`, ar: 9 / 16, mock: true },
-  { title: "Bucket hat", src: `${M}/about-hat.jpg`, ar: 1, mock: true },
   { title: "Video post", ar: 16 / 10, tint: "grape", mock: true },
   { title: "Pixelup loop", video: `${M}/pixelup-portrait.mp4`, src: `${M}/pixelup-portrait.jpg`, ar: 9 / 16, mock: true },
-  { title: "Barcelona", src: `${M}/about-barcelona.jpg`, ar: 3 / 4, mock: true },
   { title: "PNG post", ar: 4 / 3, tint: "plain", mock: true },
   { title: "Video post", ar: 3 / 4, tint: "tang", mock: true },
   { title: "PNG post", ar: 1, tint: "grape", mock: true },
-  { title: "Portrait, close", src: `${M}/portrait.jpg`, ar: 1, mock: true },
   { title: "Video post", ar: 16 / 9, tint: "plain", mock: true },
-  { title: "Barcelona, square", src: `${M}/about-barcelona.jpg`, ar: 1, mock: true },
   { title: "PNG post", ar: 3 / 4, tint: "grape", mock: true },
 ];
