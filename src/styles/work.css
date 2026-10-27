@@ -1,0 +1,25 @@
+/* Work overview (approved v03): page title, the tool filter bar, then the
+   home's project rows in two groups. */
+
+@layer components {
+  .whero {
+    padding: var(--spacing-section) var(--spacing-inset) var(--spacing-inset);
+  }
+  .wfbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 16px 24px;
+    padding: 24px var(--spacing-inset);
+  }
+  @media (width < 900px) {
+    .wfbar {
+      padding-block: var(--spacing-inset);
+    }
+    .wfbar .tfilter {
+      width: 100%;
+      justify-content: space-between;
+    }
+  }
+}

@@ -1,16 +1,24 @@
 import type { Metadata } from "next";
-import { Row } from "@/components/shell/Row";
+import { WorkList } from "@/components/work/WorkList";
+import { getWork } from "@/content/get";
 
-export const metadata: Metadata = { title: "Work" };
+export const metadata: Metadata = {
+  title: "Work",
+  description: "Selected work and the archive, filterable by tool.",
+};
 
-// Placeholder so the shell can be tried end to end. Built in Phase 4.
-export default function WorkPage() {
+export default async function WorkPage() {
+  const { selected, archive } = await getWork();
   return (
-    <Row as="section" className="p-inset min-h-[60svh] flex flex-col justify-end gap-4">
-      <p className="text-label text-mute" data-mock>
-        <span className="text-tang-ink">#</span> Placeholder · Phase 4
-      </p>
-      <h1 className="text-statement">Work</h1>
-    </Row>
+    <>
+      <section className="frame" data-row aria-label="Work">
+        <div className="side" />
+        <div className="cell whero bg-dots">
+          <h1 className="text-statement">Work</h1>
+        </div>
+        <div className="side" />
+      </section>
+      <WorkList selected={selected} archive={archive} />
+    </>
   );
 }

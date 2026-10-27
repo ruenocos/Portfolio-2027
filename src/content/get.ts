@@ -1,8 +1,9 @@
 import type { Project } from "@/components/parts/ProjectRow";
 import { knownTools } from "@/lib/tools";
 import { cachedSanity, published } from "@/sanity/live";
-import { HOME_QUERY } from "@/sanity/queries";
+import { HOME_QUERY, WORK_QUERY } from "@/sanity/queries";
 import { FALLBACK_HOME, type HomeContent, type Track } from "./home";
+import { FALLBACK_ARCHIVE, FALLBACK_PROJECTS } from "./projects";
 
 type Row = {
   title: string;
@@ -94,5 +95,23 @@ export async function getHome(): Promise<HomeContent> {
       }),
     },
     archive: archive.length ? archive.map((c) => ({ ...c, src: img(c.src, 640)! })) : f.archive,
+  };
+}
+
+/**
+ * Work: the selected work and the archive. Each list falls back on its own:
+ * the placeholder archive shows only while Sanity has no archive projects.
+ */
+export async function getWork(): Promise<{ selected: Project[]; archive: Project[] }> {
+  let d: { selected: Row[] | null; archive: Row[] | null } = { selected: null, archive: null };
+  try {
+    const { data } = await cachedSanity({ query: WORK_QUERY, perspective: published.perspective, stega: false });
+    d = data as unknown as typeof d;
+  } catch (e) {
+    console.warn("Work: Sanity unavailable, using the fallback content.", e);
+  }
+  return {
+    selected: d.selected?.length ? d.selected.map(toProject) : FALLBACK_PROJECTS,
+    archive: d.archive?.length ? d.archive.map(toProject) : FALLBACK_ARCHIVE,
   };
 }

@@ -416,6 +416,14 @@
   .pj > .cell {
     padding: var(--spacing-section) var(--spacing-inset);
   }
+  .pj[hidden] {
+    display: none;
+  }
+  /* Filtered out (Work): it fades, then the rest close up. */
+  .pj[data-leaving] {
+    opacity: 0;
+    transition: opacity var(--dur-ui) var(--ease-ui);
+  }
   .pj .pl,
   .pj .pr {
     display: flex;

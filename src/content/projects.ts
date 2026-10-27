@@ -42,3 +42,16 @@ export const FALLBACK_PROJECTS: Project[] = [
     mock: ["summary", "role", "note"],
   },
 ];
+
+// The Work page's archive until the real projects are in: the home fan's
+// placeholder tiles, with dashed gaps for the text (all mock).
+export const FALLBACK_ARCHIVE: Project[] = [1, 2, 3, 4, 5].map((i) => ({
+  title: `Archive 0${i}`,
+  summary: "",
+  timeline: "",
+  role: "",
+  tools: [],
+  media: { poster: `/media/archive-tile${i}.jpg` },
+  label: `Archive 0${i}, placeholder.`,
+  placeholder: true,
+}));

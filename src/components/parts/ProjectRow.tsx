@@ -10,7 +10,8 @@ import type { ToolId } from "@/lib/tools";
 import { Bot, fade, live, pageBox, put, select, showPin, wait, wessel, type XY } from "@/lib/wessel";
 import motionTokens from "../../../design/motion-tokens.json";
 import { MediaFill } from "./Media";
-import { Tools } from "./Tools";
+import { MockTag, Slot } from "./Pills";
+import { EmptyTool, Tools } from "./Tools";
 
 const MAG = motionTokens.magnetism.projectMedia;
 const NEED = motionTokens.wessel.need.projectRow;
@@ -34,6 +35,8 @@ export type Project = {
   note?: { text: string; spot?: { fx: number; dy: number; rot: number } };
   /** Which of these fields are placeholder copy (DESIGN.md §2.8). */
   mock?: ("summary" | "role" | "note")[];
+  /** A slot still waiting for its project: only the media is real; the text shows dashed gaps. */
+  placeholder?: boolean;
 };
 
 // Leans toward your pointer while it's over the row's side columns, with a
@@ -90,11 +93,12 @@ function useMagnet() {
  * By day Wessel drops a pin on the media and selects it; by night the
  * Handoff bot redlines its spacing.
  */
-export function ProjectRow({ project: p }: { project: Project }) {
+export function ProjectRow({ project: p, hidden, leaving }: { project: Project; hidden?: boolean; leaving?: boolean }) {
   const media = useMagnet();
   const pin = useRef<HTMLSpanElement>(null);
   const [soon, setSoon] = useState(false);
   const mock = (f: "summary" | "role" | "note") => (p.mock?.includes(f) ? "" : undefined);
+  const gap = p.placeholder;
 
   // Pin spot: a fraction across the media, a little up from its bottom.
   const placePin = () => {
@@ -220,19 +224,24 @@ export function ProjectRow({ project: p }: { project: Project }) {
   );
 
   return (
-    <article ref={row} className="pj">
+    <article ref={row} className="pj" hidden={hidden} data-leaving={leaving || undefined}>
       <div className="cell pl">
         <div>
           <h3 className="text-title" lang={p.lang}>
             {p.title}
+            {gap && (
+              <span aria-hidden="true">
+                <MockTag className="ml-2.5 align-middle" />
+              </span>
+            )}
           </h3>
           <p className="pd text-body" data-mock={mock("summary")}>
-            {p.summary}
+            {gap ? <Slot>Summary</Slot> : p.summary}
           </p>
         </div>
         <dl className="meta">
           <dt className="text-label">Timeline</dt>
-          <dd className="text-body">{p.timeline}</dd>
+          <dd className="text-body">{gap ? <Slot>Year</Slot> : p.timeline}</dd>
         </dl>
       </div>
       <div className="cell pc">
@@ -265,14 +274,12 @@ export function ProjectRow({ project: p }: { project: Project }) {
         <dl className="meta">
           <dt className="text-label">Role</dt>
           <dd className="text-body" data-mock={mock("role")}>
-            {p.role}
+            {gap ? <Slot>Role</Slot> : p.role}
           </dd>
         </dl>
         <dl className="meta">
           <dt className="text-label">Tools</dt>
-          <dd>
-            <Tools ids={p.tools} />
-          </dd>
+          <dd>{gap ? <EmptyTool /> : <Tools ids={p.tools} />}</dd>
         </dl>
       </div>
     </article>

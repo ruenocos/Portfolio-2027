@@ -19,3 +19,10 @@ export const HOME_QUERY = defineQuery(`{
   },
   "projects": *[_type == "project" && featured == true] | order(order asc) ${projectRow}
 }`);
+
+// Work: every project. Featured ones are the selected work, in the home's
+// order; the rest are the archive.
+export const WORK_QUERY = defineQuery(`{
+  "selected": *[_type == "project" && featured == true] | order(order asc) ${projectRow},
+  "archive": *[_type == "project" && featured != true] | order(order asc, _createdAt desc) ${projectRow}
+}`);
