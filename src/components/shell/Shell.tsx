@@ -1,3 +1,4 @@
+import { CursorLayer } from "@/components/CursorLayer";
 import { ContactPill } from "./ContactPill";
 import { Entrance } from "./Entrance";
 import { Footer } from "./Footer";
@@ -20,8 +21,12 @@ export function Shell({ children }: { children: React.ReactNode }) {
           <main id="main">{children}</main>
           <Footer />
         </PageFade>
+        {/* Wessel's marks and the night bots: page coordinates, so they scroll with it. */}
+        <div id="ovl" className="ovl" aria-hidden="true" />
       </div>
       <ContactPill />
+      {/* Wessel's layer: the shell stays mounted between pages, so he survives every page change. */}
+      <CursorLayer />
       <Entrance />
       <SmoothScroll />
     </>

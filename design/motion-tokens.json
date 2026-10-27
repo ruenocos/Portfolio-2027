@@ -60,10 +60,16 @@
   "magnetism": {
     "reel": {
       "max": "28px x / 18px y",
-      "rotate": "x * 0.07deg"
+      "rotate": "x * 0.07deg",
+      "pull": 0.05,
+      "ease": 0.1
     },
     "projectMedia": {
-      "zone": "side columns only, still over the middle column"
+      "zone": "side columns only, still over the middle column",
+      "max": "28px x / 18px y",
+      "rotate": "x * 0.07deg",
+      "pull": 0.05,
+      "ease": 0.1
     }
   },
   "wessel": {
@@ -87,10 +93,41 @@
         17000
       ],
       "max": 3
+    },
+    "spring": {
+      "$description": "Wessel's travel (2026-10-27, from the prototype engine). k = stiffness, z = damping ratio; y is k * yScale so he drops a touch slower than he slides.",
+      "beat": {
+        "k": 190,
+        "z": 0.82
+      },
+      "free": {
+        "k": 46,
+        "z": 0.92
+      },
+      "asleep": {
+        "k": 28,
+        "z": 0.92
+      },
+      "bot": {
+        "k": 170,
+        "z": 0.78
+      },
+      "yScale": 1.25,
+      "maxBoost": 2.6,
+      "boostPerPxSec": 1200
+    },
+    "pin": {
+      "showMs": 1300,
+      "onePinAtATime": true
+    },
+    "need": {
+      "default": 0.4,
+      "projectRow": 0.8
     }
   },
   "video": {
-    "playbackRate": 0.75
+    "playbackRate": 0.75,
+    "playsWhen": "in view; paused while calm (poster)"
   },
   "scroll": {
     "lenis": {

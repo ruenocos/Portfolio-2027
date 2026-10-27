@@ -1,0 +1,47 @@
+"use client";
+
+import { useState } from "react";
+import { TOOLS, toolSrc, type ToolId } from "@/lib/tools";
+import { announce } from "@/lib/motion";
+
+// Work page: filter projects by tool. The picked chips ring in grape and
+// lift; the rest dim, exactly like the Daily kit hover. "Show all" clears.
+export function ToolFilter({
+  ids,
+  onChange,
+}: {
+  ids: readonly ToolId[];
+  onChange?: (picked: ToolId[]) => void;
+}) {
+  const [picked, setPicked] = useState<ToolId[]>([]);
+  const set = (next: ToolId[]) => {
+    setPicked(next);
+    onChange?.(next);
+    announce(next.length ? `Showing work made with ${next.map((id) => TOOLS[id].name).join(", ")}` : "Showing all work");
+  };
+  return (
+    <div className="tfilter">
+      <div className="tools" data-size={56} role="group" aria-label="Filter by tool">
+        {ids.map((id) => {
+          const on = picked.includes(id);
+          return (
+            <button
+              key={id}
+              type="button"
+              className="tool"
+              aria-pressed={on}
+              aria-label={TOOLS[id].name}
+              onClick={() => set(on ? picked.filter((p) => p !== id) : [...picked, id])}
+            >
+              {/* eslint-disable-next-line @next/next/no-img-element -- brand SVGs, served as they are */}
+              <img src={toolSrc(id)} alt="" width={56} height={56} />
+            </button>
+          );
+        })}
+      </div>
+      <button type="button" className="clr text-label" hidden={!picked.length} onClick={() => set([])}>
+        Show all
+      </button>
+    </div>
+  );
+}

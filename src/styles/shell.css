@@ -14,6 +14,7 @@
     gap: var(--spacing-hairline);
     background: var(--line);
     min-height: 100svh;
+    position: relative;
   }
   .page-body,
   main {

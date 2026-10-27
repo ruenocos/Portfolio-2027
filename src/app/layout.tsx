@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { Bricolage_Grotesque, Geist_Mono, Instrument_Serif } from "next/font/google";
-import { CursorLayer } from "@/components/CursorLayer";
 import { ModeProvider } from "@/components/ModeProvider";
 import { motionScript } from "@/lib/motion";
 import { modeScript, themeColorScript } from "@/lib/mode";
@@ -37,8 +36,6 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       </head>
       <body>
         {children}
-        {/* Wessel's layer sits here so he survives every page change. */}
-        <CursorLayer />
         <p id="live" className="sr-only" aria-live="polite" />
         <ModeProvider />
       </body>
