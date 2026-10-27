@@ -42,11 +42,11 @@
   --dur-page-out: 160ms;
   --dur-page-in: 240ms;
   --type-display-size: 192px;
-  --type-statement-size: 56px;
-  --type-headline-size: 44px;
+  --type-statement-size: 64px;
+  --type-headline-size: 48px;
   --type-title-size: 32px;
   --type-email-size: 32px;
-  --type-accent-size: 36px;
+  --type-accent-size: 40px;
   --type-lead-size: 20px;
   --type-body-size: 16px;
   --type-small-size: 14px;
@@ -126,10 +126,11 @@
 
 @media (width < 900px) {
   :root {
-    --type-title-size: 28px;
+    --type-title-size: 24px;
+    --type-accent-size: 32px;
     --type-display-size: clamp(51px, 13.1vw, 192px);
-    --type-statement-size: 40px;
-    --type-headline-size: 34px;
+    --type-statement-size: 48px;
+    --type-headline-size: 40px;
     --type-email-size: clamp(24px, 6.2vw, 32px);
     --spacing-inset: 20px;
     --spacing-section: 40px;
@@ -181,7 +182,7 @@
   font-family: var(--font-display);
   font-weight: 500;
   font-size: var(--type-title-size);
-  line-height: 36px;
+  line-height: 1.125;
   letter-spacing: -0.01em;
 }
 

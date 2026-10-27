@@ -61,11 +61,11 @@ Fonts: **Bricolage Grotesque** (display + text; opsz 12–96), **Geist Mono** (l
 | Style | Spec | Used for |
 |---|---|---|
 | Display | Bricolage 800 · 192px · lh .92 · ls -4% | the name only: hero WESSEL [reel] OUD and the bookend |
-| Statement | Bricolage 500 · 56px (40 mobile) · lh 1.05 · ls -2% | "All work" |
-| Headline | Bricolage 500 · 44px (34 mobile) · lh 1.05 · ls -2% | About title, Focus statement |
+| Statement | Bricolage 500 · 64px (48 mobile) · lh 1.05 · ls -2% | "All work" |
+| Headline | Bricolage 500 · 48px (40 mobile) · lh 1.05 · ls -2% | About title, Focus statement |
 | Email | Bricolage 500 · 32px (fluid to 24 mobile) · lh 1.1 · grape 2px underline | the email address only |
-| Accent | Instrument Serif Italic · 36px · lh 1.05 | hero role line and single inline accent words at 1.08em (*feel*, *notice*) only. Not on titles or values (review 2026-10-27) |
-| Title | Bricolage 500 · 32px/36 · −1% | project titles in rows and cards; 28px mobile |
+| Accent | Instrument Serif Italic · 40px (32 mobile) · lh 1.05 | hero role line and single inline accent words at 1.08em (*feel*, *notice*) only. Not on titles or values (review 2026-10-27) |
+| Title | Bricolage 500 · 32px · lh 1.125 · −1% | project titles in rows and cards; 24px mobile |
 | Lead | Bricolage 400 · 20px/32 | cell labels (Email, Elsewhere), short leads |
 | Body | Bricolage 400 · 16px/24 | running text |
 | Small | Bricolage 400 · 14px/20 | comment-pin bubbles, legal bar |
@@ -77,7 +77,8 @@ Fonts: **Bricolage Grotesque** (display + text; opsz 12–96), **Geist Mono** (l
 | Cursor tag | Bricolage 700 · 13px | cursor name tags only (the name renders bold) |
 
 Rules:
-- No new sizes or styles without Wons. Mobile steps down: Display scales with width (51px at 390), Statement goes to 40, Headline to 34 (About title and Focus statement both), Email is fluid to 24. Weights never change between breakpoints.
+- **Scale: major third (×1.25), snapped to 4px** (Wons 2026-10-27): 12 · 16 · 20 · 24 · 32 · 40 · 48 · 64. The name (192), Micro 11, Cursor tag 13, Small 14 and Wordmark 28 sit outside it as marks. No new sizes or styles without Wons.
+- Mobile: every heading drops one step (Statement 48, Headline 40, Accent 32, Title 24). Display scales with width (51px at 390), Email is fluid to 24. Weights never change between breakpoints.
 - The name rows are aligned on **glyph ink**, not text boxes. The middle object (reel or smiley) is centred between the glyphs and on glyph height.
 - Headings use `text-wrap: balance`. Running text stays under about 65 characters per line.
 - Voice: first person "I", dry and precise, a little wry. The ban list is in `copy/home-copy_v01.md`.

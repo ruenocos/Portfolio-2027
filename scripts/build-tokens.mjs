@@ -21,10 +21,11 @@ const SCHEME = { light: "light", dark: "dark", night: "dark" };
 // Mobile steps from DESIGN.md §4 and §5 (below the 900px stack breakpoint).
 // They live only in the token descriptions, so they're listed here once.
 const MOBILE_TYPE = {
-  title: "28px",
+  title: "24px",
+  accent: "32px",
   display: "clamp(51px, 13.1vw, 192px)", // scales with width, 51 at 390
-  statement: "40px",
-  headline: "34px",
+  statement: "48px",
+  headline: "40px",
   email: "clamp(24px, 6.2vw, 32px)", // fluid to 24
 };
 // side: 16px comes from the v90 prototype (web/site-prototype).
