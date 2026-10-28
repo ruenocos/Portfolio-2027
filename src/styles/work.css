@@ -238,7 +238,7 @@
     opacity: 0;
   }
   /* Dark: a hairline keeps black posters from melting into the canvas. */
-  html[data-mode="dark"] :is(.arow .apk, .whand a) {
+  html[data-mode="dark"] :is(.arow .apk, .whand a:not(:hover)) {
     outline: 1px solid var(--line);
   }
   /* Your selection is an outline only: handles are Wessel's. */

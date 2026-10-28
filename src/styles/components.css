@@ -418,6 +418,16 @@
     background: var(--line);
     min-width: 0;
   }
+  /* A project still to write has no role or tools yet: title | media, no
+     empty third cell (it comes back with ?mocks). */
+  @media (width >= 900px) {
+    html:not([data-mocks]) .pj[data-gap] {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    html:not([data-mocks]) .pj[data-gap] > .pr {
+      display: none;
+    }
+  }
   .pj > .cell {
     padding: var(--spacing-section) var(--spacing-inset);
   }

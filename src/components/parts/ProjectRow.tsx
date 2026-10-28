@@ -226,6 +226,7 @@ export function ProjectRow({ project: p, hidden, leaving }: { project: Project; 
     <article
       ref={row}
       className="pj"
+      data-gap={gap ? "" : undefined}
       hidden={hidden}
       data-leaving={leaving || undefined}
       onPointerEnter={sizeUp}

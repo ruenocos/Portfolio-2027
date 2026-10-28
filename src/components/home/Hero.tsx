@@ -425,7 +425,8 @@ export function Hero({ hero: c }: { hero: HomeContent["hero"] }) {
         const [fx, fy, dy] = nodSpot(h);
         await wessel.go(wessel.at(h, fx, fy, 0, dy), { k: 150, timeout: 1200 });
         chk();
-        await say("More below", mobile() ? pp(h, fx, fy, 64, dy + 20) : pp(h, fx, fy, 16, dy - 24));
+        // Phones: he parks right of centre, so the pin opens to his left to stay on screen.
+        await say("More below", mobile() ? pp(h, fx, fy, -168, dy + 20) : pp(h, fx, fy, 16, dy - 24));
         await nodDown(h);
         nudge.current.on = true;
         await wait(1200);
