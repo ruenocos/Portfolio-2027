@@ -186,10 +186,8 @@ export function ProjectRow({ project: p, hidden, leaving }: { project: Project; 
 
   const inner = (
     <>
-      {/* Card hover (preview A/B/C): sheets fan out behind, or your selection. */}
+      {/* Your selection: it snaps round the card when you come to the row. */}
       <span className="hov" aria-hidden="true">
-        <i className="sh" />
-        <i className="sh" />
         <span className="hsel">
           <i />
           <i />

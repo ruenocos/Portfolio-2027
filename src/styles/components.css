@@ -903,13 +903,11 @@
   }
 }
 
-/* ---------- PREVIEW: project card hover A/B/C (html[data-hover]) ----------
-   The whole row is the target, like the All work cell. Shared by all three:
-   the title's grape underline draws and its arrow slides (All work's move),
-   and the row's tools ring up like Daily kit chips. Then:
-   A Pick up  - the card lifts and two sheets fan out behind it.
-   B Select   - your grape selection snaps round the card, with its size.
-   C Comment  - Wessel's note rests as a pin and opens into his comment. */
+/* ---------- project card hover ----------
+   The whole row is the target, like the All work cell: the title's grape
+   underline draws and its arrow slides (All work's move), the row's tools
+   ring up like Daily kit chips, and your grape selection snaps round the
+   card with its real size. Pictures never move here (the scroll depth does). */
 @layer components {
   .pj .pl h3 .tt {
     background: linear-gradient(var(--grape), var(--grape)) 0 100% / 0% 2px no-repeat;
@@ -935,21 +933,6 @@
     z-index: -1;
     border-radius: inherit;
     pointer-events: none;
-  }
-  .pj .media .hov .sh {
-    position: absolute;
-    inset: 0;
-    border-radius: inherit;
-    border: 1px solid var(--line);
-    background: color-mix(in oklab, var(--tang) 22%, var(--canvas));
-    transform-origin: 50% 100%;
-    opacity: 0;
-    transition:
-      transform var(--dur-spring) var(--ease-spring),
-      opacity var(--dur-ui) var(--ease-ui);
-  }
-  .pj .media .hov .sh + .sh {
-    background: color-mix(in oklab, var(--grape) 22%, var(--canvas));
   }
   .pj .media .hsel {
     position: absolute;
@@ -983,32 +966,14 @@
     border-radius: 4px;
     background: var(--grape);
     color: var(--canvas);
-    font: 500 11px/1.2 var(--font-mono, ui-monospace, monospace);
+    font: 500 11px/1.2 var(--font-mono);
     white-space: nowrap;
-  }
-  .pj .media {
-    transition: box-shadow var(--dur-spring) var(--ease-ui);
   }
   .pj .tools .tool:nth-child(2) { transition-delay: 0ms, 40ms, 0ms, 0ms, 40ms; }
   .pj .tools .tool:nth-child(3) { transition-delay: 0ms, 80ms, 0ms, 0ms, 80ms; }
 
-  /* C: the note rests folded as the bare pin until you come to the card. */
-  html[data-hover="c"] .pj .media .pin:not(:has(.bub[data-note])) {
-    transition:
-      padding var(--dur-spring) var(--ease-spring),
-      border-radius var(--dur-spring) var(--ease-spring);
-  }
-  html[data-hover="c"] .pj .media .pin .cm {
-    max-width: 300px;
-    max-height: 120px;
-    overflow: hidden;
-    transition:
-      max-width var(--dur-spring) var(--ease-spring),
-      max-height var(--dur-spring) var(--ease-spring),
-      opacity var(--dur-ui) var(--ease-ui);
-  }
   @media (hover: hover) and (pointer: fine) {
-    html[data-hover] .pj:has(.media[href]) { cursor: pointer; }
+    .pj:has(.media[href]) { cursor: pointer; }
     .pj:is(:hover, :focus-within) .pl h3 .tt { background-size: 100% 2px; }
     .pj:is(:hover, :focus-within) .pl h3 .ta { transform: translateX(8px); color: var(--grape); }
     .pj:is(:hover, :focus-within) .tools .tool {
@@ -1017,59 +982,12 @@
         0 0 0 4.5px var(--grape);
       transform: translateY(-3px);
     }
-    html[data-hover="a"] .pj:is(:hover, :focus-within) .media {
-      box-shadow: 0 28px 48px -28px rgb(0 0 0 / 0.55);
-    }
-    html[data-hover="a"] .pj:is(:hover, :focus-within) .media .sh {
-      opacity: 1;
-      transform: translate(-16px, 6px) rotate(-6deg);
-    }
-    html[data-hover="a"] .pj:is(:hover, :focus-within) .media .sh + .sh {
-      transform: translate(14px, 8px) rotate(5deg);
-      transition-delay: 40ms;
-    }
-    html[data-hover="b"] .pj:is(:hover, :focus-within) .media .hsel {
+    .pj:is(:hover, :focus-within) .media .hsel {
       opacity: 1;
       scale: 1;
     }
-    html[data-hover="c"] .pj:not(:hover, :focus-within) .media .pin:not(:has(.bub[data-note])) {
-      padding: 4px;
-      border-radius: 50% 50% 50% 4px;
-    }
-    html[data-hover="c"] .pj:not(:hover, :focus-within) .media .pin .cm {
-      max-width: 0;
-      max-height: 0;
-      opacity: 0;
-      padding-top: 0;
-    }
   }
-
-  .hpick {
-    position: fixed;
-    left: max(16px, env(safe-area-inset-left, 0px));
-    bottom: calc(16px + env(safe-area-inset-bottom, 0px));
-    z-index: 96;
-    display: flex;
-    gap: 2px;
-    padding: 3px;
-    border: 1px solid var(--line);
-    border-radius: 999px;
-    background: var(--canvas);
-    box-shadow: 0 6px 16px -8px rgb(0 0 0 / 0.3);
-  }
-  .hpick button {
-    border: 0;
-    background: none;
-    color: var(--mute);
-    padding: 9px 12px;
-    border-radius: 999px;
-    cursor: pointer;
-  }
-  .hpick button[aria-pressed="true"] {
-    background: var(--grape);
-    color: var(--canvas);
-  }
-  html[data-motion="calm"] .pj :is(.tt, .ta, .sh, .hsel, .tool, .pin, .cm) {
+  html[data-motion="calm"] .pj :is(.tt, .ta, .hsel, .tool) {
     transition: none;
   }
 }
