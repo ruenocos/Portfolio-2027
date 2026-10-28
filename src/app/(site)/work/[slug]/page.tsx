@@ -3,7 +3,9 @@ import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import { Read } from "@/components/case/Read";
 import { Crumb } from "@/components/parts/Crumb";
+import { Divider } from "@/components/parts/Divider";
 import { Facts } from "@/components/parts/Facts";
+import { ProjectRows } from "@/components/parts/ProjectRow";
 import { MediaFigure } from "@/components/parts/Media";
 import { MockTag } from "@/components/parts/Pills";
 import { caseSlugs, getCase, getWork } from "@/content/get";
@@ -111,6 +113,13 @@ async function Case({ params }: Pick<PageProps<"/work/[slug]">, "params">) {
         <Read sections={c.sections} />
         <div className="side" />
       </section>
+      {/* The next case as its own row, so the read ends on a door, not a bar. */}
+      {crumb.next && after && (
+        <>
+          <Divider label={{ name: "Next case" }} />
+          <ProjectRows projects={[after]} label="Next case" />
+        </>
+      )}
       <Crumb {...crumb} label="Case navigation, end" />
     </>
   );
