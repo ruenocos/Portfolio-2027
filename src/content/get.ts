@@ -53,8 +53,24 @@ const SPOTS = [
   { fx: 0.6, dy: 28, rot: -1.5 },
 ];
 
+// Placeholder copy stays marked (data-mock, shown with ?mocks) after it moves
+// into Sanity: lorem ipsum, or the code's own mock text left unchanged.
+const isLorem = (s?: string) => !!s && /lorem ipsum|dolor sit|20XX/i.test(s);
+
+function rowMock(r: Row): Project["mock"] {
+  const fb = FALLBACK_PROJECTS.find((p) => p.href === `/work/${r.slug}`);
+  const same = (f: "summary" | "role" | "note", v?: string) =>
+    !!fb?.mock?.includes(f) && v === (f === "note" ? fb.note?.text : fb[f]);
+  const fields = (["summary", "role", "note"] as const).filter((f) => {
+    const v = f === "note" ? r.note : r[f];
+    return isLorem(v) || same(f, v);
+  });
+  return fields.length ? fields : undefined;
+}
+
 function toProject(r: Row, i: number): Project {
   return {
+    mock: rowMock(r),
     title: r.title,
     lang: r.lang === "nl" ? "nl" : undefined,
     summary: r.summary,
@@ -152,7 +168,11 @@ function toCase(slug: string, d: CaseDoc): Case {
     lang: d.lang === "nl" ? "nl" : d.lang ? undefined : fb?.lang,
     lead: d.lead || fb?.lead || "",
     intro: d.intro || fb?.intro || "",
-    mock: fb?.mock?.filter((m) => (m === "lead" && !d.lead) || (m === "intro" && !d.intro) || (m === "caption" && !poster)),
+    mock: (["lead", "intro", "caption"] as const).filter((m) => {
+      const v = m === "caption" ? (poster ? d.hero?.caption : undefined) : d[m];
+      const was = m === "caption" ? fb?.hero.caption : fb?.[m];
+      return isLorem(v) || (!!fb?.mock?.includes(m) && (!v || v === was));
+    }),
     facts: [fact("Role", d.role), fact("Scope", d.scope), fact("Timeline", d.timeline)],
     hero: poster
       ? { video: d.hero?.video, poster, alt: d.hero?.alt ?? "", caption: d.hero?.caption ?? "" }
@@ -165,6 +185,11 @@ function toCase(slug: string, d: CaseDoc): Case {
         heading: s.heading,
         body: s.body ?? "",
         note: s.note,
+        // Lorem stays marked; code mock text left unchanged keeps its mark.
+        mock:
+          isLorem(s.heading) || isLorem(s.body)
+            ? "all"
+            : fb?.sections.find((x) => x.key === s._key && x.heading === s.heading && x.body === s.body)?.mock,
         figure:
           s.figure?.src && s.figure.alt
             ? {
