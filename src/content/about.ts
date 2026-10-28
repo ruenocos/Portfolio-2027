@@ -2,10 +2,10 @@ import type { Fact } from "@/components/parts/Facts";
 import { FALLBACK_HOME, type Photo } from "./home";
 
 export type Job = { when: string; place: string; role: string };
-/** One silhouette per kind of thing, and it sets the fill: card and board
- * games are cut-corner cards, making is a hexagon, moving is a star,
- * people and play are circles. */
-export type StickerKind = "card" | "hex" | "star" | "round";
+/** One shape per kind of thing, and it sets the fill: card and board
+ * games are cards, making is a hexagon, moving is a ball, people and play
+ * are pills. */
+export type StickerKind = "card" | "hex" | "round" | "pill";
 export type Sticker = { text: string; kind: StickerKind };
 export type AboutContent = {
   hello: string;
@@ -42,7 +42,7 @@ export const FALLBACK_ABOUT: AboutContent = {
     { when: "2017 – 2020", place: "ROC Horizon College", role: "Applicatie & Media ontwikkeling" },
   ],
   stickers: [
-    // Off screen v10 (2026-10-28). Wons's list as playful single words
+    // Off screen v11 (2026-10-28). Wons's list as playful single words
     // (game titles stay as they are); MoveEeE dropped at Wons's ask.
     // Codenames, Ticket to Ride and Exploding Kittens are suggestions
     // Wons invited ("add some more board game names").
@@ -56,10 +56,10 @@ export const FALLBACK_ABOUT: AboutContent = {
     { text: "Tinkering", kind: "hex" },
     { text: "Rabbitholes", kind: "hex" },
     { text: "Tutorials", kind: "hex" },
-    { text: "Sweating", kind: "star" },
-    { text: "Gymming", kind: "star" },
-    { text: "Mates", kind: "round" },
-    { text: "Rematch", kind: "round" },
-    { text: "Button-mashing", kind: "round" },
+    { text: "Sweating", kind: "round" },
+    { text: "Gymming", kind: "round" },
+    { text: "Mates", kind: "pill" },
+    { text: "Rematch", kind: "pill" },
+    { text: "Button-mashing", kind: "pill" },
   ],
 };

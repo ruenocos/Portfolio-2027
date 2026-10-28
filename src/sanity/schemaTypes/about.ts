@@ -57,7 +57,7 @@ export const about = defineType({
       ],
     }),
     defineField({
-      // v10 (2026-10-28): replaces the old "stickers" list (tone + shape).
+      // v11 (2026-10-28): replaces the old "stickers" list (tone + shape).
       name: "offScreen",
       title: "Off screen stickers",
       description: "The shape is the kind of thing and sets the fill. Best as one word.",
@@ -73,14 +73,14 @@ export const about = defineType({
               type: "string",
               options: {
                 list: [
-                  { title: "Cut-corner card · card and board games", value: "card" },
+                  { title: "Card · card and board games", value: "card" },
                   { title: "Hexagon · making and learning", value: "hex" },
-                  { title: "Star · moving", value: "star" },
-                  { title: "Circle · people and play", value: "round" },
+                  { title: "Ball · moving", value: "round" },
+                  { title: "Pill · people and play", value: "pill" },
                 ],
                 layout: "radio",
               },
-              initialValue: "round",
+              initialValue: "pill",
               validation: (rule) => rule.required(),
             }),
           ],

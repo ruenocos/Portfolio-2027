@@ -157,13 +157,14 @@
     background: var(--grape);
     color: var(--on-grape);
   }
-  /* Four kinds, four silhouettes, one fill each. The shape is an SVG
-     behind the words, so it can be a star or a cut corner and still cast
-     a shadow. Words sit top-left on the card and centred on the rest. */
+  /* Four kinds, four shapes, one fill each. The hexagon is an SVG
+     behind the words (so it keeps a real shadow); the others are boxes.
+     Words sit top-left on the card and centred on the rest. */
   .stk {
     --fill: var(--canvas);
-    --edge: var(--fill);
     --on: var(--ink);
+    --shadow: 0 1px 0 rgb(0 0 0 / 0.06), 0 12px 24px -14px rgb(0 0 0 / 0.4);
+    --shadow-up: 0 1px 0 rgb(0 0 0 / 0.06), 0 26px 40px -18px rgb(0 0 0 / 0.5);
     position: absolute;
     left: 0;
     top: 0;
@@ -179,27 +180,18 @@
     letter-spacing: -0.01em;
     text-align: center;
     color: var(--on);
-    background: none;
+    background: var(--fill);
+    box-shadow: var(--shadow);
     touch-action: none;
     cursor: grab;
     user-select: none;
     will-change: translate, rotate;
-    transition: scale var(--dur-ui) var(--ease-ui);
+    transition:
+      scale var(--dur-ui) var(--ease-ui),
+      box-shadow var(--dur-ui) var(--ease-ui);
   }
   .stk > span {
     position: relative;
-  }
-  .shp {
-    position: absolute;
-    inset: 0;
-    z-index: -1;
-    width: 100%;
-    height: 100%;
-    overflow: visible;
-    fill: var(--fill);
-    stroke: var(--edge);
-    filter: drop-shadow(0 1px 0 rgb(0 0 0 / 0.06)) drop-shadow(0 10px 12px rgb(0 0 0 / 0.2));
-    transition: filter var(--dur-ui) var(--ease-ui);
   }
   @media (hover: hover) and (pointer: fine) {
     .stk:hover {
@@ -209,16 +201,11 @@
   .stk[data-drag] {
     cursor: grabbing;
     scale: 1.06;
+    box-shadow: var(--shadow-up);
   }
-  .stk[data-drag] .shp {
-    filter: drop-shadow(0 1px 0 rgb(0 0 0 / 0.06)) drop-shadow(0 22px 20px rgb(0 0 0 / 0.26));
-  }
-  /* Focus hugs the silhouette instead of drawing a box around it. */
   .stk:focus-visible {
-    outline: none;
-  }
-  .stk:focus-visible .shp {
-    --edge: var(--grape);
+    outline: 2px solid var(--grape);
+    outline-offset: 3px;
   }
   .stk[data-kind="card"] {
     --fill: var(--grape);
@@ -228,6 +215,7 @@
     width: 128px;
     height: 180px;
     padding: 14px 12px;
+    border-radius: 10px;
     text-align: left;
   }
   /* The one card detail: an index like a rank, turned, in the far corner. */
@@ -248,28 +236,45 @@
     --on: var(--canvas);
     width: 136px;
     height: 156px;
+    background: none;
+    box-shadow: none;
   }
-  .stk[data-kind="star"] {
-    --fill: var(--tang);
-    --on: var(--on-tang);
-    width: 152px;
-    height: 145px;
-    /* The star's middle sits low: nudge the word onto it. */
-    padding: 28px 0 0;
-    font-size: var(--type-body-size);
+  .shp {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+    fill: var(--fill);
+    stroke: var(--fill);
+    filter: drop-shadow(0 1px 0 rgb(0 0 0 / 0.06)) drop-shadow(0 10px 12px rgb(0 0 0 / 0.2));
+    transition: filter var(--dur-ui) var(--ease-ui);
+  }
+  .stk[data-drag] .shp {
+    filter: drop-shadow(0 1px 0 rgb(0 0 0 / 0.06)) drop-shadow(0 22px 20px rgb(0 0 0 / 0.26));
+  }
+  /* Focus hugs the hexagon instead of drawing a box around it. */
+  .stk[data-kind="hex"]:focus-visible {
+    outline: none;
+  }
+  .stk[data-kind="hex"]:focus-visible .shp {
+    stroke: var(--grape);
   }
   .stk[data-kind="round"] {
+    --fill: var(--tang);
+    --on: var(--on-tang);
     width: 120px;
     height: 120px;
     padding: 0 10px;
+    border-radius: 50%;
   }
-  .stk[data-kind="round"] .shp {
-    --edge: var(--ink);
-    stroke-width: 1.5px;
-  }
-  .stk[data-kind="round"]:focus-visible .shp {
-    --edge: var(--grape);
-    stroke-width: 3px;
+  .stk[data-kind="pill"] {
+    --shadow: inset 0 0 0 1.5px var(--ink), 0 12px 24px -14px rgb(0 0 0 / 0.4);
+    --shadow-up: inset 0 0 0 1.5px var(--ink), 0 26px 40px -18px rgb(0 0 0 / 0.5);
+    padding: 16px 24px;
+    border-radius: var(--radius-pill);
+    white-space: nowrap;
   }
 
   @media (width < 900px) {
@@ -310,17 +315,14 @@
       padding: 8px;
       font-size: var(--type-small-size);
     }
-    .stk[data-kind="star"] {
-      width: 114px;
-      height: 109px;
-      padding-top: 20px;
-      font-size: var(--type-small-size);
-    }
     .stk[data-kind="round"] {
       width: 92px;
       height: 92px;
       padding: 0 8px;
       font-size: var(--type-small-size);
+    }
+    .stk[data-kind="pill"] {
+      padding: 12px 18px;
     }
   }
   html[data-motion="calm"] :is(.pcard, .stk) {
