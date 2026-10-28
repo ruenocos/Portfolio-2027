@@ -158,6 +158,7 @@
     .arow {
       grid-template-columns: minmax(0, 1fr) auto;
       grid-template-areas: "t k" "y k" "m m";
+      grid-template-rows: auto 1fr auto;
       column-gap: 20px;
       row-gap: 6px;
       background: var(--canvas);
@@ -174,6 +175,7 @@
     }
     .arow .ay {
       grid-area: y;
+      align-self: start;
     }
     .arow .ap {
       grid-area: m;
