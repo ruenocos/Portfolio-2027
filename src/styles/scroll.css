@@ -36,6 +36,6 @@
     opacity: 0;
   }
   img[data-sx-img="ok"] {
-    transition: opacity 400ms var(--ease-enter-opacity);
+    transition: opacity var(--sx-img-fade) var(--ease-enter-opacity);
   }
 }

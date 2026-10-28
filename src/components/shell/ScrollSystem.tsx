@@ -27,6 +27,7 @@ const OWN = ".hand,.fcard,.fcap,.obj,.kitc,.stk,.pgcv";
 // Layers panel, a facts list, a row of tools), then whatever is left alone.
 const ENTER_GROUPS = ".lp,dl,.tools,.meta";
 const ENTER_LEAVES = ".text-label,figcaption,a,button,.gpill";
+const BADGE = ".mock,.slot";
 
 /**
  * One rule per kind (spec v02.2 §4), so nothing gets two effects and
@@ -38,6 +39,9 @@ function motionKind(el: HTMLElement): Kind {
   if (el.closest(OWN)) return "own";
   if (el.closest("[aria-hidden='true'],.sr-only,[data-sx-skip]")) return null;
   if (el.matches(TEXT) && !el.closest(NOT_TEXT) && !el.querySelector(NOT_INSIDE)) {
+    // A block holding a mono badge (mock tag, empty slot) enters as a block
+    // instead, so the badge never dims with it.
+    if (el.querySelector(BADGE)) return "entrance";
     const mono = getComputedStyle(el).fontFamily.toLowerCase().includes("mono");
     if (!mono && el.textContent?.trim()) return "reveal";
   }
@@ -46,11 +50,20 @@ function motionKind(el: HTMLElement): Kind {
 }
 
 type Line = { top: number; bottom: number };
-type Text = { el: HTMLElement; lines: Line[]; peak: number[]; on: boolean; last: string };
-type Pic = { m: HTMLElement; frame: HTMLElement; on: boolean };
+// Geometry is cached in page coordinates (refreshed when anything resizes),
+// so a scroll frame computes from scrollY and only writes.
+type Text = { el: HTMLElement; lines: Line[]; peak: number[]; top: number; last: string };
+type Pic = { m: HTMLElement; frame: HTMLElement; top: number; h: number; last: string };
+type Unit = { el: HTMLElement; top: number; h: number };
+
+const LIT = 0.999; // a line this bright counts as lit
+const SOFT_PX = 3; // half the blend between two lines' light
+const MIN_FRAME_PX = 80; // smaller clipped pictures are icons and avatars
+const RESCAN_MS = 150; // after the page's DOM changes
+const HYDRATION_GIVE_UP_MS = 6000;
 
 /**
- * The scroll system (scroll-system-spec v02.1, Wons picked C depth + T1
+ * The scroll system (scroll-system-spec v02.2, Wons picked C depth + T1
  * light on 2026-10-28). One system on every page, for everything below the
  * first screen (that screen keeps its load entrance):
  *
@@ -62,8 +75,9 @@ type Pic = { m: HTMLElement; frame: HTMLElement; on: boolean };
  * 2. Depth: pictures sit at scale 1.1 inside their frame and drift ±5% with
  *    the frame's distance from the screen's centre; the side dots pan at 70%.
  *    Text, frames and cells never move.
- * 3. Every picture frame gets the house entrance at 92% of the screen, and
- *    an image fades in only once it has decoded (the frame shows fill).
+ * 3. Every picture frame, label, fact and control gets the house entrance
+ *    at 92% of the screen, and an image fades in only once it has decoded
+ *    (the frame shows fill).
  *
  * Calm (Pause motion or reduced motion): nothing of it runs, end states only,
  * and Pause flips it without a reload.
@@ -71,8 +85,8 @@ type Pic = { m: HTMLElement; frame: HTMLElement; on: boolean };
 // Nothing may be written before React has hydrated it, or hydration
 // breaks. Streamed pages (behind Suspense) hydrate after the shell, so the
 // system waits until every row of the page carries React's fiber (checked
-// every 100ms, given up on after 6s). Pages after the first arrive
-// client-side and start at once.
+// every 100ms; after HYDRATION_GIVE_UP_MS it starts anyway). Pages after the
+// first arrive client-side and start at once.
 let settled = false;
 const hydrated = () =>
   [...document.querySelectorAll(".page-body [data-row], .page-body .frame")].every((el) =>
@@ -82,14 +96,34 @@ function whenSettled(fn: () => void) {
   if (settled) return (fn(), () => {});
   const t0 = performance.now();
   let timer = 0;
+  let idle = 0;
+  // Fibers are attached a moment before React commits the hydrated tree, so
+  // the start also waits for the main thread to go idle after that.
+  let idles = 0;
+  const go = () => {
+    // Two idle moments in a row: React has nothing left to commit.
+    if (++idles < 2)
+      return void (idle =
+        typeof requestIdleCallback === "function"
+          ? requestIdleCallback(go, { timeout: 500 })
+          : window.setTimeout(go, 200));
+    settled = true;
+    fn();
+  };
   const check = () => {
-    if (document.readyState === "complete" && (hydrated() || performance.now() - t0 > 6000)) {
-      settled = true;
-      fn();
-    } else timer = window.setTimeout(check, 100);
+    if (document.readyState === "complete" && (hydrated() || performance.now() - t0 > HYDRATION_GIVE_UP_MS))
+      idle =
+        typeof requestIdleCallback === "function"
+          ? requestIdleCallback(go, { timeout: 500 })
+          : window.setTimeout(go, 200);
+    else timer = window.setTimeout(check, 100);
   };
   check();
-  return () => clearTimeout(timer);
+  return () => {
+    clearTimeout(timer);
+    if (typeof cancelIdleCallback === "function") cancelIdleCallback(idle);
+    clearTimeout(idle);
+  };
 }
 
 export function ScrollSystem() {
@@ -114,20 +148,27 @@ function start() {
   const body = document.querySelector<HTMLElement>(".page-body");
   const main = document.querySelector<HTMLElement>("main");
   if (!body || !main) return () => {};
+  const root = document.documentElement;
 
   const texts = new Map<HTMLElement, Text>();
   const pics = new Map<HTMLElement, Pic>();
-  const waiting = new Set<HTMLElement>();
+  const waiting = new Map<HTMLElement, Unit>();
+  const playing = new Set<Animation>();
+  const passed = new WeakSet<HTMLElement>(); // looked at and not ours
   let sides: HTMLElement[] = [];
   let H = innerHeight;
-  const step = parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--spacing-dot-step")) || 16;
   let maxScroll = 0;
-  // Below the first screen of the page (in page coordinates).
-  const below = (el: Element) => el.getBoundingClientRect().top + scrollY >= H * sx.fold;
+  const step = parseFloat(getComputedStyle(root).getPropertyValue("--spacing-dot-step")) || 16;
+  const pageTop = (el: Element) => el.getBoundingClientRect().top + scrollY;
+  // Below the first screen of the page: anything that shows at the top of the
+  // page, even a sliver, stays as the load put it (no dimming after the fact).
+  const below = (el: Element) => pageTop(el) >= H;
+  root.style.setProperty("--sx-img-fade", `${sx.picture.imageFadeMs}ms`);
 
   /* ---------- text ---------- */
   const measure = (t: Text) => {
     const box = t.el.getBoundingClientRect();
+    t.top = box.top + scrollY;
     const range = document.createRange();
     range.selectNodeContents(t.el);
     const rects = [...range.getClientRects()].filter((r) => r.width > 0 && r.height > 0).sort((a, b) => a.top - b.top);
@@ -142,44 +183,53 @@ function start() {
         cur.bottom = Math.max(cur.bottom, bottom);
       } else lines.push({ top, bottom });
     }
-    // Re-flowed (resize, fonts): a lit block stays lit, otherwise start over.
-    const lit = t.peak.length > 0 && t.peak.every((v) => v >= 0.999);
+    if (!lines.length) return; // hidden for now (a filter): keep what it had
+    // Re-flowed (resize, fonts): carry each line's light over by position.
+    const old = t.peak;
+    if (old.length && old.length !== lines.length)
+      t.peak = lines.map((_, i) => old[Math.min(old.length - 1, Math.floor((i * old.length) / lines.length))]);
     t.lines = lines;
-    t.peak = lit ? lines.map(() => 1) : [];
+    t.last = "-";
   };
   // A line's light for where its top sits on screen: .25 → 1 across the
   // bottom fifth. A line that can never climb that high (the last lines of
   // a page) gets a window it can reach, so it still ends fully lit.
+  // On phones the window sits above the Contact pill (the same inset the
+  // page keeps clear for focus: html's scroll-padding-bottom).
   const span = sx.text.start - sx.text.end;
-  const alpha = (screenTop: number) => {
-    const end = Math.max(H * sx.text.end, screenTop + scrollY - maxScroll);
+  let inset = 0;
+  const alpha = (screenTop: number, y: number) => {
+    const end = Math.max(H * sx.text.end - inset, screenTop + y - maxScroll);
     const k = clamp((end + H * span - screenTop) / (H * span));
     return sx.text.from + (1 - sx.text.from) * out3(k);
   };
-  const paint = (t: Text, top: number) => {
+  const paint = (t: Text, y: number) => {
+    const top = t.top - y;
     // Ratchet: a line keeps the most light it has had.
-    const a = t.lines.map((l, i) => (t.peak[i] = Math.max(t.peak[i] ?? 0, alpha(top + l.top))));
+    const a = t.lines.map((l, i) => (t.peak[i] = Math.max(t.peak[i] ?? 0, alpha(top + l.top, y))));
     let next: string;
-    if (!a.length || a.every((v) => v >= 0.999)) next = "";
+    if (a.every((v) => v >= LIT)) next = "";
     else if (a.every((v) => Math.abs(v - a[0]) < 0.004)) next = `o:${a[0].toFixed(3)}`;
     else {
-      // Hard steps between line boxes, softened over 6px so descenders don't band.
+      // Hard steps between line boxes, softened a little so descenders don't band.
       const stops: string[] = [];
       a.forEach((v, i) => {
         const c = `rgb(0 0 0 / ${v.toFixed(3)})`;
-        const from = i === 0 ? 0 : (t.lines[i - 1].bottom + t.lines[i].top) / 2 + 3;
+        const from = i === 0 ? 0 : (t.lines[i - 1].bottom + t.lines[i].top) / 2 + SOFT_PX;
         stops.push(`${c} ${from.toFixed(1)}px`);
-        if (i < a.length - 1) stops.push(`${c} ${((t.lines[i].bottom + t.lines[i + 1].top) / 2 - 3).toFixed(1)}px`);
+        if (i < a.length - 1) {
+          const to = (t.lines[i].bottom + t.lines[i + 1].top) / 2 - SOFT_PX;
+          stops.push(`${c} ${to.toFixed(1)}px`);
+        }
       });
       next = `linear-gradient(to bottom, ${stops.join(", ")})`;
     }
     if (next === t.last) return;
     t.last = next;
-    const s = t.el.style;
-    s.opacity = next.startsWith("o:") ? next.slice(2) : "";
     const mask = next.startsWith("linear") ? next : "";
-    s.maskImage = mask;
-    s.setProperty("-webkit-mask-image", mask);
+    t.el.style.opacity = next.startsWith("o:") ? next.slice(2) : "";
+    t.el.style.maskImage = mask;
+    t.el.style.setProperty("-webkit-mask-image", mask);
   };
   const clearText = (t: Text) => {
     t.el.style.opacity = "";
@@ -194,7 +244,7 @@ function start() {
     return a && a !== body ? a : null;
   };
   // The block that enters: the frame, or the group it's stacked in (the
-  // About deck, the See more hand) when frames sit absolutely inside one.
+  // About deck) when frames sit absolutely inside one.
   const unitOf = (frame: HTMLElement) => {
     let u = frame;
     for (;;) {
@@ -203,33 +253,61 @@ function start() {
       u = u.parentElement;
     }
   };
+  const place = (p: Pic) => {
+    const r = p.frame.getBoundingClientRect();
+    p.top = r.top + scrollY;
+    p.h = r.height;
+  };
+
+  /* ---------- the house entrance ---------- */
+  const land = (el: HTMLElement) => {
+    enterIo.unobserve(el);
+    waiting.delete(el);
+    delete el.dataset.sxIn;
+  };
   const enterIo = new IntersectionObserver(
     (es) => {
-      let step = 0;
+      let n = 0;
       es.forEach((e) => {
         if (!e.isIntersecting) return;
         const el = e.target as HTMLElement;
-        enterIo.unobserve(el);
-        waiting.delete(el);
-        const d = Math.min(step++, entrance.stagger.maxSteps) * entrance.stagger.ms;
-        delete el.dataset.sxIn;
-        el.animate([{ opacity: 0 }, { opacity: 1 }], {
+        land(el);
+        const delay = Math.min(n++, entrance.stagger.maxSteps) * entrance.stagger.ms;
+        const opacity = el.animate([{ opacity: 0 }, { opacity: 1 }], {
           duration: easing["enter-opacity"].ms,
-          delay: d,
+          delay,
           easing: bezier(easing["enter-opacity"].bezier),
           fill: "backwards",
         });
-        el.animate([{ translate: `0 ${easing["enter-rise"].distance}` }, { translate: "0 0" }], {
+        const rise = el.animate([{ translate: `0 ${easing["enter-rise"].distance}` }, { translate: "0 0" }], {
           duration: easing["enter-rise"].ms,
-          delay: d,
+          delay,
           easing: bezier(easing["enter-rise"].bezier),
           fill: "backwards",
         });
+        for (const a of [opacity, rise]) {
+          playing.add(a);
+          a.finished.then(
+            () => playing.delete(a),
+            () => playing.delete(a),
+          );
+        }
       });
     },
     { rootMargin: `0px 0px -${Math.round((1 - sx.fold) * 100)}% 0px` },
   );
-  // Start loading a screen ahead.
+  // A block below the fold waits for it, once per visit (data-sx-unit stays
+  // on what has entered; Pause clears it from what was still waiting).
+  const enter = (el: HTMLElement) => {
+    if (el.dataset.sxUnit !== undefined) return;
+    el.dataset.sxUnit = "";
+    const r = el.getBoundingClientRect();
+    if (r.top < H) return; // already showing: never hide what you can see
+    el.dataset.sxIn = "wait";
+    waiting.set(el, { el, top: r.top + scrollY, h: r.height });
+    enterIo.observe(el);
+  };
+  // Start loading pictures a screen ahead.
   const nearIo = new IntersectionObserver(
     (es) =>
       es.forEach((e) => {
@@ -240,113 +318,121 @@ function start() {
     { rootMargin: "0px 0px 100% 0px" },
   );
 
-  /* ---------- what's on screen gets driven ---------- */
-  const seen = new IntersectionObserver((es) =>
-    es.forEach((e) => {
-      const t = texts.get(e.target as HTMLElement);
-      if (t) {
-        t.on = e.isIntersecting;
-        paint(t, e.boundingClientRect.top);
-      }
-      pics.forEach((p) => {
-        if (p.frame === e.target) p.on = e.isIntersecting;
-      });
-    }),
-  );
-  const resized = new ResizeObserver((es) =>
-    es.forEach((e) => {
-      const t = texts.get(e.target as HTMLElement);
-      if (t) {
-        measure(t);
-        t.last = "-";
-        paint(t, t.el.getBoundingClientRect().top);
-      }
-    }),
-  );
-
-  // A block below the fold waits for the house entrance, once per visit.
-  const enter = (unit: HTMLElement) => {
-    if (unit.dataset.sxUnit !== undefined) return;
-    unit.dataset.sxUnit = "";
-    if (unit.getBoundingClientRect().top <= H * sx.fold) return;
-    unit.dataset.sxIn = "wait";
-    waiting.add(unit);
-    enterIo.observe(unit);
+  /* ---------- geometry ---------- */
+  const remeasure = () => {
+    H = innerHeight;
+    inset = parseFloat(getComputedStyle(root).scrollPaddingBottom) || 0;
+    maxScroll = root.scrollHeight - H;
+    texts.forEach(measure);
+    pics.forEach(place);
+    waiting.forEach((u) => {
+      const r = u.el.getBoundingClientRect();
+      u.top = r.top + scrollY;
+      u.h = r.height;
+    });
   };
+  const resized = new ResizeObserver((es) => {
+    // The page grew or shrank (a filter, the archive, a font): everything below moved.
+    if (es.some((e) => e.target === main)) remeasure();
+    else
+      es.forEach((e) => {
+        const t = texts.get(e.target as HTMLElement);
+        if (t) measure(t);
+      });
+    frame(scrollY);
+  });
+  resized.observe(main);
 
+  /* ---------- what's ours ---------- */
   const scan = () => {
     H = innerHeight;
-    maxScroll = document.documentElement.scrollHeight - H;
+    maxScroll = root.scrollHeight - H;
     // Text: outermost blocks first, so a block and its paragraphs never both reveal.
     main.querySelectorAll<HTMLElement>(TEXT).forEach((el) => {
-      if (texts.has(el) || motionKind(el) !== "reveal" || !below(el)) return;
-      for (const t of texts.keys()) if (t.contains(el) || el.contains(t)) return;
-      const t: Text = { el, lines: [], peak: [], on: false, last: "-" };
+      if (texts.has(el) || passed.has(el)) return;
+      const inside = [...texts.keys()].some((t) => t.contains(el) || el.contains(t));
+      if (inside || motionKind(el) !== "reveal" || !below(el)) return void passed.add(el);
+      const t: Text = { el, lines: [], peak: [], top: 0, last: "-" };
       texts.set(el, t);
       measure(t);
-      seen.observe(el);
+      paint(t, scrollY); // dimmed while still off screen, never in view
       resized.observe(el);
     });
     // Pictures: one entrance on the frame (or its group), depth inside it.
+    // Wessel's own objects keep their motion, but their images still load
+    // ahead and show only once decoded, like every other picture.
     main.querySelectorAll<HTMLElement>("img,video").forEach((m) => {
-      if (pics.has(m) || m.closest(NOT_PICTURE) || m.closest(OWN) || m.parentElement?.closest("[aria-hidden='true']"))
-        return;
-      const frame = frameOf(m);
-      if (!frame || frame.clientHeight < 80 || !below(frame)) return;
-      pics.set(m, { m, frame, on: false });
-      m.style.scale = String(sx.depth.scale);
-      seen.observe(frame);
+      if (pics.has(m) || passed.has(m)) return;
+      passed.add(m);
+      const own = !!m.closest(OWN);
+      const frame =
+        m.closest(NOT_PICTURE) || m.parentElement?.closest("[aria-hidden='true']:not(.hand)") ? null : frameOf(m);
+      if (!frame || frame.clientHeight < MIN_FRAME_PX || !below(frame)) return;
       nearIo.observe(frame);
-      enter(unitOf(frame));
       if (m instanceof HTMLImageElement && !(m.complete && m.naturalWidth)) {
         m.dataset.sxImg = "wait";
         const ok = () => void (m.dataset.sxImg = "ok");
         m.addEventListener("load", () => void m.decode().then(ok, ok), { once: true });
         m.addEventListener("error", ok, { once: true });
       }
+      if (own) return;
+      passed.delete(m);
+      const p: Pic = { m, frame, top: 0, h: 0, last: "" };
+      place(p);
+      pics.set(m, p);
+      m.style.scale = String(sx.depth.scale);
+      enter(unitOf(frame));
     });
     // Labels, facts, controls: the house entrance, never around text or a picture.
     const taken = (el: HTMLElement) =>
       [...texts.keys()].some((t) => t.contains(el) || el.contains(t)) ||
       [...pics.values()].some((p) => el.contains(p.frame) || p.frame.contains(el));
-    main.querySelectorAll<HTMLElement>(`${ENTER_GROUPS},${ENTER_LEAVES}`).forEach((el) => {
-      if (el.closest("[data-sx-unit]") || motionKind(el) !== "entrance" || !below(el) || !el.offsetHeight) return;
-      if (!el.matches(ENTER_GROUPS) && el.parentElement?.closest(ENTER_GROUPS)) return;
-      if (!taken(el)) enter(el);
+    main.querySelectorAll<HTMLElement>(`${ENTER_GROUPS},${ENTER_LEAVES},${TEXT}`).forEach((el) => {
+      if (passed.has(el) || el.closest("[data-sx-unit]")) return;
+      const loose = !el.matches(ENTER_GROUPS) && el.parentElement?.closest(ENTER_GROUPS);
+      if (loose || motionKind(el) !== "entrance" || !below(el) || taken(el)) return void passed.add(el);
+      if (el.offsetHeight) enter(el);
     });
     // Gone from the page (a filter, a live edit): let go.
     texts.forEach((t, el) => {
-      if (!el.isConnected) {
-        seen.unobserve(el);
-        resized.unobserve(el);
-        texts.delete(el);
-      }
+      if (el.isConnected) return;
+      resized.unobserve(el);
+      texts.delete(el);
     });
-    pics.forEach((p, m) => !m.isConnected && pics.delete(m));
+    pics.forEach((p, m) => {
+      if (m.isConnected) return;
+      nearIo.unobserve(p.frame);
+      pics.delete(m);
+    });
+    waiting.forEach((u, el) => !el.isConnected && land(el));
     sides = [...body.querySelectorAll<HTMLElement>(".frame > .side")];
   };
 
+  /* ---------- each scroll frame: compute from scrollY, then write ---------- */
   const frame = (y: number) => {
-    maxScroll = document.documentElement.scrollHeight - H;
-    texts.forEach((t) => t.on && t.last !== "" && paint(t, t.el.getBoundingClientRect().top));
+    // Text not yet lit, from the bottom of the screen up (a jump past a
+    // block lights it too, so scrolling back never finds it dim).
+    texts.forEach((t) => t.last !== "" && t.top - y < H && paint(t, y));
     pics.forEach((p) => {
-      if (!p.on) return;
-      const r = p.frame.getBoundingClientRect();
-      const d = clamp((r.top + r.height / 2 - H / 2) / H, -1, 1);
-      p.m.style.translate = `0 ${(d * sx.depth.shiftPct).toFixed(2)}%`;
+      if (p.top + p.h < y || p.top > y + H) return;
+      const d = clamp((p.top - y + p.h / 2 - H / 2) / H, -1, 1);
+      const v = `0 ${(d * sx.depth.shiftPct).toFixed(2)}%`;
+      if (v !== p.last) p.m.style.translate = p.last = v;
     });
+    // Jumped right past it: it's above the screen, so it simply lands.
+    waiting.forEach((u, el) => u.top + u.h < y && land(el));
     // The dots trail the page: 70% of scroll, wrapped to one dot step.
-    const dot = (((y * (1 - sx.dots.speed)) % step) + step) % step;
-    const v = `${dot.toFixed(2)}px`;
-    sides.forEach((s) => s.style.setProperty("--dot-y", v));
+    const dot = `${((((y * (1 - sx.dots.speed)) % step) + step) % step).toFixed(2)}px`;
+    sides.forEach((s) => s.style.setProperty("--dot-y", dot));
   };
 
+  inset = parseFloat(getComputedStyle(root).scrollPaddingBottom) || 0;
   scan();
-  document.documentElement.dataset.sx = "on";
+  root.dataset.sx = "on";
   const stopScroll = scroll((_p: number, info: { y: { current: number } }) => frame(info.y.current));
   const onResize = () => {
-    H = innerHeight;
-    maxScroll = document.documentElement.scrollHeight - H;
+    remeasure();
+    frame(scrollY);
   };
   addEventListener("resize", onResize);
   let pending = 0;
@@ -355,16 +441,10 @@ function start() {
     pending = window.setTimeout(() => {
       scan();
       frame(scrollY);
-    }, 150);
+    }, RESCAN_MS);
   });
   mo.observe(body, { childList: true, subtree: true });
-  document.fonts?.ready.then(() => {
-    texts.forEach((t) => {
-      measure(t);
-      t.last = "-";
-    });
-    frame(scrollY);
-  });
+  document.fonts?.ready.then(onResize);
   frame(scrollY);
 
   return () => {
@@ -372,18 +452,22 @@ function start() {
     removeEventListener("resize", onResize);
     clearTimeout(pending);
     mo.disconnect();
-    seen.disconnect();
     resized.disconnect();
     enterIo.disconnect();
     nearIo.disconnect();
-    delete document.documentElement.dataset.sx;
+    playing.forEach((a) => a.cancel());
+    delete root.dataset.sx;
     texts.forEach(clearText);
     pics.forEach(({ m }) => {
       m.style.scale = "";
       m.style.translate = "";
       if (m.dataset.sxImg) m.dataset.sxImg = "ok";
     });
-    waiting.forEach((u) => delete u.dataset.sxIn);
+    // What hadn't entered yet gets its entrance again when motion comes back.
+    waiting.forEach((_, el) => {
+      delete el.dataset.sxIn;
+      delete el.dataset.sxUnit;
+    });
     sides.forEach((s) => s.style.removeProperty("--dot-y"));
   };
 }
