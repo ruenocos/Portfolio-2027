@@ -433,7 +433,7 @@
   .pj .pl h3 {
     margin: -6px 0 16px;
     overflow-wrap: break-word;
-    hyphens: auto;
+    hyphens: manual;
   }
   .pj .pd {
     color: var(--mute);

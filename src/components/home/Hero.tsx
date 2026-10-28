@@ -44,7 +44,8 @@ function unprepName(n: HTMLElement) {
 }
 
 // Wessel's "this way down" nod: two quick dips at the bottom of the hero.
-const nodSpot = (): [number, number, number] => (mobile() ? [0.14, 0.7, 0] : [0.32, 1, -44]);
+// Phones: just under the hero, in the dotted band, so he never covers the role.
+const nodSpot = (): [number, number, number] => (mobile() ? [0.14, 1, 36] : [0.32, 1, -44]);
 async function nodDown(hero: HTMLElement) {
   const [fx, fy, dy] = nodSpot();
   for (let k = 0; k < 2; k++) {
@@ -107,12 +108,13 @@ export function Hero({ hero: c }: { hero: HomeContent["hero"] }) {
     if (!n) return;
     const fit = () => {
       n.style.fontSize = "";
-      const parts = [...n.children].reduce((a, ch) => a + (ch as HTMLElement).offsetWidth, 0);
       const w = n.clientWidth;
       const base = parseFloat(getComputedStyle(n).fontSize);
-      if (mobile()) {
-        if (parts + base * 0.12 > w) n.style.fontSize = `${Math.floor((base * w) / (parts + base * 0.12))}px`;
-      } else n.style.fontSize = `${Math.min(Math.floor((base * w) / (parts + base * 0.3)), 240)}px`;
+      // Phones: the reel has its own row, so the two words fill the line.
+      const words = [...n.querySelectorAll<HTMLElement>(":scope > .w")].reduce((a, el) => a + el.offsetWidth, 0);
+      const parts = [...n.children].reduce((a, ch) => a + (ch as HTMLElement).offsetWidth, 0);
+      if (mobile()) n.style.fontSize = `${Math.min(Math.floor((base * w) / (words + base * 0.12)), 160)}px`;
+      else n.style.fontSize = `${Math.min(Math.floor((base * w) / (parts + base * 0.3)), 240)}px`;
     };
     fit();
     document.fonts?.ready.then(fit);
@@ -396,7 +398,9 @@ export function Hero({ hero: c }: { hero: HomeContent["hero"] }) {
         r.dataset.invite = "";
         try {
           await wait(300);
-          await say("Have a look", pp(r, 1, 0, 12, -44));
+          // Phones: the reel is full width, so the pin sits under its bottom left,
+          // clear of the name and the role.
+          await say("Have a look", mobile() ? pp(r, 0, 1, 0, 20) : pp(r, 1, 0, 12, -44));
           await wait(1800);
         } finally {
           s.done();
@@ -406,7 +410,7 @@ export function Hero({ hero: c }: { hero: HomeContent["hero"] }) {
         const [fx, fy, dy] = nodSpot();
         await wessel.go(wessel.at(h, fx, fy, 0, dy), { k: 150, timeout: 1200 });
         chk();
-        await say("More below", pp(h, fx, fy, 16, dy - 68));
+        await say("More below", mobile() ? pp(h, fx, fy, 64, dy - 34) : pp(h, fx, fy, 16, dy - 68));
         await nodDown(h);
         nudge.current.on = true;
         await wait(1200);

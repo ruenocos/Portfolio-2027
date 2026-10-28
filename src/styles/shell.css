@@ -556,9 +556,11 @@
     .mnav a:focus-visible {
       outline-offset: -6px;
     }
-    .menu-open,
-    .menu-open body {
+    /* Only the root: it locks the viewport. Hiding body too makes body its
+       own scroller, which unsticks the header and drops you at the top. */
+    .menu-open {
       overflow: hidden;
+      overscroll-behavior: none;
     }
 
     .tz {
