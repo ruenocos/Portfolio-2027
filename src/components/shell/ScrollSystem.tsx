@@ -18,8 +18,32 @@ const TEXT = "h2,h3,h4,p,blockquote,li,.text-title,.text-lead,.text-statement,.t
 const NOT_TEXT =
   ".text-label,header,nav,aside,button,dl,.pin,.bub,.gpill,.tz,.tools,.tool,.mail,.stmt,.sr-only,[aria-hidden='true'],[data-sx-skip]";
 const NOT_INSIDE = "img,video,canvas,button,input,select,textarea,.media,.pin";
-// Pictures that never take part: icons, avatars, the playground world.
-const NOT_PICTURE = ".tool,.tools,.av,.pin,.pgcv,[data-sx-skip]";
+// Pictures that never take part: icons, avatars.
+const NOT_PICTURE = ".tool,.tools,.av,.pin,[data-sx-skip]";
+// Wessel's own objects keep their own arrival: the archive fan, Focus's
+// dioramas and Daily kit chips, the About stickers, the Playground canvas.
+const OWN = ".hand,.fcard,.fcap,.obj,.kitc,.stk,.pgcv";
+// Labels, facts and controls get the house entrance. Groups first (the case
+// Layers panel, a facts list, a row of tools), then whatever is left alone.
+const ENTER_GROUPS = ".lp,dl,.tools,.meta";
+const ENTER_LEAVES = ".text-label,figcaption,a,button,.gpill";
+
+/**
+ * One rule per kind (spec v02.2 §4), so nothing gets two effects and
+ * nothing is left static: text lines reveal, pictures enter and drift,
+ * labels/facts/controls enter, Wessel's objects keep their own motion.
+ */
+type Kind = "reveal" | "entrance" | "own" | null;
+function motionKind(el: HTMLElement): Kind {
+  if (el.closest(OWN)) return "own";
+  if (el.closest("[aria-hidden='true'],.sr-only,[data-sx-skip]")) return null;
+  if (el.matches(TEXT) && !el.closest(NOT_TEXT) && !el.querySelector(NOT_INSIDE)) {
+    const mono = getComputedStyle(el).fontFamily.toLowerCase().includes("mono");
+    if (!mono && el.textContent?.trim()) return "reveal";
+  }
+  if (el.matches(ENTER_GROUPS) || el.matches(ENTER_LEAVES)) return "entrance";
+  return null;
+}
 
 type Line = { top: number; bottom: number };
 type Text = { el: HTMLElement; lines: Line[]; peak: number[]; on: boolean; last: string };
@@ -240,43 +264,55 @@ function start() {
     }),
   );
 
+  // A block below the fold waits for the house entrance, once per visit.
+  const enter = (unit: HTMLElement) => {
+    if (unit.dataset.sxUnit !== undefined) return;
+    unit.dataset.sxUnit = "";
+    if (unit.getBoundingClientRect().top <= H * sx.fold) return;
+    unit.dataset.sxIn = "wait";
+    waiting.add(unit);
+    enterIo.observe(unit);
+  };
+
   const scan = () => {
     H = innerHeight;
     maxScroll = document.documentElement.scrollHeight - H;
     // Text: outermost blocks first, so a block and its paragraphs never both reveal.
     main.querySelectorAll<HTMLElement>(TEXT).forEach((el) => {
-      if (texts.has(el) || el.closest(NOT_TEXT) || el.querySelector(NOT_INSIDE)) return;
+      if (texts.has(el) || motionKind(el) !== "reveal" || !below(el)) return;
       for (const t of texts.keys()) if (t.contains(el) || el.contains(t)) return;
-      if (!el.textContent?.trim() || getComputedStyle(el).fontFamily.toLowerCase().includes("mono") || !below(el))
-        return;
       const t: Text = { el, lines: [], peak: [], on: false, last: "-" };
       texts.set(el, t);
       measure(t);
       seen.observe(el);
       resized.observe(el);
     });
-    // Pictures.
+    // Pictures: one entrance on the frame (or its group), depth inside it.
     main.querySelectorAll<HTMLElement>("img,video").forEach((m) => {
-      if (pics.has(m) || m.closest(NOT_PICTURE) || m.parentElement?.closest("[aria-hidden='true']")) return;
+      if (pics.has(m) || m.closest(NOT_PICTURE) || m.closest(OWN) || m.parentElement?.closest("[aria-hidden='true']"))
+        return;
       const frame = frameOf(m);
       if (!frame || frame.clientHeight < 80 || !below(frame)) return;
       pics.set(m, { m, frame, on: false });
       m.style.scale = String(sx.depth.scale);
       seen.observe(frame);
       nearIo.observe(frame);
-      const unit = unitOf(frame);
-      if (!waiting.has(unit) && unit.getBoundingClientRect().top > H * sx.fold && !unit.dataset.sxDone) {
-        unit.dataset.sxIn = "wait";
-        unit.dataset.sxDone = "";
-        waiting.add(unit);
-        enterIo.observe(unit);
-      }
+      enter(unitOf(frame));
       if (m instanceof HTMLImageElement && !(m.complete && m.naturalWidth)) {
         m.dataset.sxImg = "wait";
         const ok = () => void (m.dataset.sxImg = "ok");
         m.addEventListener("load", () => void m.decode().then(ok, ok), { once: true });
         m.addEventListener("error", ok, { once: true });
       }
+    });
+    // Labels, facts, controls: the house entrance, never around text or a picture.
+    const taken = (el: HTMLElement) =>
+      [...texts.keys()].some((t) => t.contains(el) || el.contains(t)) ||
+      [...pics.values()].some((p) => el.contains(p.frame) || p.frame.contains(el));
+    main.querySelectorAll<HTMLElement>(`${ENTER_GROUPS},${ENTER_LEAVES}`).forEach((el) => {
+      if (el.closest("[data-sx-unit]") || motionKind(el) !== "entrance" || !below(el) || !el.offsetHeight) return;
+      if (!el.matches(ENTER_GROUPS) && el.parentElement?.closest(ENTER_GROUPS)) return;
+      if (!taken(el)) enter(el);
     });
     // Gone from the page (a filter, a live edit): let go.
     texts.forEach((t, el) => {
