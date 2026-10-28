@@ -147,9 +147,11 @@ export function showPin(pin: HTMLElement) {
 
 /** A comment pin Wessel drops on the page layer at a page point. It pops
  *  in empty; say() types into its bubble. */
+/** A live comment: at is its pointed bottom-left corner. Stamped with his local time. */
 export function putPin(at: XY, text = "") {
   const pin = put("pin hi-pin", "", at);
-  pin.innerHTML = `<span class="av">${smileySvg()}</span><span class="bub text-small"></span>`;
+  const now = new Intl.DateTimeFormat("en-GB", { timeZone: "Europe/Amsterdam", hour: "2-digit", minute: "2-digit" }).format();
+  pin.innerHTML = `<span class="av">${smileySvg()}</span><span class="cm"><span class="who">Wessel<time>${now}</time></span><span class="bub text-small"></span></span>`;
   const bub = pin.querySelector<HTMLElement>(".bub")!;
   bub.textContent = text;
   return { pin, bub };

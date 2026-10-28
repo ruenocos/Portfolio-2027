@@ -434,6 +434,26 @@
     margin: -6px 0 16px;
     overflow-wrap: break-word;
     hyphens: auto;
+    transition: color 240ms var(--ease-ui);
+  }
+  /* Pointing at the media lights the title too: grape, and the arrow slides in. */
+  .pj .pl h3 .ta {
+    width: 0.7em;
+    height: 0.7em;
+    margin-left: 0.25em;
+    vertical-align: 0.02em;
+    opacity: 0;
+    translate: -0.3em 0;
+    transition:
+      opacity 200ms var(--ease-ui),
+      translate 360ms var(--ease-spring);
+  }
+  .pj:has(.media:hover, .media:focus-visible) .pl h3 {
+    color: var(--grape);
+  }
+  .pj:has(.media:hover, .media:focus-visible) .pl h3 .ta {
+    opacity: 1;
+    translate: 0 0;
   }
   .pj .pd {
     color: var(--mute);
@@ -661,44 +681,76 @@
     z-index: 95;
   }
 
-  /* Comment pin: smiley avatar + bubble. One on screen at a time. */
+  /* Comment pin, read like a Figma comment: one card with its pointed
+     corner bottom-left (that corner is what it's about), the smiley
+     avatar, Wessel's name, then the line. One on screen at a time. */
   .pin {
     display: flex;
     align-items: flex-start;
     gap: 8px;
-    transform-origin: 0 0;
+    width: max-content;
+    max-width: 320px;
+    padding: 6px 14px 8px 6px;
+    border: 1px solid var(--line);
+    border-radius: 18px 18px 18px 4px;
+    background: var(--canvas);
+    color: var(--ink);
+    transform-origin: 0 100%;
+    box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / var(--tac-lit-outline)),
+      0 1px 2px rgb(0 0 0 / 0.08),
+      0 6px 16px -8px rgb(0 0 0 / 0.3);
   }
   .pin[data-static] {
     position: relative;
   }
   .pin .av {
-    width: 32px;
-    height: 32px;
+    width: 28px;
+    height: 28px;
     flex: none;
     display: grid;
     place-items: center;
-    border-radius: 50% 50% 50% 4px;
+    border-radius: 50%;
     background: var(--tang);
     color: var(--on-tang);
-    box-shadow: 0 2px 8px -2px rgb(0 0 0 / 0.4);
   }
   .pin .av svg {
-    width: 20px;
-    height: 20px;
+    width: 18px;
+    height: 18px;
+  }
+  .pin .cm {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    padding-top: 3px;
+    min-width: 0;
+  }
+  .pin .who {
+    display: flex;
+    gap: 6px;
+    align-items: baseline;
+    font-family: var(--font-display);
+    font-size: var(--type-small-size);
+    line-height: 20px;
+    font-weight: 600;
+    color: var(--ink);
+  }
+  .pin .who time {
+    font-weight: 400;
+    color: var(--mute);
   }
   .pin .bub {
-    padding: 8px 12px;
-    border: 1px solid var(--line);
-    border-radius: var(--radius-pin);
-    background: var(--canvas);
+    display: block;
     color: var(--ink);
     white-space: nowrap;
-    box-shadow:
-      inset 0 1px 0 rgb(255 255 255 / var(--tac-lit-outline)),
-      0 1px 2px rgb(0 0 0 / 0.08),
-      0 4px 10px -6px rgb(0 0 0 / 0.25);
   }
-  /* The note variant: tinted with Wessel's ink and tilted, like a sticky. */
+  /* The sticky variant keeps its own tinted, tilted note. */
+  .pin:has(.bub[data-note]) {
+    padding: 0;
+    border: 0;
+    background: none;
+    box-shadow: none;
+  }
   .pin .bub[data-note],
   .cur .note {
     max-width: 190px;
@@ -714,11 +766,14 @@
       0 4px 10px -6px rgb(0 0 0 / 0.25);
     rotate: -2deg;
   }
-  .pin[data-dot="true"] .bub {
+  /* Read: it folds back to the pin, like a resolved Figma comment. */
+  .pin[data-dot="true"] .cm {
     display: none;
   }
   .pin[data-dot="true"] {
-    transform: scale(0.8);
+    padding: 4px;
+    border-radius: 50% 50% 50% 4px;
+    transform: scale(0.9);
     opacity: 0.9;
   }
   .pin[hidden] {
