@@ -10,13 +10,13 @@ import { EmptyTool, Tools } from "@/components/parts/Tools";
 import { announce } from "@/lib/motion";
 
 /**
- * Archive row (compact): one ruled line on the same thirds as the project
- * rows above, so the columns run on. Title | year | role + tools. The media
+ * Work row (compact): Work is an overview, so every project is one ruled
+ * line on the home project rows' thirds; the big rows stay on home. Title | year | role + tools. The media
  * peeks up in the middle column while you point at the row, with your grape
  * selection and its real size, the same hover as the full rows. Phones get
  * a small thumbnail instead of the peek.
  */
-export function ArchiveRow({ project: p, hidden, leaving }: { project: Project; hidden?: boolean; leaving?: boolean }) {
+export function WorkRow({ project: p, hidden, leaving }: { project: Project; hidden?: boolean; leaving?: boolean }) {
   const peek = useRef<HTMLSpanElement>(null);
   const size = useRef<HTMLElement>(null);
   const [soon, setSoon] = useState(false);

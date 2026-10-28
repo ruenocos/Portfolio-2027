@@ -2,23 +2,23 @@
 
 import { useEffect, useRef, useState } from "react";
 import { Divider } from "@/components/parts/Divider";
-import { ProjectRow, type Project } from "@/components/parts/ProjectRow";
+import type { Project } from "@/components/parts/ProjectRow";
 import { ToolFilter } from "@/components/parts/ToolFilter";
 import { useBeat } from "@/components/canvas/useBeat";
 import { getMotion } from "@/lib/motion";
 import { live, select, wait, wessel } from "@/lib/wessel";
 import { TOOLS, knownTools, type ToolId } from "@/lib/tools";
-import { ArchiveRow } from "./ArchiveRow";
+import { WorkRow } from "./WorkRow";
 
 const LEAVE_MS = 200;
 const rand = (n: number) => Math.floor(Math.random() * n);
 const fits = (p: Project, picked: ToolId[]) => !picked.length || picked.some((t) => p.tools.includes(t));
 
 /**
- * Work (approved v03): the home's project rows for all the work, plus one
- * tweak, a tool filter on top. One tool at a time narrows the rows to the
+ * Work: an overview of all the work as compact rows (the big project rows
+ * stay on home), with a tool filter on top. One tool at a time narrows the rows to the
  * work made with it; rows that go fade first, then the rest close up. A group
- * with nothing left hides with its label. The archive is a compact list.
+ * with nothing left hides with its label.
  */
 export function WorkList({ selected, archive }: { selected: Project[]; archive: Project[] }) {
   const [picked, setPicked] = useState<ToolId[]>([]);
@@ -26,7 +26,7 @@ export function WorkList({ selected, archive }: { selected: Project[]; archive: 
   const t = useRef(0);
   const groups = [
     { name: "Selected work", rows: selected },
-    { name: "Archive", rows: archive, compact: true },
+    { name: "Archive", rows: archive },
   ];
   // Only offer tools some project was made with.
   const used = knownTools(Object.keys(TOOLS)).filter((id) => [...selected, ...archive].some((p) => p.tools.includes(id)));
@@ -89,10 +89,9 @@ export function WorkList({ selected, archive }: { selected: Project[]; archive: 
             <section className="frame" data-row aria-label={g.name}>
               <div className="side" />
               <div className="ruled min-w-0">
-                {g.rows.map((p) => {
-                  const Row = g.compact ? ArchiveRow : ProjectRow;
-                  return <Row key={p.title} project={p} hidden={!fits(p, picked)} leaving={leaving.has(p.title)} />;
-                })}
+                {g.rows.map((p) => (
+                  <WorkRow key={p.title} project={p} hidden={!fits(p, picked)} leaving={leaving.has(p.title)} />
+                ))}
               </div>
               <div className="side" />
             </section>

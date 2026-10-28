@@ -1,5 +1,5 @@
-/* Work overview (approved v03): page title, the tool filter bar, then the
-   home's project rows in two groups. */
+/* Work overview: page title, the tool filter bar, then every project as a
+   compact row in two groups. */
 
 @layer components {
   .whero {
@@ -44,7 +44,7 @@
   }
 }
 
-/* Archive (compact): one ruled line per project on the project rows'
+/* Work rows (compact): one ruled line per project on the project rows'
    thirds. The media only peeks up in the middle column while you point at
    the row; it scales in as a whole, the picture inside stays put. */
 @layer components {
@@ -113,7 +113,8 @@
   }
   .arow .apk {
     position: absolute;
-    left: 50%;
+    /* Right of centre, so it never covers the year. */
+    left: 62%;
     top: 50%;
     z-index: 2;
     width: 176px;
@@ -146,12 +147,12 @@
     }
   }
 
-  /* Phones and tablets: title, then year and role, tools; a small
-     thumbnail on the right stands in for the peek. */
+  /* Phones and tablets: title and year beside a small thumbnail (it
+     stands in for the peek), then role and tools across the full width. */
   @media (width < 900px) {
     .arow {
       grid-template-columns: minmax(0, 1fr) auto;
-      grid-template-areas: "t k" "y k" "m k";
+      grid-template-areas: "t k" "y k" "m m";
       column-gap: 20px;
       row-gap: 6px;
       background: var(--canvas);
@@ -171,8 +172,8 @@
     }
     .arow .ap {
       grid-area: m;
-      justify-content: flex-start;
-      margin-top: 6px;
+      justify-content: space-between;
+      margin-top: 10px;
     }
     .arow .apk {
       grid-area: k;
