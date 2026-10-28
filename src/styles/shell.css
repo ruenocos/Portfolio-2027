@@ -394,6 +394,16 @@
     padding-bottom: calc(24px + var(--badge-clear, 0px));
   }
 
+  /* ---------- 404: the empty frame Wessel selects (0 × 0) ---------- */
+  .lostf {
+    width: min(100%, 360px);
+    aspect-ratio: 16 / 10;
+    margin-bottom: 24px;
+    border: 1.5px dashed var(--mute);
+    border-radius: var(--radius-media, 24px);
+    opacity: 0.6;
+  }
+
   /* ---------- Contact pill (phones and tablets) ---------- */
   .tz {
     display: none;
@@ -443,6 +453,14 @@
     .hd nav,
     .hd .ct {
       display: none;
+    }
+    /* Past the hero the bar slims 90 -> 64px, giving the page more room.
+       The token moves too, so the menu and scroll offsets follow. */
+    .hd > div {
+      transition: height 220ms var(--ease-ui);
+    }
+    :root:has(.hd[data-past="true"]) {
+      --spacing-header: 64px;
     }
     .hd .home {
       padding: 0 var(--spacing-inset);

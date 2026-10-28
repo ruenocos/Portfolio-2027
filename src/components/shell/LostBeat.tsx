@@ -1,19 +1,16 @@
 "use client";
 
-import { useTry } from "./TryPanel";
 import { useBeat } from "@/components/canvas/useBeat";
 import { live, pageBox, putPin, select, wait, wessel } from "@/lib/wessel";
 
-// PREVIEW ONLY (polish pass, idea "404 as a Wessel beat"): an empty dashed
-// frame where the page should be. Wessel selects it (0 × 0), drops a
-// comment, and leaves. Comment copy is proposed, not picked.
+// The 404's beat (Wons picked, 2026-10-28): an empty dashed frame where the
+// page should be. Wessel selects it (0 × 0), drops a comment, and leaves.
 export function LostBeat() {
-  const on = useTry("lost") === "beat";
   const frame = useBeat<HTMLDivElement>({
     need: 0.5,
     async day(g) {
       const f = frame.current;
-      if (!f || getComputedStyle(f).display === "none") return;
+      if (!f) return;
       await wait(400);
       live(g);
       await wessel.go(wessel.at(f, 0.92, 0.9), { k: 160, timeout: 1200 });
@@ -36,5 +33,5 @@ export function LostBeat() {
       wessel.free();
     },
   });
-  return <div ref={frame} className="lostf" hidden={!on} aria-hidden="true" data-mock />;
+  return <div ref={frame} className="lostf" aria-hidden="true" />;
 }
