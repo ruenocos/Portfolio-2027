@@ -99,7 +99,7 @@ export function WorkRow({ project: p, hidden, leaving }: { project: Project; hid
   );
 
   return (
-    <article className="arow" hidden={hidden} data-leaving={leaving || undefined} onPointerEnter={sizeUp}>
+    <article className="arow" hidden={hidden} data-gap={gap || undefined} data-leaving={leaving || undefined} onPointerEnter={sizeUp}>
       <div className="cell al">
         <h3 className="text-lead" lang={p.lang}>
           {/* The title is the row's target; its hit area stretches over the whole row. */}

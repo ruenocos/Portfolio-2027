@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Divider } from "@/components/parts/Divider";
 import type { Project } from "@/components/parts/ProjectRow";
 import { ToolFilter } from "@/components/parts/ToolFilter";
 import { useBeat } from "@/components/canvas/useBeat";
@@ -17,25 +16,20 @@ const fits = (p: Project, picked: ToolId[]) => !picked.length || picked.some((t)
 /**
  * Work: an overview of all the work as compact rows (the big project rows
  * stay on home), with a tool filter on top. One tool at a time narrows the rows to the
- * work made with it; rows that go fade first, then the rest close up. A group
- * with nothing left hides with its label.
+ * work made with it; rows that go fade first, then the rest close up.
  */
-export function WorkList({ selected, archive }: { selected: Project[]; archive: Project[] }) {
+export function WorkList({ projects }: { projects: Project[] }) {
   const [picked, setPicked] = useState<ToolId[]>([]);
   const [leaving, setLeaving] = useState<Set<string>>(new Set());
   const t = useRef(0);
-  const groups = [
-    { name: "Selected work", rows: selected },
-    { name: "Archive", rows: archive },
-  ];
   // Only offer tools some project was made with.
-  const used = knownTools(Object.keys(TOOLS)).filter((id) => [...selected, ...archive].some((p) => p.tools.includes(id)));
+  const used = knownTools(Object.keys(TOOLS)).filter((id) => projects.some((p) => p.tools.includes(id)));
 
   useEffect(() => () => clearTimeout(t.current), []);
 
   const pick = (next: ToolId[]) => {
     clearTimeout(t.current);
-    const going = [...selected, ...archive].filter((p) => fits(p, picked) && !fits(p, next)).map((p) => p.title);
+    const going = projects.filter((p) => fits(p, picked) && !fits(p, next)).map((p) => p.title);
     if (!going.length || getMotion().calm) {
       setLeaving(new Set());
       setPicked(next);
@@ -80,24 +74,15 @@ export function WorkList({ selected, archive }: { selected: Project[]; archive: 
         </div>
         <div className="side" />
       </section>
-      {groups.map((g) => {
-        const shown = g.rows.filter((p) => fits(p, picked));
-        if (!shown.length) return null;
-        return (
-          <div key={g.name} className="contents">
-            <Divider label={{ name: g.name }} />
-            <section className="frame" data-row aria-label={g.name}>
-              <div className="side" />
-              <div className="ruled min-w-0">
-                {g.rows.map((p) => (
-                  <WorkRow key={p.title} project={p} hidden={!fits(p, picked)} leaving={leaving.has(p.title)} />
-                ))}
-              </div>
-              <div className="side" />
-            </section>
-          </div>
-        );
-      })}
+      <section className="frame" data-row aria-label="Projects">
+        <div className="side" />
+        <div className="ruled min-w-0">
+          {projects.map((p) => (
+            <WorkRow key={p.title} project={p} hidden={!fits(p, picked)} leaving={leaving.has(p.title)} />
+          ))}
+        </div>
+        <div className="side" />
+      </section>
     </>
   );
 }

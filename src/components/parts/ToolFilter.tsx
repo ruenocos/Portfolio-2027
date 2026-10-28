@@ -37,6 +37,7 @@ export function ToolFilter({
               className="tool"
               aria-pressed={on}
               aria-label={TOOLS[id].name}
+              title={TOOLS[id].name}
               onClick={() => set(on ? picked.filter((p) => p !== id) : single ? [id] : [...picked, id])}
             >
               {/* eslint-disable-next-line @next/next/no-img-element -- brand SVGs, served as they are */}

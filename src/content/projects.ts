@@ -1,9 +1,11 @@
 import type { Project } from "@/components/parts/ProjectRow";
 
 // The home's three rows from the prototype (web/site-prototype, v90).
+// Every project has a page (Wons 2026-10-28): the short one until its case
+// is written.
 // Summaries, roles and pin notes are its placeholder copy; the video per
 // row is a guess until the real media is in Sanity.
-export const FALLBACK_PROJECTS: Project[] = [
+export const FALLBACK_FEATURED: Project[] = [
   {
     title: "De Saak",
     summary:
@@ -25,6 +27,7 @@ export const FALLBACK_PROJECTS: Project[] = [
     role: "Motion designer",
     tools: ["figma", "after-effects", "lottiefiles"],
     media: { poster: "/media/supabase-portrait.jpg", video: "/media/supabase-portrait.mp4" },
+    href: "/work/ui-motion-study",
     label: "UI motion study. Self-initiated, 2026.",
     note: { text: "Every ease is hand-tuned.", spot: { fx: 0.38, dy: 36, rot: 2.5 } },
     mock: ["summary", "role", "note"],
@@ -37,21 +40,32 @@ export const FALLBACK_PROJECTS: Project[] = [
     role: "Designer and maker",
     tools: ["figma", "claude"],
     media: { poster: "/media/calcom-portrait.jpg", video: "/media/calcom-portrait.mp4" },
+    href: "/work/designer-tool",
     label: "Designer tool. Self-initiated, 2026.",
     note: { text: "Named every layer. Once.", spot: { fx: 0.6, dy: 28, rot: -1.5 } },
     mock: ["summary", "role", "note"],
   },
 ];
 
-// The Work page's archive until the real projects are in: the home fan's
-// placeholder tiles, with dashed gaps for the text (all mock).
-export const FALLBACK_ARCHIVE: Project[] = [1, 2, 3, 4, 5].map((i) => ({
-  title: `Archive 0${i}`,
-  summary: "",
-  timeline: "",
-  role: "",
-  tools: [],
-  media: { poster: `/media/archive-tile${i}.jpg` },
-  label: `Archive 0${i}, placeholder.`,
-  placeholder: true,
-}));
+// Three more projects whose stories aren't written yet: Wessel's own side
+// projects. Only the titles are real; year, role and tools show as slots
+// (hidden on the live site) and the poster is a placeholder tile.
+const TO_WRITE: [string, string, number][] = [
+  ["Orka", "orka", 1],
+  ["Wagg.le", "waggle", 2],
+  ["AniPlanner", "aniplanner", 3],
+];
+export const FALLBACK_PROJECTS: Project[] = [
+  ...FALLBACK_FEATURED,
+  ...TO_WRITE.map(([title, slug, tile]) => ({
+    title,
+    summary: "",
+    timeline: "",
+    role: "",
+    tools: [],
+    media: { poster: `/media/archive-tile${tile}.jpg` },
+    href: `/work/${slug}`,
+    label: title,
+    placeholder: true,
+  })),
+];

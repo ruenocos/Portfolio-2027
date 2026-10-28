@@ -33,7 +33,7 @@
   }
   .divider.divider-tall > .cell,
   .divider.divider-tall > .side {
-    height: 240px;
+    height: var(--spacing-divider-tall);
   }
 
   /* ---------- pills and chips ---------- */
@@ -418,6 +418,16 @@
     background: var(--line);
     min-width: 0;
   }
+  /* A project still to write has no role or tools yet: title | media, no
+     empty third cell (it comes back with ?mocks). */
+  @media (width >= 900px) {
+    html:not([data-mocks]) .pj[data-gap] {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    html:not([data-mocks]) .pj[data-gap] > .pr {
+      display: none;
+    }
+  }
   .pj > .cell {
     padding: var(--spacing-section) var(--spacing-inset);
   }
@@ -521,7 +531,9 @@
   /* ---------- facts row ---------- */
   .facts {
     display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    /* One column per fact shown, so a hidden one leaves no empty cell. */
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(0, 1fr);
     gap: var(--spacing-hairline);
     background: var(--line);
     margin: 0;
@@ -864,6 +876,7 @@
       gap: 0 16px;
     }
     .facts {
+      grid-auto-flow: row;
       grid-template-columns: minmax(0, 1fr);
     }
     .facts > .cell {

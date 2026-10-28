@@ -25,7 +25,7 @@ export function Archive({ cards }: { cards: ArchiveCard[] }) {
 
   const beat = useBeat<HTMLDivElement>({
     async day(g) {
-      const i = Math.min(4, cards.length - 1);
+      const i = Math.ceil(mid);
       const card = hand.current!.children[i];
       await wessel.go(wessel.at(card, 0.62, 0.18));
       live(g);

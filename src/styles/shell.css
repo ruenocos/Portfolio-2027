@@ -38,7 +38,7 @@
     min-width: 0;
   }
   .divider-tall > .side {
-    height: 240px;
+    height: var(--spacing-divider-tall);
   }
   .skip {
     position: fixed;
@@ -649,7 +649,8 @@
       display: inline-flex;
       align-items: center;
       position: fixed;
-      z-index: 45;
+      /* Above Wessel's layer (50): he never covers the Contact label. */
+      z-index: 55;
       right: var(--spacing-side);
       bottom: calc(var(--spacing-side) + env(safe-area-inset-bottom, 0px) + var(--badge-clear, 0px));
       min-height: var(--spacing-tap);

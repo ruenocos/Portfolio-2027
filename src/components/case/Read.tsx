@@ -153,11 +153,16 @@ export function Read({ sections }: { sections: CaseSection[] }) {
         <div className="secs">
           {sections.map((s) => (
             <article key={s.key} id={s.key} className="cell sc" tabIndex={-1} aria-labelledby={`h-${s.key}`}>
-              <p className="text-label text-mute" data-enter>
-                <span className="hash" aria-hidden="true">
-                  #
-                </span>{" "}
+              {/* Same frame-name label as every other section: { Name }. The
+                  # stays in the Layers panel, where it's Figma's frame mark. */}
+              <p className="slab text-label" data-enter>
+                <span className="br" aria-hidden="true">
+                  {"{"}
+                </span>
                 {s.name}
+                <span className="br" aria-hidden="true">
+                  {"}"}
+                </span>
                 {s.mock && <MockTag className="ml-2">{s.mock === "wording" ? "Numbers real · wording mock" : "mock"}</MockTag>}
               </p>
               <h2 id={`h-${s.key}`} className="text-headline" data-enter data-mock={s.mock ? "" : undefined}>

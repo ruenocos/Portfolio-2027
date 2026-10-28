@@ -1,10 +1,29 @@
-/* Playground (v08): the looping masonry board. */
+/* Playground (v08): a title row, then the looping masonry board. It reads
+   like a Figma canvas: frame names over the tiles, the one you're over in
+   grape (yours), and only Wessel selects. */
 
 @layer components {
+  /* Title row + board fill the screen under the header, ruled by a hairline. */
+  .pgcol {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-hairline);
+    min-width: 0;
+    height: calc(100svh - var(--spacing-header) - 2px);
+    min-height: 640px;
+    background: var(--line);
+  }
+  .pghead {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: last baseline;
+    justify-content: space-between;
+    gap: 8px 24px;
+  }
   .pgcv {
     position: relative;
-    height: calc(100svh - var(--spacing-header) - 2px);
-    min-height: 520px;
+    flex: 1;
+    min-height: 420px;
     overflow: hidden;
     cursor: grab;
     touch-action: none;
@@ -25,6 +44,36 @@
     margin: 0;
     will-change: transform;
   }
+  /* Frame name: Micro caps just above the tile's top-left, like Figma's. */
+  .pgcv .fl {
+    position: absolute;
+    display: block;
+    left: 2px;
+    bottom: calc(100% + 8px);
+    max-width: calc(100% - 4px);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: var(--mute);
+    pointer-events: none;
+    opacity: 0;
+    transition:
+      color var(--dur-ui) var(--ease-ui),
+      translate var(--dur-spring) var(--ease-spring),
+      opacity 500ms var(--ease-ui);
+    transition-delay: 0ms, 0ms, var(--d, 0ms);
+  }
+  .pgcv .post.in .fl {
+    opacity: 1;
+  }
+  .pgcv .post[data-hover] .fl {
+    color: var(--grape);
+  }
+  /* The tile you're over: a thin grape outline, no handles (those are his). */
+  .pgcv .post[data-hover] .pi {
+    outline: 1.5px solid var(--grape);
+    outline-offset: 2px;
+  }
   .pgcv .pi {
     position: relative;
     width: 100%;
@@ -40,11 +89,11 @@
       opacity 500ms var(--ease-ui);
     transition-delay: var(--d, 0ms);
   }
-  .pgcv .pi.in {
+  .pgcv .post.in .pi {
     opacity: 1;
     scale: 1;
   }
-  .pgcv[data-moving] .pi.in {
+  .pgcv[data-moving] .post.in .pi {
     scale: 0.95;
     transition-delay: 0ms;
   }
@@ -119,11 +168,17 @@
       transform var(--dur-spring) var(--ease-spring),
       border-radius var(--dur-spring) var(--ease-spring);
   }
+  /* Its caption sits right under the opened media (the board places it). */
   .pgcv .lbc {
     position: absolute;
-    left: var(--spacing-inset);
-    bottom: 20px;
-    color: var(--mute);
+    margin: 0;
+    color: var(--ink);
+    opacity: 0;
+    transition: opacity 300ms var(--ease-ui);
+  }
+  .pgcv .lb[data-on] .lbc {
+    opacity: 1;
+    transition-delay: 240ms;
   }
   .pgcv .lbx {
     position: absolute;
@@ -140,8 +195,23 @@
   .pgsel[data-on] {
     opacity: 1;
   }
+  /* Tucked close, so it clears the frame name of the tile below. */
+  .pgsel > .szp {
+    top: calc(100% + 4px);
+  }
 
   @media (width < 900px) {
+    .pghead {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+    .pgcol {
+      min-height: 560px;
+    }
+    /* No room for frame names between phone tiles: the open view names it. */
+    .pgcv .fl {
+      display: none;
+    }
     .pgcv .pi,
     .pgcv .lbm {
       border-radius: 16px;
@@ -150,10 +220,10 @@
       display: none;
     }
   }
-  html[data-motion="calm"] .pgcv :is(.pi, .lbm, .lb) {
+  html[data-motion="calm"] .pgcv :is(.pi, .lbm, .lb, .fl, .lbc) {
     transition: opacity 200ms var(--ease-ui);
   }
-  html[data-motion="calm"] .pgcv[data-moving] .pi.in {
+  html[data-motion="calm"] .pgcv[data-moving] .post.in .pi {
     scale: 1;
   }
 }

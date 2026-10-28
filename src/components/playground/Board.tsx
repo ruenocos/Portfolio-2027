@@ -1,10 +1,11 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import { useBeat } from "@/components/canvas/useBeat";
 import { useMotion } from "@/components/useMotion";
 import type { Post } from "@/content/playground";
 import { announce, getMotion, subscribeMotion } from "@/lib/motion";
-import { wessel, type XY } from "@/lib/wessel";
+import { live, wait, wessel, type XY } from "@/lib/wessel";
 import { clamp, easeInOutCubic } from "@/lib/math";
 import { narrow } from "@/lib/media";
 import { SIZES, srcSet } from "@/lib/image";
@@ -12,6 +13,7 @@ import { SIZES, srcSet } from "@/lib/image";
 type Item = {
   el: HTMLElement;
   pi: HTMLElement;
+  fl: HTMLElement;
   p: Post;
   y: number;
   h: number;
@@ -25,19 +27,22 @@ type Item = {
 type Col = { x: number; items: Item[]; H: number };
 
 const mod = (a: number, n: number) => ((a % n) + n) % n;
-const shuffle = <T,>(a: readonly T[]) => {
-  const b = [...a];
-  for (let i = b.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [b[i], b[j]] = [b[j], b[i]];
-  }
-  return b;
+// A seeded random (mulberry32): the same posts lay out the same board on
+// every visit, so the spacing below is a promise, not luck.
+const seeded = (seed: number) => () => {
+  seed = (seed + 0x6d2b79f5) | 0;
+  let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+  t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+  return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
 };
 const calm = () => getMotion().calm;
 
 function postEl(p: Post) {
   const f = document.createElement("figure");
   f.className = "post";
+  // Your cursor names what you're over (CursorLayer reads [data-you]).
+  // The frame name already says what it is; your tag says what a click does.
+  f.dataset.you = "Open";
   const pi = document.createElement("div");
   pi.className = "pi";
   if (p.tint) pi.dataset.tint = p.tint;
@@ -79,7 +84,11 @@ function postEl(p: Post) {
     idea.dataset.kind = p.title.startsWith("Loop") ? "Loop" : "Picture";
     pi.appendChild(idea);
   }
-  f.appendChild(pi);
+  // Its frame name, like Figma's: just above the top-left corner.
+  const fl = document.createElement("figcaption");
+  fl.className = "fl text-micro-caps";
+  fl.textContent = p.title;
+  f.append(fl, pi);
   return f;
 }
 
@@ -87,12 +96,49 @@ function postEl(p: Post) {
  * Playground (v08, approved): one big masonry on a pannable board that loops
  * back to where it started, sideways and down. Drag (with a throw), wheel or
  * trackpad, arrow keys; tap a post (or Enter for the middle one) to lift it
- * open. Idle, it drifts down. Wessel drives it: he grabs a post that's
+ * open. At rest it settles on whole columns. Wessel drives it: he grabs a post that's
  * half out of view, drags it in, and selects it. He never opens one; that's
  * yours. Touch anything and he lets go and waits. Pause: still.
+ * Like a Figma canvas: every tile wears its frame name, the one you're over
+ * turns grape (yours) and your cursor names it. On arrival Wessel says hello
+ * by selecting one tile in view, real size label and all.
  */
+type Hello = {
+  pick: () => Item | null;
+  ok: (it: Item) => boolean;
+  at: (it: Item) => XY | null;
+  show: () => void;
+  end: () => void;
+};
+
 export function Board({ posts }: { posts: Post[] }) {
-  const cvRef = useRef<HTMLDivElement>(null);
+  const hi = useRef<Hello | null>(null);
+  // His arrival beat: glide to a tile in view, select it, hold, let go.
+  // Paused or reduced motion: no beat (and no selection).
+  const cvRef = useBeat<HTMLDivElement>({
+    async day(g) {
+      await wait(1000);
+      live(g);
+      const b = hi.current;
+      const it = b?.pick();
+      if (!b || !it) return b?.end();
+      try {
+        await wessel.go(() => b.at(it), { k: 220, timeout: 1400 });
+        live(g);
+        if (!b.ok(it)) return;
+        wessel.press(true);
+        b.show();
+        await wait(120);
+        wessel.press(false);
+        await wait(1200);
+        live(g);
+      } finally {
+        b.end();
+      }
+    },
+    still: () => hi.current?.end(),
+    reset: () => hi.current?.end(),
+  });
   const worldRef = useRef<HTMLDivElement>(null);
   const selRef = useRef<HTMLSpanElement>(null);
   const { calm: still } = useMotion();
@@ -117,7 +163,6 @@ export function Board({ posts }: { posts: Post[] }) {
     let vx = 0;
     let vy = 0;
     let last = performance.now();
-    let idle = last;
     let dragging = false;
     let movingTill = 0;
     let mptr: XY | null = null;
@@ -125,6 +170,7 @@ export function Board({ posts }: { posts: Post[] }) {
     let raf = 0;
     type Open = { it: Item; lb: HTMLElement; m: HTMLElement; s: number; R: number; x: HTMLButtonElement; closing?: boolean };
     let opened: Open | null = null;
+    let hov: Item | null = null;
     const timers = new Set<number>();
     const later = (fn: () => void, ms: number) => {
       const id = window.setTimeout(() => {
@@ -134,48 +180,87 @@ export function Board({ posts }: { posts: Post[] }) {
       timers.add(id);
     };
 
+    // The row gap (it holds the frame names on desktop) and the left inset
+    // that centres the columns that fit: at rest the gutters left and right
+    // match, and no tile is cut at the sides.
+    let GY = 24;
+    let OX = 24;
+    // The nearest pan where the columns sit on that gutter grid.
+    const grid = (x: number) => OX + Math.round((x - OX) / (CW + G)) * (CW + G);
     const build = () => {
       world.textContent = "";
       cols = [];
+      hov = null;
       const mob = !!narrow();
-      CW = mob ? 170 : 300;
+      const W = cv.clientWidth;
+      const H = cv.clientHeight;
       G = mob ? 12 : 24;
-      const n = Math.max(8, Math.ceil(cv.clientWidth / (CW + G)) + 2);
+      GY = mob ? G : 52;
+      const fit = Math.max(2, Math.round((W - G) / ((mob ? 170 : 300) + G)));
+      CW = Math.floor((W - G * (fit + 1)) / fit);
+      OX = Math.round((W - fit * CW - (fit - 1) * G) / 2);
+      // Twice the screen each way, so a post can repeat a screen away.
+      const n = Math.max(8, fit * 2 + 2);
       TW = n * (CW + G);
-      const minH = Math.max(1800, cv.clientHeight + 700);
-      for (let c = 0; c < n; c++) {
-        const col: Col = { x: c * (CW + G), items: [], H: 0 };
-        let y = c % 2 ? CW * 0.35 : 0;
-        // Shuffled per column, so a short list doesn't line up in rows. The
-        // next post skips one that sits right beside it (the column to the
-        // left, or the first column for the last one: the board wraps).
-        let bag: Post[] = [];
-        const near = (p: Post, at: number) =>
-          [cols[c - 1], c === n - 1 ? cols[0] : undefined].some((nb) =>
-            nb?.items.some((it) => it.p === p && it.y < at + CW * 1.4 && it.y + it.h > at - CW * 0.4),
-          );
-        while (y < minH) {
-          if (!bag.length) bag = shuffle(posts);
-          const prev = col.items.at(-1)?.p;
-          const i = posts.length > 2 ? bag.findIndex((q) => q !== prev && !near(q, y)) : -1;
-          const p = bag.splice(Math.max(0, i), 1)[0];
-          const h = Math.round(CW / p.ar);
-          const el = postEl(p);
-          el.style.width = `${CW}px`;
-          el.style.height = `${h}px`;
-          world.appendChild(el);
-          const pi = el.firstChild as HTMLElement;
-          // Load-in: a wave from the top-left corner, on first paint only.
-          pi.style.setProperty("--d", first && !calm() ? `${Math.min(900, Math.hypot(col.x, y) * 0.45)}ms` : "0ms");
-          col.items.push({ el, pi, p, y, h, v: el.querySelector("video"), x: 0, yy: 0, lx: 0, ly: 0, vis: false });
-          y += h + G;
+      const minH = Math.max(1800, H * 2 + 400);
+      const lift = Math.round(CW * 0.35);
+      const tops = Array.from({ length: n }, (_, c) => (c % 2 ? lift : 0));
+      for (let c = 0; c < n; c++) cols.push({ x: c * (CW + G), items: [], H: 0 });
+      // Deterministic placement. The shortest column fills next (the board
+      // grows like one sheet), with the post whose nearest twin is furthest
+      // away, counted in screens and across the wrap. A twin a whole screen
+      // away or more is far enough; among those the least used post goes, so
+      // the mix stays even. The first row keeps the Studio's order, so the
+      // post Wons put first opens the board, whole, top left.
+      const rnd = seeded(posts.length * 7919 + 17);
+      const used = new Map<Post, number>();
+      const twins = new Map<Post, XY[]>();
+      const apart = (p: Post, cx: number, cy: number) => {
+        let d = Infinity;
+        for (const [x, y] of twins.get(p) ?? []) {
+          const dx = Math.abs(cx - x);
+          const dy = Math.abs(cy - y);
+          d = Math.min(d, Math.max(Math.min(dx, TW - dx) / W, Math.min(dy, minH - dy) / H));
         }
-        col.H = y;
-        cols.push(col);
+        return d;
+      };
+      while (true) {
+        let c = -1;
+        for (let i = 0; i < n; i++) if (tops[i] < minH && (c < 0 || tops[i] < tops[c])) c = i;
+        if (c < 0) break;
+        const col = cols[c];
+        const y = tops[c];
+        let p = posts[c];
+        if (col.items.length || c >= Math.min(fit, posts.length)) {
+          let best: Post[] = [];
+          let top = -Infinity;
+          for (const q of posts) {
+            const sc = Math.min(1, apart(q, col.x + CW / 2, y + CW / q.ar / 2)) * 1000 - (used.get(q) ?? 0);
+            if (sc > top + 1e-6) {
+              top = sc;
+              best = [q];
+            } else if (sc > top - 1e-6) best.push(q);
+          }
+          p = best[Math.floor(rnd() * best.length)];
+        }
+        const h = Math.round(CW / p.ar);
+        used.set(p, (used.get(p) ?? 0) + 1);
+        twins.set(p, [...(twins.get(p) ?? []), [col.x + CW / 2, y + h / 2]]);
+        const el = postEl(p);
+        el.style.width = `${CW}px`;
+        el.style.height = `${h}px`;
+        world.appendChild(el);
+        // Load-in: a wave from the top-left corner, on first paint only.
+        el.style.setProperty("--d", first && !calm() ? `${Math.min(900, Math.hypot(col.x, y) * 0.45)}ms` : "0ms");
+        const pi = el.querySelector<HTMLElement>(".pi")!;
+        const fl = el.querySelector<HTMLElement>(".fl")!;
+        col.items.push({ el, pi, fl, p, y, h, v: el.querySelector("video"), x: 0, yy: 0, lx: 0, ly: 0, vis: false });
+        tops[c] = y + h + GY;
       }
+      cols.forEach((col, c) => (col.H = tops[c]));
       first = false;
-      requestAnimationFrame(() => requestAnimationFrame(() => cols.forEach((c) => c.items.forEach((it) => it.pi.classList.add("in")))));
-      later(() => cols.forEach((c) => c.items.forEach((it) => it.pi.style.removeProperty("--d"))), 1700);
+      requestAnimationFrame(() => requestAnimationFrame(() => cols.forEach((c) => c.items.forEach((it) => it.el.classList.add("in")))));
+      later(() => cols.forEach((c) => c.items.forEach((it) => it.el.style.removeProperty("--d"))), 1700);
     };
 
     // ---------- Wessel drives the board (desktop, not paused) ----------
@@ -183,10 +268,14 @@ export function Board({ posts }: { posts: Post[] }) {
     // he lets go instead of hanging on at the edge.
     const onScreen = () => {
       const r = cv.getBoundingClientRect();
-      return r.top < innerHeight * 0.4 && r.bottom > innerHeight * 0.6;
+      return r.top < innerHeight * 0.5 && r.bottom > innerHeight * 0.6;
     };
     const wesOn = () => !mode.current.still && !narrow() && onScreen();
-    const S = { s: "rest", t: performance.now() + 900, it: null as Item | null, D: [0, 0], from: [0, 0], g: [0, 0], t0: 0, dur: 0 };
+    const S = { s: "rest", t: performance.now() + 900, it: null as Item | null, D: [0, 0], from: [0, 0], g: [0, 0], t0: 0, dur: 0, shown: false };
+    // His hello comes first (the arrival beat below): he leaves the board
+    // alone until it's done, or after a while if it never plays.
+    let hello = true;
+    later(() => (hello = false), 6000);
     let pausedTill = 0;
     let target: XY | null = null;
     let driving = false;
@@ -222,11 +311,46 @@ export function Board({ posts }: { posts: Post[] }) {
     };
     const sel = (it: Item | null) => {
       if (!it) return wsel.removeAttribute("data-on");
-      wsel.style.transform = `translate(${it.x + it.lx - 6}px,${it.yy + it.ly - 6}px)`;
-      wsel.style.width = `${CW + 12}px`;
-      wsel.style.height = `${it.h + 12}px`;
+      wsel.style.transform = `translate(${it.x + it.lx - 4}px,${it.yy + it.ly - 4}px)`;
+      wsel.style.width = `${CW + 8}px`;
+      wsel.style.height = `${it.h + 8}px`;
       szp.textContent = `${CW} × ${it.h}`;
       wsel.dataset.on = "";
+    };
+    // The hello beat's handles: a tile to pick, where to point, show, done.
+    hi.current = {
+      pick: () => {
+        if (!wesOn() || opened || dragging) return null;
+        const W = cv.clientWidth;
+        const H = cv.clientHeight;
+        let best: Item | null = null;
+        let bd = Infinity;
+        // A real piece, whole on screen, near the middle; not the one you're on.
+        for (const col of cols)
+          for (const it of col.items) {
+            if (it === hov || !(it.p.src || it.p.video) || it.p.mock) continue;
+            if (it.x < 24 || it.x + CW > W - 24 || it.yy < 24 || it.yy + it.h > H - 48) continue;
+            const d = Math.hypot(it.x + CW / 2 - W * 0.55, it.yy + it.h / 2 - H * 0.45);
+            if (d < bd) {
+              bd = d;
+              best = it;
+            }
+          }
+        if (best) Object.assign(S, { s: "hello", it: best, shown: false });
+        return best;
+      },
+      ok: (it) => S.s === "hello" && S.it === it && wesOn(),
+      at: (it) => {
+        if (S.s !== "hello" || S.it !== it || !wesOn()) return null;
+        const r = cv.getBoundingClientRect();
+        return [r.left + it.x + it.lx + CW * 0.72, r.top + it.yy + it.ly + it.h * 0.8];
+      },
+      show: () => (S.shown = S.s === "hello"),
+      end: () => {
+        hello = false;
+        if (S.s !== "hello") return;
+        Object.assign(S, { s: "rest", it: null, shown: false, t: performance.now() + 900 });
+      },
     };
     const wTick = (now: number, W: number, H: number) => {
       if (!wesOn()) {
@@ -245,9 +369,13 @@ export function Board({ posts }: { posts: Post[] }) {
         wessel.press(false);
         return;
       }
+      if (S.s === "hello") {
+        sel(S.shown ? S.it : null);
+        return;
+      }
       if (S.s === "rest") {
         sel(null);
-        if (now < S.t) return;
+        if (now < S.t || hello) return;
         // A post that's half out of view, and a calm spot to bring it to.
         const c: Item[] = [];
         cols.forEach((col) =>
@@ -265,7 +393,8 @@ export function Board({ posts }: { posts: Post[] }) {
         const it = c[Math.floor(Math.random() * c.length)];
         const dx = clamp(W * (0.25 + Math.random() * 0.4) - CW / 2, 80, W - CW - 80);
         const dy = clamp(H * (0.3 + Math.random() * 0.3) - it.h / 2, 80, H - it.h - 80);
-        Object.assign(S, { it, D: [dx - it.x, dy - it.yy], g: [CW * (0.35 + Math.random() * 0.3), it.h * (0.35 + Math.random() * 0.3)], s: "reach", t0: now });
+        // He drops it in a whole column, so the board still rests on the grid.
+        Object.assign(S, { it, D: [grid(px + dx - it.x) - px, dy - it.yy], g: [CW * (0.35 + Math.random() * 0.3), it.h * (0.35 + Math.random() * 0.3)], s: "reach", t0: now });
         steer(it.x + S.g[0], it.yy + S.g[1], 160);
         return;
       }
@@ -340,11 +469,11 @@ export function Board({ posts }: { posts: Post[] }) {
           vy *= Math.pow(0.92, dt / 16);
           tx = px;
           ty = py;
-        } else if (!quiet && !wesOn() && t - idle > 2600 && !document.hidden) {
-          // Idle: a slow drift down (when Wessel isn't driving).
-          py -= (0.35 * dt) / 16;
-          tx = px;
-          ty = py;
+        } else {
+          // At rest the columns settle back on the gutter grid, so no tile is
+          // cut at the sides. No idle drift: the board holds its composition.
+          const sx = grid(px);
+          if (Math.abs(sx - px) > 0.3) tx = sx;
         }
       }
       // A touch of squash while it moves fast; it springs back as it settles.
@@ -353,6 +482,10 @@ export function Board({ posts }: { posts: Post[] }) {
       const W = cv.clientWidth;
       const H = cv.clientHeight;
       const lean = mptr && t > movingTill && !opened && !quiet;
+      // The tile under your pointer, worked out here: the board moves under a
+      // still mouse too (wheel, drift), and CSS :hover only catches up on the
+      // next mouse move.
+      let over: Item | null = null;
       for (const col of cols) {
         const x = mod(col.x + px + CW, TW) - CW;
         for (const it of col.items) {
@@ -360,12 +493,16 @@ export function Board({ posts }: { posts: Post[] }) {
           it.x = x;
           it.yy = y;
           it.el.style.transform = `translate(${x}px,${y}px)`;
+          // A column only a few px in reads as a sliver on the frame line.
+          it.el.style.visibility = x + CW < 3 || x > W - 3 ? "hidden" : "";
           const vis = x > -CW && x < W && y > -it.h && y < H;
           if (it.v && vis !== it.vis) {
             if (vis && !quiet) it.v.play().catch(() => {});
             else it.v.pause();
           }
           it.vis = vis;
+          if (vis && mptr && !dragging && !opened && mptr[0] >= x && mptr[0] < x + CW && mptr[1] >= y && mptr[1] < y + it.h)
+            over = it;
           // Lean: posts near your pointer drift a few px toward it.
           let lx = 0;
           let ly = 0;
@@ -383,9 +520,16 @@ export function Board({ posts }: { posts: Post[] }) {
           if (Math.abs(lx - it.lx) + Math.abs(ly - it.ly) > 0.3) {
             it.lx = lx;
             it.ly = ly;
-            it.pi.style.translate = `${lx.toFixed(1)}px ${ly.toFixed(1)}px`;
+            it.pi.style.translate = it.fl.style.translate = `${lx.toFixed(1)}px ${ly.toFixed(1)}px`;
           }
         }
+      }
+      if (over !== hov) {
+        hov?.el.removeAttribute("data-hover");
+        over?.el.setAttribute("data-hover", "");
+        hov = over;
+        // Your cursor's tag reads the title (or "You" again).
+        dispatchEvent(new Event("wsl:look"));
       }
       wTick(t, W, H);
       raf = requestAnimationFrame(frame);
@@ -401,9 +545,12 @@ export function Board({ posts }: { posts: Post[] }) {
       const W = cv.clientWidth;
       const H = cv.clientHeight;
       const mob = !!narrow();
-      const s = Math.min((W * (mob ? 0.9 : 0.8)) / CW, (H * (mob ? 0.7 : 0.8)) / it.h);
+      // Room under the media for its caption, so the pair sits centred.
+      const CAP = 40;
+      const s = Math.min((W * (mob ? 0.9 : 0.8)) / CW, (H * (mob ? 0.7 : 0.8) - CAP) / it.h);
       const w = CW * s;
       const h = it.h * s;
+      const top = (H - h - CAP) / 2;
       const lb = document.createElement("div");
       lb.className = "lb";
       lb.setAttribute("role", "dialog");
@@ -438,6 +585,8 @@ export function Board({ posts }: { posts: Post[] }) {
       const cap = document.createElement("p");
       cap.className = "lbc text-label";
       cap.textContent = it.p.title;
+      // Directly under the opened media, on its left edge.
+      Object.assign(cap.style, { left: `${(W - w) / 2}px`, top: `${top + h + 12}px`, width: `${w}px` });
       if (it.p.mock) cap.dataset.mock = "";
       const x = document.createElement("button");
       x.type = "button";
@@ -455,7 +604,7 @@ export function Board({ posts }: { posts: Post[] }) {
       requestAnimationFrame(() =>
         requestAnimationFrame(() => {
           lb.dataset.on = "";
-          m.style.transform = `translate(${(W - w) / 2}px,${(H - h) / 2}px) scale(1)`;
+          m.style.transform = `translate(${(W - w) / 2}px,${top}px) scale(1)`;
           m.style.borderRadius = `${R}px`;
           x.focus({ preventScroll: true });
         }),
@@ -485,7 +634,6 @@ export function Board({ posts }: { posts: Post[] }) {
           o.it.pi.style.visibility = "";
           o.lb.remove();
           opened = null;
-          idle = performance.now();
           cv.focus({ preventScroll: true });
         },
         calm() ? 0 : 560,
@@ -494,7 +642,6 @@ export function Board({ posts }: { posts: Post[] }) {
 
     // ---------- input ----------
     const poke = () => {
-      idle = performance.now();
       pause();
     };
     const down = (e: PointerEvent) => {
@@ -525,7 +672,7 @@ export function Board({ posts }: { posts: Post[] }) {
         vy = dy * k;
         lx = ev.clientX;
         ly = ev.clientY;
-        lt = idle = now;
+        lt = now;
       };
       const up = (ev: PointerEvent) => {
         dragging = false;
@@ -636,12 +783,14 @@ export function Board({ posts }: { posts: Post[] }) {
         S.s = "rest";
         S.it = null;
         build();
+        px = tx = OX;
+        py = ty = GY;
       }, 200);
     };
 
     build();
-    px = tx = G;
-    py = ty = G;
+    px = tx = OX;
+    py = ty = GY;
     cv.addEventListener("pointerdown", down);
     cv.addEventListener("wheel", wheel, { passive: false });
     addEventListener("keydown", key);
@@ -665,7 +814,7 @@ export function Board({ posts }: { posts: Post[] }) {
       }
     });
     raf = requestAnimationFrame((t) => {
-      last = idle = t;
+      last = t;
       frame(t);
     });
     return () => {
@@ -681,10 +830,11 @@ export function Board({ posts }: { posts: Post[] }) {
       cv.removeEventListener("pointerleave", leave);
       removeEventListener("resize", resize);
       if (driving) wessel.free();
+      hi.current = null;
       world.textContent = "";
       cv.querySelector(".lb")?.remove();
     };
-  }, [posts]);
+  }, [posts, cvRef]);
 
   return (
     <div
