@@ -8,6 +8,7 @@ import { useBeat } from "@/components/canvas/useBeat";
 import type { ArchiveCard } from "@/content/home";
 import { live, wait, wessel } from "@/lib/wessel";
 import { touch } from "@/lib/media";
+import { SIZES, srcSet } from "@/lib/image";
 
 /**
  * Archive (DESIGN.md §6): a hand of cards resting closed at .82, with
@@ -89,7 +90,7 @@ export function Archive({ cards }: { cards: ArchiveCard[] }) {
               onPointerLeave={() => setHot(null)}
             >
               {/* eslint-disable-next-line @next/next/no-img-element -- small thumbnails */}
-              <img src={c.src} alt="" loading="lazy" draggable={false} />
+              <img src={c.src} srcSet={srcSet(c.src)} sizes={SIZES.archive} alt="" loading="lazy" decoding="async" draggable={false} />
             </span>
           ))}
         </div>

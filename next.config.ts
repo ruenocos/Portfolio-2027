@@ -10,6 +10,8 @@ const securityHeaders = [
 ];
 
 const nextConfig: NextConfig = {
+  // Netlify's Image CDN resizes /public pictures (lib/image). Netlify sets NETLIFY at build.
+  env: { NEXT_PUBLIC_IMAGE_CDN: process.env.NETLIFY ? "netlify" : "" },
   cacheComponents: true,
   partialPrefetching: true,
   async headers() {

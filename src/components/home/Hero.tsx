@@ -10,6 +10,7 @@ import { holdIntro, playIntro } from "@/lib/intro/iris";
 import { getMotion } from "@/lib/motion";
 import { isBusy, live, pageBox, put, putPin, select, wait, wessel, type XY } from "@/lib/wessel";
 import { finePointer, narrow, touch } from "@/lib/media";
+import { SIZES, srcSet } from "@/lib/image";
 
 const calm = () => getMotion().calm;
 const clock = new Intl.DateTimeFormat("en-GB", { hour: "2-digit", minute: "2-digit", timeZone: "Europe/Amsterdam" });
@@ -524,8 +525,8 @@ export function Hero({ hero: c }: { hero: HomeContent["hero"] }) {
           onClick={openReel}
           data-mock={c.reel.mock ? "" : undefined}
         >
-          {/* eslint-disable-next-line @next/next/no-img-element -- a poster frame, served as it is */}
-          {c.reel.poster && <img src={c.reel.poster} alt="" />}
+          {/* eslint-disable-next-line @next/next/no-img-element -- a poster frame; lib/image does the sizes */}
+          {c.reel.poster && <img src={c.reel.poster} srcSet={srcSet(c.reel.poster)} sizes={SIZES.reel} alt="" fetchPriority="high" />}
           {c.reel.loop && <video ref={loop} data-src={c.reel.loop} muted loop playsInline preload="none" aria-hidden="true" />}
           <i ref={bar} className="ph" />
           <span className="gpill text-micro-caps play" data-size="small">

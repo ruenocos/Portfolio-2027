@@ -7,6 +7,7 @@ import { useMotion } from "@/components/useMotion";
 import type { CaseSection } from "@/content/cases";
 import { wessel, type XY } from "@/lib/wessel";
 import { narrow } from "@/lib/media";
+import { SIZES, srcSet } from "@/lib/image";
 
 // The reading line: a section is "the one you're reading" once its top
 // passes 40% of the screen.
@@ -169,7 +170,7 @@ export function Read({ sections }: { sections: CaseSection[] }) {
                 <figure data-enter>
                   <div className="fimg">
                     {/* eslint-disable-next-line @next/next/no-img-element -- screenshots at their own ratio */}
-                    <img src={s.figure.src} alt={s.figure.alt} width={s.figure.width} height={s.figure.height} loading="lazy" />
+                    <img src={s.figure.src} srcSet={srcSet(s.figure.src)} sizes={SIZES.figure} alt={s.figure.alt} width={s.figure.width} height={s.figure.height} loading="lazy" decoding="async" />
                   </div>
                   <figcaption className="text-label text-mute" data-mock={s.mock === "all" ? "" : undefined}>{s.figure.caption}</figcaption>
                   {s.note && (

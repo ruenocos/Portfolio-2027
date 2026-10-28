@@ -5,6 +5,7 @@ import { useBeat } from "@/components/canvas/useBeat";
 import type { Photo } from "@/content/home";
 import { announce, getMotion } from "@/lib/motion";
 import { live, wait, wessel, type XY } from "@/lib/wessel";
+import { SIZES, srcSet } from "@/lib/image";
 
 // Where the three cards rest: the top one nearly straight, the rest peeking.
 const REST: [number, number, number][] = [
@@ -152,7 +153,7 @@ export function PhotoStack({ photos }: { photos: Photo[] }) {
                 onPointerDown={isTop ? down : undefined}
               >
                 {/* eslint-disable-next-line @next/next/no-img-element -- Sanity's CDN sizes these */}
-                <img src={p.src} alt="" draggable={false} />
+                <img src={p.src} srcSet={srcSet(p.src)} sizes={SIZES.stack} alt="" draggable={false} decoding="async" />
               </div>
             );
           })}

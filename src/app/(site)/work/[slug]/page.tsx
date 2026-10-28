@@ -8,6 +8,7 @@ import { Facts } from "@/components/parts/Facts";
 import { ProjectRows } from "@/components/parts/ProjectRow";
 import { MediaFigure } from "@/components/parts/Media";
 import { MockTag } from "@/components/parts/Pills";
+import { SIZES } from "@/lib/image";
 import { caseSlugs, getCase, getWork } from "@/content/get";
 import { getDraftFetchOptions } from "@/sanity/live";
 import { HeroBeat } from "@/components/case/HeroBeat";
@@ -96,6 +97,7 @@ async function Case({ params }: Pick<PageProps<"/work/[slug]">, "params">) {
               <MediaFigure
                 ratio="wide"
                 squareSmall
+                sizes={SIZES.wide}
                 poster={c.hero.poster}
                 video={c.hero.video}
                 alt={c.hero.alt}

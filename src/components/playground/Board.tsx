@@ -7,6 +7,7 @@ import { announce, getMotion, subscribeMotion } from "@/lib/motion";
 import { wessel, type XY } from "@/lib/wessel";
 import { clamp, easeInOutCubic } from "@/lib/math";
 import { narrow } from "@/lib/media";
+import { SIZES, srcSet } from "@/lib/image";
 
 type Item = {
   el: HTMLElement;
@@ -51,6 +52,11 @@ function postEl(p: Post) {
   } else if (p.src) {
     const i = document.createElement("img");
     i.src = p.src;
+    const set = srcSet(p.src);
+    if (set) {
+      i.srcset = set;
+      i.sizes = SIZES.post;
+    }
     i.alt = "";
     i.draggable = false;
     i.loading = "lazy";

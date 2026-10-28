@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { Arrow } from "@/components/parts/Arrow";
 import { MediaFill } from "@/components/parts/Media";
+import { SIZES } from "@/lib/image";
 import { MockTag, Slot } from "@/components/parts/Pills";
 import type { Project } from "@/components/parts/ProjectRow";
 import { EmptyTool, Tools } from "@/components/parts/Tools";
@@ -130,7 +131,7 @@ export function WorkRow({ project: p, hidden, leaving }: { project: Project; hid
               <b className="hsz" ref={size} />
             </span>
           </span>
-          <MediaFill poster={p.media.poster} video={p.media.video} />
+          <MediaFill poster={p.media.poster} video={p.media.video} sizes={SIZES.peek} />
         </span>
       </div>
       <div className="cell ap">

@@ -6,6 +6,7 @@ import { useBeat } from "@/components/canvas/useBeat";
 import type { HomeContent } from "@/content/home";
 import { getMotion } from "@/lib/motion";
 import { live, wait, wessel } from "@/lib/wessel";
+import { SIZES, srcSet } from "@/lib/image";
 
 /**
  * About (DESIGN.md §6): the story left, a deck of three photos right. A
@@ -69,7 +70,7 @@ export function About({ about: c }: { about: HomeContent["about"] }) {
           {c.photos.map((p, i) => (
             <span key={p.src} className="dk" data-p={order.indexOf(i)} data-out={out === i ? "" : undefined}>
               {/* eslint-disable-next-line @next/next/no-img-element -- Sanity's CDN sizes these */}
-              <img src={p.src} alt="" draggable={false} loading={i ? "lazy" : undefined} />
+              <img src={p.src} srcSet={srcSet(p.src)} sizes={SIZES.deck} alt="" draggable={false} loading={i ? "lazy" : undefined} decoding="async" />
             </span>
           ))}
           <span className="cnt text-label" aria-hidden="true">
