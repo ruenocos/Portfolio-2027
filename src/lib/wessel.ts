@@ -127,7 +127,10 @@ export function select(el: HTMLElement, { label = true, ms = 1500, grow = 1 } = 
     },
   };
   sels.add(s);
-  selRaf ||= requestAnimationFrame(fitSels);
+  // Fit at once, so the box never paints at 0,0 and jumps (layout shift).
+  fitSels();
+  cancelAnimationFrame(selRaf);
+  selRaf = requestAnimationFrame(fitSels);
   if (ms) setTimeout(s.done, ms);
   return s;
 }

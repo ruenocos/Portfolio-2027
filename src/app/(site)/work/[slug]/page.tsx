@@ -30,7 +30,7 @@ export async function generateMetadata({ params }: PageProps<"/work/[slug]">): P
 export default function CasePage({ params }: PageProps<"/work/[slug]">) {
   // The slug is URL data: behind Suspense so the shell can show at once.
   return (
-    <Suspense>
+    <Suspense fallback={<div className="min-h-svh" aria-hidden="true" />}>
       <Case params={params} />
     </Suspense>
   );

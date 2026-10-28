@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Bricolage_Grotesque, Geist_Mono, Instrument_Serif } from "next/font/google";
 import { KeepHtml } from "@/components/KeepHtml";
 import { ModeProvider } from "@/components/ModeProvider";
@@ -21,6 +21,9 @@ export const metadata: Metadata = {
   openGraph: { siteName: "Wessel Oud", type: "website", locale: "en" },
   twitter: { card: "summary_large_image" },
 };
+
+// cover lets the Contact pill and menu read env(safe-area-inset-bottom) on notched phones.
+export const viewport: Viewport = { width: "device-width", initialScale: 1, viewportFit: "cover" };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (

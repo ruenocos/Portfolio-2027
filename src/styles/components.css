@@ -921,8 +921,10 @@
     padding-bottom: 4px;
     transition: background-size var(--dur-spring) var(--ease-ui);
   }
+  /* Grape at rest, like every other link arrow; hover slides it. */
   .pj .pl h3 .ta,
   .arow h3 .ta {
+    color: var(--grape);
     display: inline-flex;
     width: 0.62em;
     margin-left: 0.22em;
@@ -984,7 +986,7 @@
   @media (hover: hover) and (pointer: fine) {
     .pj:has(.media[href]) { cursor: pointer; }
     :is(.pj, .arow):is(:hover, :focus-within) h3 .tt { background-size: 100% 2px; }
-    :is(.pj, .arow):is(:hover, :focus-within) h3 .ta { transform: translateX(8px); color: var(--grape); }
+    :is(.pj, .arow):is(:hover, :focus-within) h3 .ta { transform: translateX(8px); }
     .pj:is(:hover, :focus-within) .tools .tool {
       box-shadow:
         0 0 0 3px var(--canvas),

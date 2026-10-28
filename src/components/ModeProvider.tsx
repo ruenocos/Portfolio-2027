@@ -19,7 +19,7 @@ function apply() {
   root.classList.add("mode-fade");
   root.dataset.mode = mode;
   paintThemeColor(mode);
-  window.setTimeout(() => root.classList.remove("mode-fade"), 900);
+  window.setTimeout(() => root.classList.remove("mode-fade"), 600);
   listeners.forEach((fn) => fn());
 }
 

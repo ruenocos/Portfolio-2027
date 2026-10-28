@@ -37,12 +37,12 @@
     },
     "mode": {
       "bezier": [
-        0.2,
+        0.65,
         0,
-        0,
+        0.35,
         1
       ],
-      "ms": 900,
+      "ms": 600,
       "use": "light/dark token cross-fade"
     },
     "press": {
