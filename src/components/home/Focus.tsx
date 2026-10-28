@@ -85,10 +85,11 @@ function Card({
   const dio = () => dios.get(k);
 
   // Wessel uses the scene once (with the card's full hover, so you
-  // see what hovering does).
+  // see what hovering does). In the phone deck his one job is tapping a tool.
   const card = useBeat<HTMLElement>({
     need: NEED,
     async day(g) {
+      if (deck()) return;
       const s = svg.current!;
       const d = dio()!;
       light(k);

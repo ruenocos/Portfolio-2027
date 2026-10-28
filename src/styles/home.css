@@ -846,6 +846,12 @@
     .fig .obj {
       height: 240px;
     }
+    /* In the deck the scene is to look at: swipes pass through to the deck,
+       and the Daily kit tools play it. */
+    .tracks .obj {
+      pointer-events: none;
+      touch-action: auto;
+    }
     .lyr {
       left: var(--spacing-inset);
     }
