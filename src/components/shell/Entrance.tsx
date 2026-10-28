@@ -5,6 +5,7 @@ import { useEffect } from "react";
 import { getMotion } from "@/lib/motion";
 import motionTokens from "../../../design/motion-tokens.json";
 import { cssBezier } from "@/lib/math";
+import { movers } from "@/lib/hairline";
 
 const { easing, transition } = motionTokens;
 
@@ -18,8 +19,7 @@ let from: string | null = null;
 // cell moves. Skipped while calm, and on home's first visit
 // (<html data-boot>), which has its own intro; later visits to home enter
 // like every other page, hero first.
-// Cells and list rows sit on the frame's hairline colour, so it is their
-// content that moves: a fading cell would show that grey through it.
+// Tiles never move themselves, only their content (lib/hairline).
 // Case to case, the case bar holds still (PageSwitch leaves it uncovered).
 export function Entrance() {
   const pathname = usePathname();
@@ -31,8 +31,6 @@ export function Entrance() {
 
     if (here !== pathname) [from, here] = [here, pathname];
     const hold = isCase(from) && isCase(pathname);
-    const inner = (el: HTMLElement) =>
-      [...el.children].filter((k): k is HTMLElement => k instanceof HTMLElement);
 
     const fold = innerHeight * 0.92;
     const seen = (el: Element) => {
@@ -51,7 +49,7 @@ export function Entrance() {
       if (!seen(row) || (hold && row.classList.contains("crumb"))) continue;
       const named = [...row.querySelectorAll<HTMLElement>("[data-enter]")];
       // Only the blocks on the first screen: the rest get the scroll entrance.
-      const own = named.filter(seen);
+      const own = named.filter(seen).flatMap(movers);
       if (named.length && !own.length) continue;
       const cell = row.children[1] as HTMLElement | undefined;
       // A row marked [data-steps] (the case opening) steps through its
@@ -67,8 +65,8 @@ export function Entrance() {
       } else if (own.length) steps.push({ blocks: own, gap: band });
       else if (cell?.classList.contains("ruled")) {
         const rows = [...cell.children].filter((el): el is HTMLElement => el instanceof HTMLElement && seen(el));
-        rows.forEach((el, i) => steps.push({ blocks: inner(el), gap: i ? line : band }));
-      } else if (cell && inner(cell).length) steps.push({ blocks: inner(cell), gap: band });
+        rows.forEach((el, i) => steps.push({ blocks: movers(el), gap: i ? line : band }));
+      } else if (cell && movers(cell).length) steps.push({ blocks: movers(cell), gap: band });
     }
     let d = 0;
     steps.slice(0, 12).forEach(({ blocks, gap }, i) => {

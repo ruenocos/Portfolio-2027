@@ -150,6 +150,7 @@ The values are in `motion-tokens.json`. In short:
 - **UI:** `cubic-bezier(.2,0,0,1)`, 180ms. Hover, focus, toggles.
 - **Stage:** 600ms on the house spring (`linear()` with about 15% overshoot). Used for objects Wessel moves, pills popping in and chips. It is never used for running text.
 - **Entrance (one grammar for every block):** rise 16px + fade. Opacity 560ms `(.33,1,.68,1)`, rise 720ms expo-out `(.16,1,.3,1)`. It starts when the block crosses 92% of the screen. Blocks are staggered top to bottom at 60ms, 3 steps at most, and with no stagger if the block is already above 60% of the screen. Entrances wait up to 120ms while Wessel works.
+- **Tiles never move, their content does** (Wons 2026-10-28): rows, cells and list items are tiles laid on the hairline colour (`--line` shows through the 1px gaps). Anything that fades, rises or dims (load entrance, scroll entrance, text reveal) moves the content inside a tile, never the tile, or the hairline grey shows through it. One helper decides this for every effect: `src/lib/hairline.ts`. The case bar also holds still from case to case.
 - **Magnetism:** the reel and the project media lean toward the pointer, up to ±28px / ±18px with rotation of x × .07deg. They stay still over the middle card.
 - **Smooth scroll:** gentle Lenis (lerp .12), desktop mouse only. Off for touch and reduced motion.
 - **Boot:** 2.4s at most, and any input skips it.
