@@ -9,6 +9,7 @@ import { ThemeSwitch } from "./ThemeSwitch";
 import { Hop } from "./Hop";
 import { NAV } from "./nav";
 import { PauseButton } from "./PauseButton";
+import { useMotion } from "@/components/useMotion";
 import { Smiley } from "./Smiley";
 
 // The sticky header. The "Wessel" wordmark slides in once a page's hero
@@ -19,6 +20,7 @@ export function Header() {
   // Only home has a hero so far; the observer below corrects this either way.
   const [heroIn, setHeroIn] = useState(pathname === "/");
   const [open, setOpen] = useState(false);
+  const { paused } = useMotion();
   const [path, setPath] = useState(pathname);
   if (path !== pathname) {
     setPath(pathname);
@@ -52,21 +54,19 @@ export function Header() {
     const key = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
         setOpen(false);
-        button.current?.focus();
+        // The header is sticky: focusing it must not scroll the page.
+        button.current?.focus({ preventScroll: true });
       }
       if (e.key !== "Tab") return;
       const items: HTMLElement[] = [
         button.current!,
-        ...panel.current!.querySelectorAll("a"),
+        ...panel.current!.querySelectorAll<HTMLElement>("a, button"),
       ];
+      // Every step is ours, so focusing the sticky button never scrolls the page.
+      e.preventDefault();
       const i = items.indexOf(document.activeElement as HTMLElement);
-      if (e.shiftKey && i <= 0) {
-        e.preventDefault();
-        items[items.length - 1].focus();
-      } else if (!e.shiftKey && i === items.length - 1) {
-        e.preventDefault();
-        items[0].focus();
-      }
+      const n = items.length;
+      items[i < 0 ? 0 : (i + (e.shiftKey ? n - 1 : 1)) % n].focus({ preventScroll: true });
     };
     const wide = matchMedia("(width >= 900px)");
     const resize = () => wide.matches && setOpen(false);
@@ -80,6 +80,12 @@ export function Header() {
       wide.removeEventListener("change", resize);
     };
   }, [open]);
+
+  // A tap anywhere on a settings row presses its control. A pointer
+  // convenience only: the control itself is the keyboard stop.
+  const tapRow = (e: React.MouseEvent<HTMLLIElement>) => {
+    if (!(e.target as Element).closest("button")) e.currentTarget.querySelector("button")?.click();
+  };
 
   const links = [
     ...NAV.map((l) => ({ ...l, arrow: undefined })),
@@ -168,6 +174,15 @@ export function Header() {
               </Link>
             </li>
           ))}
+          <li className="mset text-body" onClick={tapRow}>
+            <span aria-hidden="true">Dark mode</span>
+            <ThemeSwitch />
+          </li>
+          <li className="mset text-body" onClick={tapRow}>
+            {/* Same words as the button's name (WCAG 2.5.3). */}
+            <span aria-hidden="true">{paused ? "Play motion" : "Pause motion"}</span>
+            <PauseButton />
+          </li>
         </ul>
       </nav>
     </>

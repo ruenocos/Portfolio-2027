@@ -21,7 +21,7 @@
   .copen h1 {
     text-wrap: balance;
     overflow-wrap: break-word;
-    hyphens: auto;
+    hyphens: manual;
   }
   .copen .ol > p {
     max-width: 520px;
@@ -107,7 +107,7 @@
   }
   .sc h2 {
     overflow-wrap: break-word;
-    hyphens: auto;
+    hyphens: manual;
   }
   .sc .sl {
     max-width: 62ch;

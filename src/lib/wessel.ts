@@ -446,6 +446,8 @@ export const isBusy = () => busy;
 function seen(el: Element, f: number) {
   const r = el.getBoundingClientRect();
   if (!r.height) return false;
+  // Mostly across too: a card slid aside in a swipe deck isn't seen.
+  if (Math.min(r.right, innerWidth) - Math.max(r.left, 0) < r.width * 0.5) return false;
   return Math.min(r.bottom, innerHeight) - Math.max(r.top, 0) >= Math.min(r.height * f, innerHeight * f);
 }
 
