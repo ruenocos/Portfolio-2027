@@ -9,9 +9,10 @@ import type { HomeContent } from "@/content/home";
 import { holdIntro, playIntro } from "@/lib/intro/iris";
 import { getMotion } from "@/lib/motion";
 import { isBusy, live, pageBox, put, putPin, select, wait, wessel, type XY } from "@/lib/wessel";
+import { finePointer, narrow, touch } from "@/lib/media";
+import { SIZES, srcSet } from "@/lib/image";
 
 const calm = () => getMotion().calm;
-const mobile = () => innerWidth < 900;
 const clock = new Intl.DateTimeFormat("en-GB", { hour: "2-digit", minute: "2-digit", timeZone: "Europe/Amsterdam" });
 const zone = () =>
   new Intl.DateTimeFormat("en-GB", { timeZone: "Europe/Amsterdam", timeZoneName: "short" })
@@ -62,7 +63,7 @@ function unprepName(n: HTMLElement) {
 // On short screens he comes up far enough to stay in view (off it, he'd
 // follow you onto the role line).
 const nodSpot = (hero: HTMLElement): [number, number, number] => {
-  if (!mobile()) return [0.32, 1, -44];
+  if (!narrow()) return [0.32, 1, -44];
   const bottom = hero.getBoundingClientRect().bottom + scrollY;
   // Right half of the band: the { About } label sits bottom-left of it.
   return [0.56, 1, Math.max(8, Math.min(24, innerHeight - 64 - bottom))];
@@ -112,7 +113,6 @@ export function Hero({ hero: c }: { hero: HomeContent["hero"] }) {
   const reelOn = useRef(false);
   const nudge = useRef({ on: false, nods: 0, still: 0, nodding: false });
 
-
   // Local time, live, after hydration (so the server never renders a stale one).
   useEffect(() => {
     const tick = () => {
@@ -132,7 +132,7 @@ export function Hero({ hero: c }: { hero: HomeContent["hero"] }) {
       const w = n.clientWidth;
       const base = parseFloat(getComputedStyle(n).fontSize);
       // Phones: the reel has its own row, so the two words fill the line.
-      if (mobile()) {
+      if (narrow()) {
         const words = [...n.querySelectorAll<HTMLElement>(":scope > .w")].reduce((a, el) => a + el.offsetWidth, 0);
         n.style.fontSize = `${Math.min(Math.floor((base * w) / (words + base * 0.25)), 160)}px`;
       } else {
@@ -198,7 +198,7 @@ export function Hero({ hero: c }: { hero: HomeContent["hero"] }) {
     const r = reel.current;
     if (!r) return;
     r.style.transform = "";
-    if (still || !matchMedia("(hover: hover) and (pointer: fine)").matches) return;
+    if (still || !finePointer()) return;
     const m = { x: 0, y: 0, tx: 0, ty: 0 };
     let raf = 0;
     const draw = () => {
@@ -233,7 +233,7 @@ export function Hero({ hero: c }: { hero: HomeContent["hero"] }) {
   useEffect(() => {
     const n = nm.current;
     const r = reel.current;
-    if (!n || !r || !matchMedia("(hover: none)").matches) return;
+    if (!n || !r || !touch()) return;
     const tap = (e: MouseEvent) => {
       if ((e.target as Element).closest(".reel")) return;
       const b = r.getBoundingClientRect();
@@ -365,7 +365,7 @@ export function Hero({ hero: c }: { hero: HomeContent["hero"] }) {
         await breath(200);
         // Phones: no room above the name (the based-in lines sit there), so
         // the pin drops into the reel's corner just under him.
-        await say(returning() ? "Welcome back!" : "Hello!", mobile() ? pp(r, 0, 0, 12, 84) : pp(W, 0.96, 0.04, 10, -6));
+        await say(returning() ? "Welcome back!" : "Hello!", narrow() ? pp(r, 0, 0, 12, 84) : pp(W, 0.96, 0.04, 10, -6));
         await breath(700);
         // Over to the middle of the W, one click: the fill plops in.
         await wessel.go(wessel.at(W, 0.5, 0.55), { k: 150, timeout: 1200 });
@@ -416,12 +416,12 @@ export function Hero({ hero: c }: { hero: HomeContent["hero"] }) {
         wessel.press(true);
         const s = select(r, { label: false, ms: 0, grow: 0.02 });
         // Phones: he lets go just inside the corner so his tag stays off the role.
-        const inset = mobile() ? -16 : 0;
+        const inset = narrow() ? -16 : 0;
         await wessel.drag(wessel.at(r, 0, 0, -2, -2), wessel.at(r, 1, 1, inset, inset), 640, (e) => (s.grow = Math.max(0.02, e)));
         live(g);
         s.grow = 1;
         // Phones: the reel already holds his tag, the pin and the Reel chip; no size label.
-        if (!mobile()) s.size();
+        if (!narrow()) s.size();
         wessel.press(false);
         playReel();
         r.dataset.invite = "";
@@ -429,7 +429,7 @@ export function Hero({ hero: c }: { hero: HomeContent["hero"] }) {
           await wait(300);
           // Phones: the reel is full width, so the pin sits inside it, under its
           // caption, clear of the name, the size label and the role.
-          await say("Have a look", mobile() ? pp(r, 0, 0, 12, 84) : pp(r, 1, 0, 12, -4));
+          await say("Have a look", narrow() ? pp(r, 0, 0, 12, 84) : pp(r, 1, 0, 12, -4));
           await wait(1800);
         } finally {
           s.done();
@@ -440,7 +440,7 @@ export function Hero({ hero: c }: { hero: HomeContent["hero"] }) {
         await wessel.go(wessel.at(h, fx, fy, 0, dy), { k: 150, timeout: 1200 });
         chk();
         // Phones: he parks right of centre, so the pin opens to his left to stay on screen.
-        await say("More below", mobile() ? pp(h, fx, fy, -168, dy + 20) : pp(h, fx, fy, 16, dy - 24));
+        await say("More below", narrow() ? pp(h, fx, fy, -168, dy + 20) : pp(h, fx, fy, 16, dy - 24));
         await nodDown(h);
         nudge.current.on = true;
         await wait(1200);
@@ -544,8 +544,8 @@ export function Hero({ hero: c }: { hero: HomeContent["hero"] }) {
           onClick={openReel}
           data-mock={c.reel.mock ? "" : undefined}
         >
-          {/* eslint-disable-next-line @next/next/no-img-element -- a poster frame, served as it is */}
-          {c.reel.poster && <img src={c.reel.poster} alt="" />}
+          {/* eslint-disable-next-line @next/next/no-img-element -- a poster frame; lib/image does the sizes */}
+          {c.reel.poster && <img src={c.reel.poster} srcSet={srcSet(c.reel.poster)} sizes={SIZES.reel} alt="" fetchPriority="high" />}
           {c.reel.loop && <video ref={loop} data-src={c.reel.loop} muted loop playsInline preload="none" aria-hidden="true" />}
           <i ref={bar} className="ph" />
           <span className="gpill text-micro-caps play" data-size="small">

@@ -6,9 +6,10 @@ import { getMotion } from "@/lib/motion";
 import { getLenis } from "@/lib/scroll";
 import { holdWessel } from "@/lib/wessel";
 import motionTokens from "../../../design/motion-tokens.json";
+import { cssBezier } from "@/lib/math";
 
 const { easing, transition } = motionTokens;
-const ease = `cubic-bezier(${easing.ui.bezier.join(",")})`;
+const ease = cssBezier(easing.ui.bezier);
 const OUT = transition.page.out.ms;
 const IN = transition.page.in.ms;
 

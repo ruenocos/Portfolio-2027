@@ -7,6 +7,8 @@ import { Hop } from "@/components/shell/Hop";
 import { useBeat } from "@/components/canvas/useBeat";
 import type { ArchiveCard } from "@/content/home";
 import { live, wait, wessel } from "@/lib/wessel";
+import { touch } from "@/lib/media";
+import { SIZES, srcSet } from "@/lib/image";
 
 /**
  * Archive (DESIGN.md §6): a hand of cards resting closed at .82, with
@@ -52,7 +54,7 @@ export function Archive({ cards }: { cards: ArchiveCard[] }) {
   // Phones: it fans while it's mostly on screen .
   useEffect(() => {
     const p = beat.current;
-    if (!p || !matchMedia("(hover: none)").matches) return;
+    if (!p || !touch()) return;
     const io = new IntersectionObserver(
       ([e]) => setHover(e.intersectionRatio > 0.6),
       { threshold: [0, 0.6, 1] },
@@ -68,8 +70,8 @@ export function Archive({ cards }: { cards: ArchiveCard[] }) {
         ref={beat}
         className="cell arch"
         data-open={open}
-        onPointerEnter={() => !matchMedia("(hover: none)").matches && setHover(true)}
-        onPointerLeave={() => !matchMedia("(hover: none)").matches && setHover(false)}
+        onPointerEnter={() => !touch() && setHover(true)}
+        onPointerLeave={() => !touch() && setHover(false)}
       >
         <div ref={hand} className="hand" aria-hidden="true">
           {cards.map((c, i) => (
@@ -88,7 +90,7 @@ export function Archive({ cards }: { cards: ArchiveCard[] }) {
               onPointerLeave={() => setHot(null)}
             >
               {/* eslint-disable-next-line @next/next/no-img-element -- small thumbnails */}
-              <img src={c.src} alt="" loading="lazy" draggable={false} />
+              <img src={c.src} srcSet={srcSet(c.src)} sizes={SIZES.archive} alt="" loading="lazy" decoding="async" draggable={false} />
             </span>
           ))}
         </div>

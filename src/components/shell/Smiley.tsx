@@ -3,11 +3,11 @@
 import { useEffect, useRef } from "react";
 import { useMotion } from "@/components/useMotion";
 import { FACE, FEATURES } from "@/lib/smiley";
+import { clamp } from "@/lib/math";
+import { finePointer } from "@/lib/media";
 
 // Wessel's smiley, traced from his sharpie sketch. The features (eyes and
 // mouth) look toward the pointer. Calm = they rest.
-
-const clamp = (v: number) => Math.max(-1, Math.min(1, v));
 
 export function Smiley({
   follow = false,
@@ -23,7 +23,7 @@ export function Smiley({
     const g = feat.current;
     if (!g) return;
     const svg = g.ownerSVGElement!;
-    const fine = matchMedia("(hover: hover) and (pointer: fine)").matches;
+    const fine = finePointer();
     const ptr = { x: innerWidth / 2, y: innerHeight / 2 };
     const cur = [0, 0];
     let raf = 0;
@@ -33,8 +33,8 @@ export function Smiley({
       if (follow && fine && !calm) {
         const r = svg.getBoundingClientRect();
         aim = [
-          clamp((ptr.x - r.left - r.width / 2) / (innerWidth * 0.5)),
-          clamp((ptr.y - r.top - r.height / 2) / (innerHeight * 0.5)),
+          clamp((ptr.x - r.left - r.width / 2) / (innerWidth * 0.5), -1, 1),
+          clamp((ptr.y - r.top - r.height / 2) / (innerHeight * 0.5), -1, 1),
         ];
       }
       const k = calm ? 1 : 0.12;

@@ -4,12 +4,14 @@ import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { Arrow } from "@/components/parts/Arrow";
 import { MediaFill } from "@/components/parts/Media";
+import { SIZES } from "@/lib/image";
 import { MockTag, Slot } from "@/components/parts/Pills";
 import type { Project } from "@/components/parts/ProjectRow";
 import { EmptyTool, Tools } from "@/components/parts/Tools";
 import { useMotion } from "@/components/useMotion";
 import { announce } from "@/lib/motion";
 import motionTokens from "../../../design/motion-tokens.json";
+import { finePointer } from "@/lib/media";
 
 const MAG = motionTokens.magnetism.projectMedia;
 
@@ -23,7 +25,7 @@ function usePeekMagnet() {
     const r = el?.closest(".arow");
     if (!el || !r) return;
     el.style.transform = "";
-    if (calm || !matchMedia("(hover: hover) and (pointer: fine)").matches) return;
+    if (calm || !finePointer()) return;
     const max = MAG.max.match(/\d+/g)!.map(Number);
     const rot = Number(MAG.rotate.match(/[\d.]+/)![0]);
     const m = { x: 0, y: 0, tx: 0, ty: 0 };
@@ -129,7 +131,7 @@ export function WorkRow({ project: p, hidden, leaving }: { project: Project; hid
               <b className="hsz" ref={size} />
             </span>
           </span>
-          <MediaFill poster={p.media.poster} video={p.media.video} />
+          <MediaFill poster={p.media.poster} video={p.media.video} sizes={SIZES.peek} />
         </span>
       </div>
       <div className="cell ap">

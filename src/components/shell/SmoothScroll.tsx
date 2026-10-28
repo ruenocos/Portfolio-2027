@@ -6,6 +6,7 @@ import { useEffect } from "react";
 import { setLenis, getLenis } from "@/lib/scroll";
 import { useMotion } from "@/components/useMotion";
 import motionTokens from "../../../design/motion-tokens.json";
+import { finePointer } from "@/lib/media";
 
 const { lerp, wheelMultiplier } = motionTokens.scroll.lenis;
 
@@ -15,7 +16,7 @@ export function SmoothScroll() {
   const pathname = usePathname();
 
   useEffect(() => {
-    if (calm || !matchMedia("(hover: hover) and (pointer: fine)").matches)
+    if (calm || !finePointer())
       return;
     const lenis = new Lenis({
       lerp,

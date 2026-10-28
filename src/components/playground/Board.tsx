@@ -6,6 +6,9 @@ import { useMotion } from "@/components/useMotion";
 import type { Post } from "@/content/playground";
 import { announce, getMotion, subscribeMotion } from "@/lib/motion";
 import { live, wait, wessel, type XY } from "@/lib/wessel";
+import { clamp, easeInOutCubic } from "@/lib/math";
+import { narrow } from "@/lib/media";
+import { SIZES, srcSet } from "@/lib/image";
 
 type Item = {
   el: HTMLElement;
@@ -32,10 +35,7 @@ const seeded = (seed: number) => () => {
   t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
   return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
 };
-const cl = (v: number, a: number, b: number) => Math.max(a, Math.min(b, v));
-const ease = (k: number) => (k < 0.5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2);
 const calm = () => getMotion().calm;
-const wide = () => innerWidth >= 900;
 
 function postEl(p: Post) {
   const f = document.createElement("figure");
@@ -57,6 +57,11 @@ function postEl(p: Post) {
   } else if (p.src) {
     const i = document.createElement("img");
     i.src = p.src;
+    const set = srcSet(p.src);
+    if (set) {
+      i.srcset = set;
+      i.sizes = SIZES.post;
+    }
     i.alt = "";
     i.draggable = false;
     i.loading = "lazy";
@@ -71,6 +76,13 @@ function postEl(p: Post) {
     m.dataset.mock = "";
     m.textContent = "mock";
     pi.appendChild(m);
+    // The prompt itself, so the empty card says what belongs there.
+    const idea = document.createElement("span");
+    idea.className = "idea text-small";
+    const text = p.title.replace(/^(Loop|Picture) idea: /, "");
+    idea.textContent = text[0].toUpperCase() + text.slice(1);
+    idea.dataset.kind = p.title.startsWith("Loop") ? "Loop" : "Picture";
+    pi.appendChild(idea);
   }
   // Its frame name, like Figma's: just above the top-left corner.
   const fl = document.createElement("figcaption");
@@ -179,7 +191,7 @@ export function Board({ posts }: { posts: Post[] }) {
       world.textContent = "";
       cols = [];
       hov = null;
-      const mob = !wide();
+      const mob = !!narrow();
       const W = cv.clientWidth;
       const H = cv.clientHeight;
       G = mob ? 12 : 24;
@@ -258,7 +270,7 @@ export function Board({ posts }: { posts: Post[] }) {
       const r = cv.getBoundingClientRect();
       return r.top < innerHeight * 0.5 && r.bottom > innerHeight * 0.6;
     };
-    const wesOn = () => !mode.current.still && wide() && onScreen();
+    const wesOn = () => !mode.current.still && !narrow() && onScreen();
     const S = { s: "rest", t: performance.now() + 900, it: null as Item | null, D: [0, 0], from: [0, 0], g: [0, 0], t0: 0, dur: 0, shown: false };
     // His hello comes first (the arrival beat below): he leaves the board
     // alone until it's done, or after a while if it never plays.
@@ -379,8 +391,8 @@ export function Board({ posts }: { posts: Post[] }) {
           return;
         }
         const it = c[Math.floor(Math.random() * c.length)];
-        const dx = cl(W * (0.25 + Math.random() * 0.4) - CW / 2, 80, W - CW - 80);
-        const dy = cl(H * (0.3 + Math.random() * 0.3) - it.h / 2, 80, H - it.h - 80);
+        const dx = clamp(W * (0.25 + Math.random() * 0.4) - CW / 2, 80, W - CW - 80);
+        const dy = clamp(H * (0.3 + Math.random() * 0.3) - it.h / 2, 80, H - it.h - 80);
         // He drops it in a whole column, so the board still rests on the grid.
         Object.assign(S, { it, D: [grid(px + dx - it.x) - px, dy - it.yy], g: [CW * (0.35 + Math.random() * 0.3), it.h * (0.35 + Math.random() * 0.3)], s: "reach", t0: now });
         steer(it.x + S.g[0], it.yy + S.g[1], 160);
@@ -413,7 +425,7 @@ export function Board({ posts }: { posts: Post[] }) {
         return;
       }
       if (S.s === "drag") {
-        const k = ease(Math.min(1, (now - S.t0) / S.dur));
+        const k = easeInOutCubic(Math.min(1, (now - S.t0) / S.dur));
         px = tx = S.from[0] + S.D[0] * k;
         py = ty = S.from[1] + S.D[1] * k;
         target = [it.x + S.g[0], it.yy + S.g[1]];
@@ -532,7 +544,7 @@ export function Board({ posts }: { posts: Post[] }) {
       if (!it || opened) return;
       const W = cv.clientWidth;
       const H = cv.clientHeight;
-      const mob = !wide();
+      const mob = !!narrow();
       // Room under the media for its caption, so the pair sits centred.
       const CAP = 40;
       const s = Math.min((W * (mob ? 0.9 : 0.8)) / CW, (H * (mob ? 0.7 : 0.8) - CAP) / it.h);

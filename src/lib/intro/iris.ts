@@ -15,13 +15,12 @@
 import motionTokens from "../../../design/motion-tokens.json";
 import { BOOT_KEY, getMotion, subscribeMotion } from "../motion";
 import { FACE, FEATURES } from "../smiley";
+import { clamp, lerp } from "../math";
 
 const I = motionTokens.intro;
 const END = I.endS;
 
-const clamp = (v: number, a = 0, b = 1) => Math.min(b, Math.max(a, v));
 const prog = (t: number, [a, b]: number[]) => clamp((t - a) / (b - a));
-const lerp = (a: number, b: number, k: number) => a + (b - a) * k;
 function bezier(x1: number, y1: number, x2: number, y2: number) {
   const f = (t: number, a: number, b: number) => 3 * a * t * (1 - t) ** 2 + 3 * b * t * t * (1 - t) + t ** 3;
   return (x: number) => {

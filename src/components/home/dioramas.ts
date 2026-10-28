@@ -10,6 +10,7 @@
 
 import { getMotion } from "@/lib/motion";
 import { FEATURES } from "@/lib/smiley";
+import { easeInOutCubic } from "@/lib/math";
 
 export type DioKind = "ux" | "motion" | "ai";
 
@@ -144,8 +145,6 @@ const plate = () =>
     0.45,
   ) + DOTS;
 
-const easeInOut = (u: number) => (u < 0.5 ? 4 * u * u * u : 1 - Math.pow(-2 * u + 2, 3) / 2);
-
 // ---------- the three scenes ----------
 type Scene = { springs: Spring[]; on: boolean; t: number; scrub: boolean };
 
@@ -211,10 +210,10 @@ function drawMotion({ t }: Scene) {
     s += `<polygon points="${pts(sq)}" fill="var(--canvas)" stroke="var(--tang)" stroke-width="1"/>`;
   }
   for (const g of [0.2, 0.4, 0.6, 0.8]) {
-    const [x, y] = bez(easeInOut(g));
+    const [x, y] = bez(easeInOutCubic(g));
     s += ghostDisc(x, y, z + Math.sin(Math.PI * g) * 1.4, 0.75, 0.5);
   }
-  const [x, y] = bez(easeInOut(t));
+  const [x, y] = bez(easeInOutCubic(t));
   const hop = Math.sin(Math.PI * t) * 1.4;
   const [px, py] = IP(x, y, z);
   s += `<ellipse cx="${px.toFixed(1)}" cy="${py.toFixed(1)}" rx="${(10 - hop * 2).toFixed(1)}" ry="${(5.6 - hop).toFixed(1)}" fill="var(--ink)" opacity=".08"/>`;

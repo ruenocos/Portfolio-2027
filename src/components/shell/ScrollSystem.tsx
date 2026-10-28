@@ -5,10 +5,9 @@ import { usePathname } from "next/navigation";
 import { useEffect } from "react";
 import { useMotion } from "@/components/useMotion";
 import motionTokens from "../../../design/motion-tokens.json";
+import { clamp, cssBezier } from "@/lib/math";
 
 const { easing, entrance, scrollSystem: sx } = motionTokens;
-const bezier = (b: number[]) => `cubic-bezier(${b.join(",")})`;
-const clamp = (v: number, a = 0, b = 1) => Math.min(b, Math.max(a, v));
 const out3 = (x: number) => 1 - (1 - x) ** 3;
 
 // What counts as reading text, and what never reveals: mono labels, pills,
@@ -270,13 +269,13 @@ function start() {
         const opacity = el.animate([{ opacity: 0 }, { opacity: 1 }], {
           duration: easing["enter-opacity"].ms,
           delay,
-          easing: bezier(easing["enter-opacity"].bezier),
+          easing: cssBezier(easing["enter-opacity"].bezier),
           fill: "backwards",
         });
         const rise = el.animate([{ translate: `0 ${easing["enter-rise"].distance}` }, { translate: "0 0" }], {
           duration: easing["enter-rise"].ms,
           delay,
-          easing: bezier(easing["enter-rise"].bezier),
+          easing: cssBezier(easing["enter-rise"].bezier),
           fill: "backwards",
         });
         for (const a of [opacity, rise]) {

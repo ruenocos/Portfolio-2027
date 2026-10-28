@@ -4,8 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { useBeat } from "@/components/canvas/useBeat";
 import type { Job } from "@/content/about";
 import { live, wait, wessel } from "@/lib/wessel";
-
-const touch = () => matchMedia("(hover: none)").matches;
+import { touch } from "@/lib/media";
 
 /**
  * Experience as a layers list: one selection box springs to the row you

@@ -11,6 +11,7 @@ import { NAV } from "./nav";
 import { PauseButton } from "./PauseButton";
 import { useMotion } from "@/components/useMotion";
 import { Smiley } from "./Smiley";
+import { STACK_PX } from "@/lib/media";
 
 // The sticky header. The "Wessel" wordmark slides in once a page's hero
 // ([data-hero]) has scrolled away; pages without a hero show it at once.
@@ -68,7 +69,7 @@ export function Header() {
       const n = items.length;
       items[i < 0 ? 0 : (i + (e.shiftKey ? n - 1 : 1)) % n].focus({ preventScroll: true });
     };
-    const wide = matchMedia("(width >= 900px)");
+    const wide = matchMedia(`(width >= ${STACK_PX}px)`);
     const resize = () => wide.matches && setOpen(false);
     addEventListener("keydown", key);
     wide.addEventListener("change", resize);

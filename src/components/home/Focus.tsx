@@ -8,6 +8,7 @@ import { getMotion } from "@/lib/motion";
 import { TOOLS, toolSrc, type ToolId } from "@/lib/tools";
 import { live, wait, wessel, type XY } from "@/lib/wessel";
 import { createDio, type Dio, type DioKind } from "./dioramas";
+import { narrow, touch } from "@/lib/media";
 
 const KIT: ToolId[] = ["figma", "illustrator", "after-effects", "lottiefiles", "claude"];
 // Frame numbers, and what each scene shows.
@@ -17,9 +18,8 @@ const FRAME: Record<DioKind, { n: number; alt: string }> = {
   ai: { n: 14, alt: "One block goes into a machine and comes out as a batch" },
 };
 const NEED = 0.6;
-const touch = () => matchMedia("(hover: none)").matches;
 // Below 900 the three cards are a swipe deck, one at a time (mobile check v02, F1).
-const deck = () => innerWidth < 900;
+const deck = narrow;
 const ctr = (el: Element, fx = 0.55, fy = 0.6) => (): XY => {
   const r = el.getBoundingClientRect();
   return [r.left + r.width * fx, r.top + r.height * fy];

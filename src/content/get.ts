@@ -1,4 +1,5 @@
 import type { Project } from "@/components/parts/ProjectRow";
+import { IS_PRODUCTION } from "@/lib/site";
 import { knownTools } from "@/lib/tools";
 import { client, urlFor } from "@/sanity/client";
 import { cachedSanity, published, type FetchOptions } from "@/sanity/live";
@@ -6,7 +7,7 @@ import { ABOUT_QUERY, CASE_QUERY, CASE_SLUGS_QUERY, HOME_QUERY, PLAYGROUND_QUERY
 import { FALLBACK_HOME, type HomeContent, type Track } from "./home";
 import { FALLBACK_ABOUT, type AboutContent, type Sticker } from "./about";
 import { FALLBACK_CASES, type Case, type CaseSection } from "./cases";
-import { FALLBACK_POSTS, type Post } from "./playground";
+import { FALLBACK_POSTS, PLAYGROUND_TARGET, type Post } from "./playground";
 import { FALLBACK_PROJECTS } from "./projects";
 
 /** A Sanity image as the queries return it: the asset plus the Studio's crop and focal point. */
@@ -277,8 +278,14 @@ export async function getPosts(o: FetchOptions = published): Promise<Post[]> {
   try {
     const { data } = await cachedSanity({ query: PLAYGROUND_QUERY, perspective: o.perspective, stega: o.stega });
     const rows = (data as unknown as { title: string; src: string; video?: string; w?: number; h?: number }[] | null) ?? [];
-    if (rows.length)
-      return rows.map((r) => ({ title: r.title, src: img(r.src, 640), video: r.video, ar: r.w && r.h ? r.w / r.h : 1 }));
+    if (rows.length) {
+      const real: Post[] = rows.map((r) => ({ title: r.title, src: img(r.src, 640), video: r.video, ar: r.w && r.h ? r.w / r.h : 1 }));
+      // Until there are enough, previews top the board up with the prompt
+      // cards (what kind of piece fits). The live site shows only real posts.
+      if (IS_PRODUCTION) return real;
+      const prompts = FALLBACK_POSTS.filter((p) => p.mock).slice(0, Math.max(0, PLAYGROUND_TARGET - real.length));
+      return [...real, ...prompts];
+    }
   } catch (e) {
     console.warn("Playground: Sanity unavailable, using the fallback posts.", e);
   }

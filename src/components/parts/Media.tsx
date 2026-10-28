@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useMotion } from "@/components/useMotion";
 import motionTokens from "../../../design/motion-tokens.json";
+import { SIZES, srcSet } from "@/lib/image";
 import { MockTag } from "./Pills";
 
 const RATE = motionTokens.video.playbackRate;
@@ -60,17 +61,28 @@ export function useInViewVideo(rate = RATE) {
   return [video, on] as const;
 }
 
-export type MediaSrc = { poster?: string; video?: string; alt?: string };
+export type MediaSrc = { poster?: string; video?: string; alt?: string; sizes?: string };
 
 /** The picture inside a media frame: poster, plus a loop if there is one. */
-export function MediaFill({ poster, video, alt = "", rate }: MediaSrc & { rate?: number }) {
+export function MediaFill({ poster, video, alt = "", rate, sizes = SIZES.project }: MediaSrc & { rate?: number }) {
   const [ref, on] = useInViewVideo(rate);
   const [err, setErr] = useState(false);
   return (
     <span className="clip">
-      {/* Posters come from Sanity's image CDN in Phase 4; a plain img keeps them out of next/image's resizer. */}
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      {poster && <img src={poster} alt={alt} data-err={err} onError={() => setErr(true)} loading="lazy" decoding="async" />}
+      {/* A plain img: Sanity's CDN or Next's optimizer does the resizing (lib/image). */}
+      {poster && (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={poster}
+          srcSet={srcSet(poster)}
+          sizes={sizes}
+          alt={alt}
+          data-err={err}
+          onError={() => setErr(true)}
+          loading="lazy"
+          decoding="async"
+        />
+      )}
       {video && <video ref={ref} data-src={video} poster={poster} muted loop playsInline preload="none" data-on={on} aria-hidden="true" />}
     </span>
   );
@@ -89,6 +101,7 @@ export function Media({
   alt,
   rate,
   placeholder,
+  sizes,
   print,
   squareSmall,
   className = "",
@@ -111,7 +124,7 @@ export function Media({
       data-print={print ? "" : undefined}
       data-square-small={squareSmall ? "" : undefined}
     >
-      {empty ? <MockTag>{placeholder ?? "Media to come"}</MockTag> : <MediaFill poster={poster} video={video} alt={alt} rate={rate} />}
+      {empty ? <MockTag>{placeholder ?? "Media to come"}</MockTag> : <MediaFill poster={poster} video={video} alt={alt} rate={rate} sizes={sizes} />}
       {children}
     </span>
   );

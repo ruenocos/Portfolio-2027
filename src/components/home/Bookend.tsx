@@ -7,7 +7,7 @@ import { useMotion } from "@/components/useMotion";
 import { getMotion } from "@/lib/motion";
 import { isBusy, live, select, wait, wessel } from "@/lib/wessel";
 import { NAME } from "./name-paths";
-
+import { narrow } from "@/lib/media";
 
 const pieces = (n: HTMLElement | null) => [...(n?.children ?? [])] as HTMLElement[];
 const paste = (n: HTMLElement | null, on: boolean) => pieces(n).forEach((p) => p.toggleAttribute("data-in", on));
@@ -92,7 +92,7 @@ export function Bookend() {
         s.done();
         live(g);
       }
-      const mob = innerWidth < 900;
+      const mob = narrow();
       // He rests under the smiley, clear of both words.
       await wessel.go(wessel.at(bkn.current!, 0.5, 1, mob ? -6 : -8, mob ? 26 : 34));
     },
