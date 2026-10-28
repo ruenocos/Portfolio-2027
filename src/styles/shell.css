@@ -437,8 +437,10 @@
     .hd .mid {
       padding: 0 var(--spacing-side);
     }
+    /* Phones: the bar is just logo and menu; Dark mode and Pause motion
+       live in the menu (header H1, 2026-10-28). */
     .hd .ctw {
-      gap: 14px;
+      display: none;
     }
     .hd .end {
       padding: 0 var(--spacing-side);
@@ -556,6 +558,41 @@
     .mnav a:focus-visible {
       outline-offset: -6px;
     }
+    /* Settings rows under the links: a label left, its control right. */
+    .mnav .mset {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      min-height: 72px;
+      padding: 0 var(--spacing-inset);
+    }
+    .mnav .mset .pzb {
+      width: var(--spacing-tap);
+      height: var(--spacing-tap);
+      margin-left: 0;
+    }
+    .mnav .mset .dn {
+      width: 72px;
+      height: var(--spacing-tap);
+      border-radius: 22px;
+    }
+    .mnav .mset .dn .k {
+      width: 36px;
+      height: 36px;
+    }
+    .mnav .mset .dn[aria-checked="true"] .k {
+      transform: translateX(28px);
+    }
+    .mnav .mset .dn .i {
+      top: 14px;
+    }
+    .mnav .mset .dn .sun {
+      left: 14px;
+    }
+    .mnav .mset .dn .moon {
+      right: 14px;
+    }
     /* Only the root: it locks the viewport. Hiding body too makes body its
        own scroller, which unsticks the header and drops you at the top. */
     .menu-open {
@@ -609,46 +646,6 @@
     }
   }
 
-  @media (width < 600px) {
-    .dn,
-    .dn[aria-checked="true"] {
-      width: var(--spacing-tap);
-      height: var(--spacing-tap);
-      border-radius: 50%;
-    }
-    .dn::before {
-      inset: 0;
-    }
-    .dn .k,
-    .dn[aria-checked="true"] .k {
-      left: 5px;
-      top: 5px;
-      width: 32px;
-      height: 32px;
-      transform: none;
-    }
-    .dn .i {
-      top: 14px;
-      left: 14px;
-      right: auto;
-      color: var(--on-grape);
-    }
-    .dn .moon,
-    .dn[aria-checked="true"] .sun {
-      opacity: 0;
-    }
-    .dn[aria-checked="true"] .moon {
-      opacity: 1;
-    }
-    .pzb {
-      width: var(--spacing-tap);
-      height: var(--spacing-tap);
-      margin-left: -8px; /* 6px after the switch */
-    }
-    .pzb::before {
-      inset: 0;
-    }
-  }
 }
 
 @keyframes hop {

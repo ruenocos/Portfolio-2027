@@ -9,6 +9,7 @@ import { ThemeSwitch } from "./ThemeSwitch";
 import { Hop } from "./Hop";
 import { NAV } from "./nav";
 import { PauseButton } from "./PauseButton";
+import { useMotion } from "@/components/useMotion";
 import { Smiley } from "./Smiley";
 
 // The sticky header. The "Wessel" wordmark slides in once a page's hero
@@ -19,6 +20,7 @@ export function Header() {
   // Only home has a hero so far; the observer below corrects this either way.
   const [heroIn, setHeroIn] = useState(pathname === "/");
   const [open, setOpen] = useState(false);
+  const { paused } = useMotion();
   const [path, setPath] = useState(pathname);
   if (path !== pathname) {
     setPath(pathname);
@@ -57,7 +59,7 @@ export function Header() {
       if (e.key !== "Tab") return;
       const items: HTMLElement[] = [
         button.current!,
-        ...panel.current!.querySelectorAll("a"),
+        ...panel.current!.querySelectorAll<HTMLElement>("a, button"),
       ];
       const i = items.indexOf(document.activeElement as HTMLElement);
       if (e.shiftKey && i <= 0) {
@@ -168,6 +170,15 @@ export function Header() {
               </Link>
             </li>
           ))}
+          <li className="mset text-body">
+            <span aria-hidden="true">Dark mode</span>
+            <ThemeSwitch />
+          </li>
+          <li className="mset text-body">
+            {/* Same words as the button's name (WCAG 2.5.3). */}
+            <span aria-hidden="true">{paused ? "Play motion" : "Pause motion"}</span>
+            <PauseButton />
+          </li>
         </ul>
       </nav>
     </>
