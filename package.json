@@ -9,7 +9,8 @@
     "prebuild": "npm run tokens",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "typecheck": "next typegen && tsc --noEmit"
   },
   "dependencies": {
     "@sanity/image-url": "2.1.1",

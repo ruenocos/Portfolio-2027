@@ -3,7 +3,7 @@
 import { Row } from "@/components/shell/Row";
 
 // Proposed copy, marked data-mock until Wons picks the wording.
-export default function Error({ reset }: { error: Error; reset: () => void }) {
+export default function ErrorPage({ reset }: { error: Error; reset: () => void }) {
   return (
     <Row as="section" className="p-inset min-h-[60svh] flex flex-col justify-end gap-4" data-mock>
       <p className="text-label text-mute">

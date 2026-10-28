@@ -5,6 +5,8 @@ import { useMotion } from "@/components/useMotion";
 import type { Post } from "@/content/playground";
 import { announce, getMotion, subscribeMotion } from "@/lib/motion";
 import { wessel, type XY } from "@/lib/wessel";
+import { clamp, easeInOutCubic } from "@/lib/math";
+import { narrow } from "@/lib/media";
 
 type Item = {
   el: HTMLElement;
@@ -30,10 +32,7 @@ const shuffle = <T,>(a: readonly T[]) => {
   }
   return b;
 };
-const cl = (v: number, a: number, b: number) => Math.max(a, Math.min(b, v));
-const ease = (k: number) => (k < 0.5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2);
 const calm = () => getMotion().calm;
-const wide = () => innerWidth >= 900;
 
 function postEl(p: Post) {
   const f = document.createElement("figure");
@@ -125,7 +124,7 @@ export function Board({ posts }: { posts: Post[] }) {
     const build = () => {
       world.textContent = "";
       cols = [];
-      const mob = !wide();
+      const mob = !!narrow();
       CW = mob ? 170 : 300;
       G = mob ? 12 : 24;
       const n = Math.max(8, Math.ceil(cv.clientWidth / (CW + G)) + 2);
@@ -173,7 +172,7 @@ export function Board({ posts }: { posts: Post[] }) {
       const r = cv.getBoundingClientRect();
       return r.top < innerHeight * 0.4 && r.bottom > innerHeight * 0.6;
     };
-    const wesOn = () => !mode.current.still && wide() && onScreen();
+    const wesOn = () => !mode.current.still && !narrow() && onScreen();
     const S = { s: "rest", t: performance.now() + 900, it: null as Item | null, D: [0, 0], from: [0, 0], g: [0, 0], t0: 0, dur: 0 };
     let pausedTill = 0;
     let target: XY | null = null;
@@ -251,8 +250,8 @@ export function Board({ posts }: { posts: Post[] }) {
           return;
         }
         const it = c[Math.floor(Math.random() * c.length)];
-        const dx = cl(W * (0.25 + Math.random() * 0.4) - CW / 2, 80, W - CW - 80);
-        const dy = cl(H * (0.3 + Math.random() * 0.3) - it.h / 2, 80, H - it.h - 80);
+        const dx = clamp(W * (0.25 + Math.random() * 0.4) - CW / 2, 80, W - CW - 80);
+        const dy = clamp(H * (0.3 + Math.random() * 0.3) - it.h / 2, 80, H - it.h - 80);
         Object.assign(S, { it, D: [dx - it.x, dy - it.yy], g: [CW * (0.35 + Math.random() * 0.3), it.h * (0.35 + Math.random() * 0.3)], s: "reach", t0: now });
         steer(it.x + S.g[0], it.yy + S.g[1], 160);
         return;
@@ -284,7 +283,7 @@ export function Board({ posts }: { posts: Post[] }) {
         return;
       }
       if (S.s === "drag") {
-        const k = ease(Math.min(1, (now - S.t0) / S.dur));
+        const k = easeInOutCubic(Math.min(1, (now - S.t0) / S.dur));
         px = tx = S.from[0] + S.D[0] * k;
         py = ty = S.from[1] + S.D[1] * k;
         target = [it.x + S.g[0], it.yy + S.g[1]];
@@ -388,7 +387,7 @@ export function Board({ posts }: { posts: Post[] }) {
       if (!it || opened) return;
       const W = cv.clientWidth;
       const H = cv.clientHeight;
-      const mob = !wide();
+      const mob = !!narrow();
       const s = Math.min((W * (mob ? 0.9 : 0.8)) / CW, (H * (mob ? 0.7 : 0.8)) / it.h);
       const w = CW * s;
       const h = it.h * s;

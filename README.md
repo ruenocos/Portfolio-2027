@@ -56,8 +56,8 @@ Motion:
   moves by itself checks `calm` and shows its end state. `<html>` mirrors it
   before the first paint (`.pz`, `data-motion="calm|full"`).
 - Lenis (lerp .12) runs on desktop mouse only, never while calm.
-- Page changes cross-fade: 240ms out, then 240ms in (`PageFade`, React
-  `<ViewTransition>`). Then the first screen's `main [data-row]`s play the
+- Page changes cross-fade: 240ms out, then 240ms in (`PageSwitch` lays a
+  canvas-coloured veil over the content column; `PageFade` is its wrapper). Then the first screen's `main [data-row]`s play the
   house entrance (rise 16px + fade, 80ms apart). A row can mark its own
   blocks with `data-enter`. Home's first-visit intro (Iris,
   `src/lib/intro/iris.ts`) skips it through `<html data-boot>`, which

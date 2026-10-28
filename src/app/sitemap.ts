@@ -1,9 +1,12 @@
 import type { MetadataRoute } from "next";
+import { caseSlugs } from "@/content/get";
 import { PAGES, SITE_URL } from "@/lib/site";
 
-// Case pages join this in Phase 4, from Sanity.
+// The real pages plus every case page that's built (the same list as
+// generateStaticParams in work/[slug]).
 export default function sitemap(): MetadataRoute.Sitemap {
-  return PAGES.map((path) => ({
+  const paths = [...PAGES, ...caseSlugs().map((slug) => `/work/${slug}`)];
+  return paths.map((path) => ({
     url: `${SITE_URL}${path === "/" ? "" : path}`,
   }));
 }

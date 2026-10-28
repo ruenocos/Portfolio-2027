@@ -6,6 +6,7 @@ import { MockTag } from "@/components/parts/Pills";
 import { useMotion } from "@/components/useMotion";
 import type { CaseSection } from "@/content/cases";
 import { wessel, type XY } from "@/lib/wessel";
+import { narrow } from "@/lib/media";
 
 // The reading line: a section is "the one you're reading" once its top
 // passes 40% of the screen.
@@ -82,7 +83,7 @@ export function Read({ sections }: { sections: CaseSection[] }) {
     // Just past the label (capped, so his tag stays inside the panel).
     // Once the read is behind you he lets go, so he doesn't sit on the end.
     const target = (): XY | null => {
-      if (innerWidth < 900) return null;
+      if (narrow()) return null;
       const rd = root.current?.getBoundingClientRect();
       if (!rd || rd.bottom < innerHeight * 0.5) return null;
       const r = a.getBoundingClientRect();
@@ -116,7 +117,7 @@ export function Read({ sections }: { sections: CaseSection[] }) {
   return (
     <>
       <div ref={root} className="rd">
-        <aside className="cell lay" aria-label="Contents">
+        <nav className="cell lay" aria-label="Contents">
           <div className="lp">
             <p className="lh text-label text-mute">Layers</p>
             <ol ref={list} className="ly">
@@ -147,7 +148,7 @@ export function Read({ sections }: { sections: CaseSection[] }) {
               </>
             )}
           </div>
-        </aside>
+        </nav>
         <div className="secs">
           {sections.map((s) => (
             <article key={s.key} id={s.key} className="cell sc" tabIndex={-1} aria-labelledby={`h-${s.key}`}>

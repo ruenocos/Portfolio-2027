@@ -17,6 +17,8 @@
 import motionTokens from "../../design/motion-tokens.json";
 import { getMotion, subscribeMotion } from "./motion";
 import { smileySvg } from "./smiley";
+import { clamp, easeInOutCubic, lerp } from "./math";
+import { narrow } from "./media";
 
 const { wessel: T } = motionTokens;
 const S = T.spring;
@@ -26,14 +28,10 @@ type Target = XY | (() => XY | null);
 type Spring = { k: number; z: number };
 
 export const wait = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
-const cl = (v: number, a = 0, b = 1) => Math.max(a, Math.min(b, v));
-const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
-const easeInOut = (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
 const calm = () => getMotion().calm;
 // The sticky header's height (--spacing-header), read once.
 let hdr = 0;
 const header = () => (hdr ||= parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--spacing-header")) || 90);
-const mobile = () => innerWidth < 900;
 
 // ---------- generations ----------
 // A mode change or a page change starts a new generation; a running beat
@@ -207,7 +205,7 @@ function home(): XY {
     return [W.anchor[0] - scrollX, y < 0 ? innerHeight * 0.22 : innerHeight * 0.78];
   }
   W.parked = false;
-  return [innerWidth - (mobile() ? 64 : 120), innerHeight * 0.74];
+  return [innerWidth - (narrow() ? 64 : 120), innerHeight * 0.74];
 }
 
 let lastT: number | null = null;
@@ -227,7 +225,7 @@ function tick(n: number) {
   const driving = !!t;
   // A job that scrolls away: he reaches for it from the edge instead of leaving.
   // Never on the sticky header: his target stays below it.
-  if (t) t = [t[0], cl(t[1], header() + 24, innerHeight - 40)];
+  if (t) t = [t[0], clamp(t[1], header() + 24, innerHeight - 40)];
   if (!t) t = home();
   const parked = !driving && W.parked;
 
@@ -284,7 +282,7 @@ export const wessel = {
     // Lost off screen: he comes back in from the edge he left by.
     if (t && !calm() && W.shown && (W.y < -60 || W.y > innerHeight + 60)) {
       W.y = W.y < 0 ? -40 : innerHeight + 40;
-      W.x = cl(t[0] + 80, 20, innerWidth - 20);
+      W.x = clamp(t[0] + 80, 20, innerWidth - 20);
       W.vx = W.vy = 0;
     }
     return new Promise<void>((res) => {
@@ -303,7 +301,7 @@ export const wessel = {
       const t0 = performance.now();
       W.spring = { k: 1400, z: S.beat.z };
       W.drive = () => {
-        const e = easeInOut(calm() ? 1 : cl((performance.now() - t0) / ms));
+        const e = easeInOutCubic(calm() ? 1 : clamp((performance.now() - t0) / ms));
         step?.(e);
         const A = a();
         const B = b();

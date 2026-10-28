@@ -125,6 +125,9 @@ export function PhotoStack({ photos }: { photos: Photo[] }) {
             toss(1, 0);
           }
         }}
+        // A screen reader's "activate" sends a click with no pointer behind it
+        // (detail 0). Taps and drags are handled on the card itself.
+        onClick={(e) => e.detail === 0 && toss(1, 0)}
         data-enter
       >
         {order

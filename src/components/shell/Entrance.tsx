@@ -4,9 +4,9 @@ import { usePathname } from "next/navigation";
 import { useEffect } from "react";
 import { getMotion } from "@/lib/motion";
 import motionTokens from "../../../design/motion-tokens.json";
+import { cssBezier } from "@/lib/math";
 
 const { easing, transition } = motionTokens;
-const bezier = (b: number[]) => `cubic-bezier(${b.join(",")})`;
 
 // The house entrance on load: the first screen's rows rise 16px and fade in,
 // top to bottom, 80ms apart, 4 steps at most. Rows are main's [data-row]s;
@@ -41,7 +41,7 @@ export function Entrance() {
         el.animate([{ opacity: 0 }, { opacity: 1 }], {
           duration: easing["enter-opacity"].ms,
           delay: d,
-          easing: bezier(easing["enter-opacity"].bezier),
+          easing: cssBezier(easing["enter-opacity"].bezier),
           fill: "backwards",
         });
         el.animate(
@@ -52,7 +52,7 @@ export function Entrance() {
           {
             duration: easing["enter-rise"].ms,
             delay: d,
-            easing: bezier(easing["enter-rise"].bezier),
+            easing: cssBezier(easing["enter-rise"].bezier),
             fill: "backwards",
           },
         );

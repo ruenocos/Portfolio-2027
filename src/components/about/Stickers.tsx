@@ -6,6 +6,7 @@ import { useBeat } from "@/components/canvas/useBeat";
 import type { Sticker } from "@/content/about";
 import { announce, getMotion } from "@/lib/motion";
 import { live, wait, wessel, type XY } from "@/lib/wessel";
+import { narrow } from "@/lib/media";
 
 type Matter = typeof import("matter-js");
 type Pile = {
@@ -126,7 +127,7 @@ export function Stickers({ items }: { items: Sticker[] }) {
     const b = board.current!;
     const W = b.clientWidth;
     const H = b.clientHeight;
-    const pad = innerWidth < 900 ? 20 : 40;
+    const pad = narrow() ? 20 : 40;
     const gap = 10;
     const order = items.map((_, i) => i).sort((x, y) => rank(items[x]) - rank(items[y]));
     const rows: number[][] = [[]];

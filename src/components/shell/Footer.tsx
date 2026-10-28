@@ -8,9 +8,10 @@ import { Row } from "./Row";
 
 // Every "Contact ↓" lands here (#contact). There is no contact page.
 // On home the bookend sits right above it, in place of the spacer.
+// One <footer>, so screen readers get the page's contentinfo landmark.
 export function Footer() {
   return (
-    <>
+    <footer className="site-foot">
       {/* Named like every other band, so "Contact ↓" lands on a label. */}
       <div className="frame divider divider-tall footer-air" aria-hidden="true">
         <div className="side" />
@@ -33,6 +34,7 @@ export function Footer() {
             <h3 className="text-lead">Elsewhere</h3>
             <a className="l" href={LINKEDIN} target="_blank" rel="noopener">
               <Hop text="LinkedIn" />
+              <span className="sr-only"> (opens in a new tab)</span>
               <span className="ext" aria-hidden="true">
                 <Arrow dir="out" />
               </span>
@@ -59,6 +61,6 @@ export function Footer() {
         <span>© 2027 Wessel Oud</span>
         <span>Made in the Netherlands</span>
       </Row>
-    </>
+    </footer>
   );
 }

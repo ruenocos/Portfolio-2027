@@ -5,6 +5,7 @@ import { useEffect, useRef } from "react";
 import { afterIntro } from "@/lib/intro/iris";
 import { TIP, arrive, attachWessel, newPage } from "@/lib/wessel";
 import { Cursor } from "./canvas/Cursor";
+import { finePointer } from "@/lib/media";
 
 // Wessel's layer. It lives in the root layout so he survives page changes:
 // one Wessel on screen, always. The engine (lib/wessel) moves him; pages
@@ -32,7 +33,7 @@ export function CursorLayer() {
 
   useEffect(() => {
     const y = you.current;
-    if (!y || !matchMedia("(hover: hover) and (pointer: fine)").matches) return;
+    if (!y || !finePointer()) return;
     const root = document.documentElement;
     const tag = y.querySelector(".tag b")!;
     root.classList.add("youcur");

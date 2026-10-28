@@ -10,6 +10,7 @@ import { EmptyTool, Tools } from "@/components/parts/Tools";
 import { useMotion } from "@/components/useMotion";
 import { announce } from "@/lib/motion";
 import motionTokens from "../../../design/motion-tokens.json";
+import { finePointer } from "@/lib/media";
 
 const MAG = motionTokens.magnetism.projectMedia;
 
@@ -23,7 +24,7 @@ function usePeekMagnet() {
     const r = el?.closest(".arow");
     if (!el || !r) return;
     el.style.transform = "";
-    if (calm || !matchMedia("(hover: hover) and (pointer: fine)").matches) return;
+    if (calm || !finePointer()) return;
     const max = MAG.max.match(/\d+/g)!.map(Number);
     const rot = Number(MAG.rotate.match(/[\d.]+/)![0]);
     const m = { x: 0, y: 0, tx: 0, ty: 0 };

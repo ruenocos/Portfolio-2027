@@ -13,11 +13,11 @@ import motionTokens from "../../../design/motion-tokens.json";
 import { MediaFill } from "./Media";
 import { MockTag, Slot } from "./Pills";
 import { EmptyTool, Tools } from "./Tools";
+import { finePointer, narrow } from "@/lib/media";
 
 const MAG = motionTokens.magnetism.projectMedia;
 const NEED = motionTokens.wessel.need.projectRow;
 const PIN_MS = motionTokens.wessel.pin.showMs;
-const mobile = () => innerWidth < 900;
 
 export type Project = {
   title: string;
@@ -51,7 +51,7 @@ function useMagnet() {
     const r = el?.closest(".pj");
     if (!el || !r) return;
     el.style.transform = "";
-    if (calm || !matchMedia("(hover: hover) and (pointer: fine)").matches) return;
+    if (calm || !finePointer()) return;
     const max = MAG.max.match(/\d+/g)!.map(Number);
     const rot = Number(MAG.rotate.match(/[\d.]+/)![0]);
     const m = { x: 0, y: 0, tx: 0, ty: 0 };
@@ -107,7 +107,7 @@ export function ProjectRow({ project: p, hidden, leaving }: { project: Project; 
     const m = media.current;
     if (!el || !m) return;
     const s = p.note?.spot ?? { fx: 0.6, dy: 30, rot: -2 };
-    const small = mobile();
+    const small = narrow();
     el.style.setProperty("--px", `${small ? 16 : m.offsetWidth * s.fx * 0.45}px`);
     el.style.setProperty("--py", `${small ? 16 : s.dy}px`);
     el.style.setProperty("--rot", `${small ? s.rot * 0.5 : s.rot}deg`);
@@ -155,9 +155,9 @@ export function ProjectRow({ project: p, hidden, leaving }: { project: Project; 
         () => {
           const r = el.querySelector(".bub")!.getBoundingClientRect();
           const b = m.getBoundingClientRect();
-          return mobile() ? [r.left + 24, r.top - 44] : [b.right + 12, r.top + r.height * 0.6];
+          return narrow() ? [r.left + 24, r.top - 44] : [b.right + 12, r.top + r.height * 0.6];
         },
-        { k: 160, timeout: 700, lean: !mobile() },
+        { k: 160, timeout: 700, lean: !narrow() },
       );
     },
     // Calm: his pin is simply there, where he'd have dropped it.

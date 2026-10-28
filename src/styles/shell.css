@@ -299,6 +299,13 @@
   }
 
   /* ---------- footer ---------- */
+  /* Its bands share hairlines like main's rows. */
+  .site-foot {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-hairline);
+    background: var(--line);
+  }
   .fcols {
     display: grid;
     grid-template-columns: 2fr 1fr 1fr;
