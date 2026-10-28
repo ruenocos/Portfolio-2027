@@ -390,15 +390,8 @@
     flex-wrap: wrap;
     color: var(--mute);
   }
-  /* Netlify's free plan injects a fixed badge bottom right that can't be
-     hidden (its tag sits in the body as script[data-account-tier=free]).
-     Keep the legal line and the Contact pill clear of it; when the badge
-     goes (paid plan or another host) these rules switch off by themselves. */
-  :root:has(script[data-nf-variant="public"][data-account-tier="free"]) {
-    --badge-clear: 72px;
-  }
   .legal {
-    padding-bottom: calc(24px + var(--badge-clear, 0px));
+    padding-bottom: 24px;
   }
 
   /* ---------- 404: the empty frame Wessel selects (0 × 0) ---------- */
@@ -652,7 +645,7 @@
       /* Above Wessel's layer (50): he never covers the Contact label. */
       z-index: 55;
       right: var(--spacing-side);
-      bottom: calc(var(--spacing-side) + env(safe-area-inset-bottom, 0px) + var(--badge-clear, 0px));
+      bottom: calc(var(--spacing-side) + env(safe-area-inset-bottom, 0px));
       min-height: var(--spacing-tap);
       padding: 0 18px;
       border-radius: var(--radius-pill);

@@ -8,7 +8,7 @@ import {
 } from "next-sanity/live";
 import { client } from "./client";
 
-// Viewer token, set in Netlify's environment variables. Without it the
+// Viewer token, set in Vercel's environment variables. Without it the
 // site still works, it just can't show drafts or live-edit.
 export const token = process.env.SANITY_API_READ_TOKEN;
 

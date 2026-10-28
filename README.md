@@ -1,6 +1,6 @@
 # Wessel Oud
 
-Portfolio 2027. Next.js 16.4 (App Router), Tailwind 4, Sanity, hosted on Netlify (wonsfolio).
+Portfolio 2027. Next.js 16.4 (App Router), Tailwind 4, Sanity, hosted on Vercel.
 The old site is kept on the `archive/old-site` branch.
 
 ## Run it
@@ -93,8 +93,9 @@ some parts several times; they're merged into one component each (list in
 ## Site basics
 
 - Favicon (`src/app/icon.svg`, `favicon.ico`, `apple-icon.png`): Wessel's smiley.
-- `robots.ts` and `sitemap.ts` use Netlify's `URL` and `CONTEXT`: deploy
-  previews are never indexed; production hides `/studio`, `/system`, `/api`.
+- `robots.ts`, `sitemap.ts` and `metadataBase` use Vercel's
+  `VERCEL_PROJECT_PRODUCTION_URL` and `VERCEL_ENV` (`lib/site.ts`): previews
+  are never indexed; production hides `/studio`, `/system`, `/api`.
 - The phone's browser bar takes the canvas colour of the mode (theme-color).
 - `not-found.tsx` and `(site)/error.tsx` keep the shell. Their copy is a
   placeholder (`data-mock`).
