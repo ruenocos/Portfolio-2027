@@ -121,4 +121,6 @@ Projects and Playground posts are ordered by dragging in the Studio
 
 Scripts (need `SANITY_API_WRITE_TOKEN`, an Editor token; `--dry` to preview):
 `npx jiti scripts/seed-sanity.ts` fills empty fields from `src/content`;
-`npx jiti scripts/order-rank.ts` gives existing documents a drag rank.
+`npx jiti scripts/order-rank.ts` gives existing documents a drag rank;
+`npx jiti scripts/fill-placeholders.ts` fills every empty project field (on
+the draft) with lorem ipsum, which the site keeps marked as mock (`?mocks`).

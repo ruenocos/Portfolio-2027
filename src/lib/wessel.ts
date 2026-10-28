@@ -20,8 +20,8 @@ import { smileySvg } from "./smiley";
 import { clamp, easeInOutCubic, lerp } from "./math";
 import { narrow } from "./media";
 
-const { wessel: T } = motionTokens;
-const S = T.spring;
+const { wessel: wesselMotion } = motionTokens;
+const springs = wesselMotion.spring;
 
 export type XY = [number, number];
 type Target = XY | (() => XY | null);
@@ -30,21 +30,21 @@ type Spring = { k: number; z: number };
 export const wait = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
 const calm = () => getMotion().calm;
 // The sticky header's height (--spacing-header), read once.
-let hdr = 0;
-const header = () => (hdr ||= parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--spacing-header")) || 90);
+let headerPx = 0;
+const header = () => (headerPx ||= parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--spacing-header")) || 90);
 
 // ---------- generations ----------
 // A mode change or a page change starts a new generation; a running beat
 // checks in with live(g) between steps and stops quietly when it's stale.
 const STALE = Symbol("stale");
-let gen = 0;
+let generation = 0;
 export const live = (g: number) => {
-  if (g !== gen) throw STALE;
+  if (g !== generation) throw STALE;
 };
 
 // ---------- the page-coordinate layer (#ovl, inside .page) ----------
 const page = () => document.querySelector<HTMLElement>(".page");
-const ovl = () => document.getElementById("ovl");
+const overlay = () => document.getElementById("ovl");
 
 /** An element's box in page coordinates (scrolls with the page). */
 export function pageBox(el: Element) {
@@ -59,7 +59,7 @@ export function put(className: string, text = "", box?: [number, number, number?
   d.className = className;
   d.textContent = text;
   if (box) place(d, box);
-  ovl()?.appendChild(d);
+  overlay()?.appendChild(d);
   return d;
 }
 function place(d: HTMLElement, [x, y, w, h]: [number, number, number?, number?]) {
@@ -68,7 +68,7 @@ function place(d: HTMLElement, [x, y, w, h]: [number, number, number?, number?])
   if (w != null) d.style.width = `${w}px`;
   if (h != null) d.style.height = `${h}px`;
 }
-export const clearMarks = () => ovl()?.replaceChildren();
+export const clearMarks = () => overlay()?.replaceChildren();
 
 /** Fades a set of marks out after a while. */
 export function fade(marks: HTMLElement[], after: number) {
@@ -91,17 +91,17 @@ type Sel = {
   /** Pops the size pill in after a drag-select. */
   size: () => void;
 };
-const sels = new Set<Sel>();
+const selections = new Set<Sel>();
 let selRaf = 0;
-function fitSels() {
-  for (const s of sels) {
+function fitSelections() {
+  for (const s of selections) {
     // Layout size, so the magnetism's transform can't throw it off.
     const r = pageBox(s.el);
     const w = s.el.offsetWidth;
     const h = s.el.offsetHeight;
     place(s.box, [r.x + r.w / 2 - w / 2, r.y + r.h / 2 - h / 2, w * s.grow, h * s.grow]);
   }
-  selRaf = sels.size ? requestAnimationFrame(fitSels) : 0;
+  selRaf = selections.size ? requestAnimationFrame(fitSelections) : 0;
 }
 export function select(el: HTMLElement, { label = true, ms = 1500, grow = 1 } = {}) {
   const box = put("sel");
@@ -122,15 +122,15 @@ export function select(el: HTMLElement, { label = true, ms = 1500, grow = 1 } = 
       box.style.opacity = "0";
       setTimeout(() => {
         box.remove();
-        sels.delete(s);
+        selections.delete(s);
       }, 380);
     },
   };
-  sels.add(s);
+  selections.add(s);
   // Fit at once, so the box never paints at 0,0 and jumps (layout shift).
-  fitSels();
+  fitSelections();
   cancelAnimationFrame(selRaf);
-  selRaf = requestAnimationFrame(fitSels);
+  selRaf = requestAnimationFrame(fitSelections);
   if (ms) setTimeout(s.done, ms);
   return s;
 }
@@ -166,7 +166,7 @@ export const POINTER =
 export const POINTER_BOX = "0 0 20 20";
 export const TIP: XY = [3, 3];
 // ---------- Wessel ----------
-const W = {
+const cursor = {
   el: null as HTMLElement | null,
   tag: null as HTMLElement | null,
   note: null as string | null,
@@ -175,94 +175,95 @@ const W = {
   vx: 0,
   vy: 0,
   drive: null as (() => XY | null) | null,
-  spring: S.beat as Spring,
+  spring: springs.beat as Spring,
   anchor: null as XY | null,
   /** After a page change: the screen spot he holds until his next job. */
   hold: null as XY | null,
   parked: false,
   shown: false,
-  dist: 0,
-  sp: 0,
+  distance: 0,
+  speed: 0,
   /** Tag on the left of the pointer, so a parked Wessel covers his own work, not the next column. */
   lean: false,
 };
 
-// Scroll speed: SV now, SP the recent peak (decays fast).
-let lastSY = 0;
-let SV = 0;
-let SP = 0;
+// Scroll speed: scrollSpeed now, scrollPeak the recent peak (decays fast).
+let lastScrollY = 0;
+let scrollSpeed = 0;
+let scrollPeak = 0;
 let raf = 0;
 
 // Where he goes when he has no job.
 function home(): XY {
-  if (W.hold) {
-    W.parked = true;
-    return W.hold;
+  if (cursor.hold) {
+    cursor.parked = true;
+    return cursor.hold;
   }
-  if (W.anchor) {
+  if (cursor.anchor) {
     // He stays where he last worked, like a collaborator in a shared file…
-    const y = W.anchor[1] - scrollY;
-    W.parked = y > header() + 24 && y < innerHeight - 40;
-    if (W.parked) return [W.anchor[0] - scrollX, y];
+    const y = cursor.anchor[1] - scrollY;
+    cursor.parked = y > header() + 24 && y < innerHeight - 40;
+    if (cursor.parked) return [cursor.anchor[0] - scrollX, y];
     // …and once that has scrolled away he wanders after you, a beat behind.
-    return [W.anchor[0] - scrollX, y < 0 ? innerHeight * 0.22 : innerHeight * 0.78];
+    return [cursor.anchor[0] - scrollX, y < 0 ? innerHeight * 0.22 : innerHeight * 0.78];
   }
-  W.parked = false;
+  cursor.parked = false;
   return [innerWidth - (narrow() ? 64 : 120), innerHeight * 0.74];
 }
 
-let lastT: number | null = null;
+let lastTargetY: number | null = null;
 
-function tick(n: number) {
-  const el = W.el;
+function tick(frameTime: number) {
+  const el = cursor.el;
   if (!el) return;
-  const dt = Math.min(0.033, (n - (tick.last || n)) / 1000) || 0.016;
-  tick.last = n;
-  const d = scrollY - lastSY;
-  lastSY = scrollY;
-  SV += (Math.abs(d) / dt - SV) * 0.2;
-  SP = Math.max(SV, SP * Math.pow(0.2, dt));
+  const dt = Math.min(0.033, (frameTime - (tick.last || frameTime)) / 1000) || 0.016;
+  tick.last = frameTime;
+  const scrolled = scrollY - lastScrollY;
+  lastScrollY = scrollY;
+  scrollSpeed += (Math.abs(scrolled) / dt - scrollSpeed) * 0.2;
+  scrollPeak = Math.max(scrollSpeed, scrollPeak * Math.pow(0.2, dt));
   const still = calm();
 
-  let t = W.drive?.() ?? null;
-  const driving = !!t;
+  let target = cursor.drive?.() ?? null;
+  const driving = !!target;
   // A job that scrolls away: he reaches for it from the edge instead of leaving.
   // Never on the sticky header: his target stays below it.
-  if (t) t = [t[0], clamp(t[1], header() + 24, innerHeight - 40)];
-  if (!t) t = home();
-  const parked = !driving && W.parked;
+  if (target) target = [target[0], clamp(target[1], header() + 24, innerHeight - 40)];
+  if (!target) target = home();
+  const [tx, ty] = target;
+  const parked = !driving && cursor.parked;
 
   // The page drags him a little; he resists and catches up. Not when his
   // job holds still on screen while you scroll (a sticky panel): then he
   // stays put with it instead of bobbing up and back.
-  const pinned = driving && lastT !== null && Math.abs(t[1] - lastT) < 0.5;
-  lastT = driving ? t[1] : null;
-  if (!still && !parked && !pinned) W.y -= driving ? d : d * 0.55;
+  const pinned = driving && lastTargetY !== null && Math.abs(ty - lastTargetY) < 0.5;
+  lastTargetY = driving ? ty : null;
+  if (!still && !parked && !pinned) cursor.y -= driving ? scrolled : scrolled * 0.55;
   if (still || parked) {
-    W.x = t[0];
-    W.y = t[1];
-    W.vx = W.vy = 0;
+    cursor.x = tx;
+    cursor.y = ty;
+    cursor.vx = cursor.vy = 0;
   } else {
-    const sp = driving ? W.spring : S.free;
-    const k = sp.k * Math.min(S.maxBoost, 1 + SV / S.boostPerPxSec);
-    const ky = k * S.yScale;
+    const spring = driving ? cursor.spring : springs.free;
+    const stiffness = spring.k * Math.min(springs.maxBoost, 1 + scrollSpeed / springs.boostPerPxSec);
+    const stiffnessY = stiffness * springs.yScale;
     // Small steps: a stiff spring (a drag, a fast scroll) on a slow frame
     // would otherwise overshoot further each frame and fling him away.
-    const n = Math.ceil(dt * Math.sqrt(ky) / 0.25);
-    const h = dt / n;
-    for (let i = 0; i < n; i++) {
-      W.vx += (-k * (W.x - t[0]) - 2 * sp.z * Math.sqrt(k) * W.vx) * h;
-      W.vy += (-ky * (W.y - t[1]) - 2 * sp.z * Math.sqrt(ky) * W.vy) * h;
-      W.x += W.vx * h;
-      W.y += W.vy * h;
+    const steps = Math.ceil((dt * Math.sqrt(stiffnessY)) / 0.25);
+    const step = dt / steps;
+    for (let i = 0; i < steps; i++) {
+      cursor.vx += (-stiffness * (cursor.x - tx) - 2 * spring.z * Math.sqrt(stiffness) * cursor.vx) * step;
+      cursor.vy += (-stiffnessY * (cursor.y - ty) - 2 * spring.z * Math.sqrt(stiffnessY) * cursor.vy) * step;
+      cursor.x += cursor.vx * step;
+      cursor.y += cursor.vy * step;
     }
   }
-  W.dist = Math.hypot(W.x - t[0], W.y - t[1]);
-  W.sp = Math.hypot(W.vx, W.vy);
+  cursor.distance = Math.hypot(cursor.x - tx, cursor.y - ty);
+  cursor.speed = Math.hypot(cursor.vx, cursor.vy);
 
-  const lab = el.querySelector<HTMLElement>(".lab");
-  el.dataset.flip = String(W.lean || W.x + (lab?.offsetWidth ?? 0) + 20 > innerWidth);
-  el.style.transform = `translate(${(W.x - TIP[0]).toFixed(1)}px,${(W.y - TIP[1]).toFixed(1)}px)`;
+  const label = el.querySelector<HTMLElement>(".lab");
+  el.dataset.flip = String(cursor.lean || cursor.x + (label?.offsetWidth ?? 0) + 20 > innerWidth);
+  el.style.transform = `translate(${(cursor.x - TIP[0]).toFixed(1)}px,${(cursor.y - TIP[1]).toFixed(1)}px)`;
   raf = requestAnimationFrame(tick);
 }
 tick.last = 0;
@@ -277,21 +278,21 @@ export const wessel = {
     },
 
   /** Travels to a viewport point (or a function that tracks one). */
-  go(target: Target, { k = S.beat.k, timeout = 700, lean = false } = {}) {
-    W.lean = lean;
-    W.drive = typeof target === "function" ? target : () => target;
-    W.spring = { k, z: S.beat.z };
-    const t = W.drive();
+  go(target: Target, { k = springs.beat.k, timeout = 700, lean = false } = {}) {
+    cursor.lean = lean;
+    cursor.drive = typeof target === "function" ? target : () => target;
+    cursor.spring = { k, z: springs.beat.z };
+    const t = cursor.drive();
     // Lost off screen: he comes back in from the edge he left by.
-    if (t && !calm() && W.shown && (W.y < -60 || W.y > innerHeight + 60)) {
-      W.y = W.y < 0 ? -40 : innerHeight + 40;
-      W.x = clamp(t[0] + 80, 20, innerWidth - 20);
-      W.vx = W.vy = 0;
+    if (t && !calm() && cursor.shown && (cursor.y < -60 || cursor.y > innerHeight + 60)) {
+      cursor.y = cursor.y < 0 ? -40 : innerHeight + 40;
+      cursor.x = clamp(t[0] + 80, 20, innerWidth - 20);
+      cursor.vx = cursor.vy = 0;
     }
     return new Promise<void>((res) => {
       const t0 = performance.now();
       const check = () => {
-        if (calm() || (W.dist < 2 && W.sp < 14) || performance.now() - t0 > timeout) res();
+        if (calm() || (cursor.distance < 2 && cursor.speed < 14) || performance.now() - t0 > timeout) res();
         else requestAnimationFrame(check);
       };
       requestAnimationFrame(check);
@@ -302,8 +303,8 @@ export const wessel = {
   drag(a: () => XY, b: () => XY, ms: number, step?: (e: number) => void) {
     return new Promise<void>((res) => {
       const t0 = performance.now();
-      W.spring = { k: 1400, z: S.beat.z };
-      W.drive = () => {
+      cursor.spring = { k: 1400, z: springs.beat.z };
+      cursor.drive = () => {
         const e = easeInOutCubic(calm() ? 1 : clamp((performance.now() - t0) / ms));
         step?.(e);
         const A = a();
@@ -315,28 +316,28 @@ export const wessel = {
   },
 
   press(on: boolean) {
-    if (W.el) W.el.dataset.press = String(on);
+    if (cursor.el) cursor.el.dataset.press = String(on);
   },
 
   /** Lets go: he parks right where he is. */
   free() {
-    W.drive = null;
-    W.lean = false;
+    cursor.drive = null;
+    cursor.lean = false;
     wessel.press(false);
-    W.hold = null;
-    W.anchor = [W.x + scrollX, W.y + scrollY];
+    cursor.hold = null;
+    cursor.anchor = [cursor.x + scrollX, cursor.y + scrollY];
   },
 
   /** Where he is now, on screen. */
-  pos: (): XY => [W.x, W.y],
+  pos: (): XY => [cursor.x, cursor.y],
 
   /** A keyboard chip (⌘C, ⌘V) that rides along with his pointer for a moment. */
   chip(text: string) {
-    if (!W.el) return;
+    if (!cursor.el) return;
     const c = document.createElement("span");
     c.className = "kchip wchip text-micro";
     c.textContent = text;
-    W.el.appendChild(c);
+    cursor.el.appendChild(c);
     setTimeout(() => {
       c.dataset.out = "";
       setTimeout(() => c.remove(), 300);
@@ -345,33 +346,33 @@ export const wessel = {
 
   /** A short note after his name in the tag ("Wessel · 42%"); null clears it. */
   note(text: string | null) {
-    W.note = text;
-    if (W.tag) W.tag.textContent = text ? `Wessel · ${text}` : "Wessel";
+    cursor.note = text;
+    if (cursor.tag) cursor.tag.textContent = text ? `Wessel · ${text}` : "Wessel";
   },
 
   /** Back off-screen right, so his next move glides in from the edge. */
   offstage() {
-    W.x = innerWidth + 80;
-    W.y = innerHeight * 0.5;
-    W.vx = W.vy = 0;
+    cursor.x = innerWidth + 80;
+    cursor.y = innerHeight * 0.5;
+    cursor.vx = cursor.vy = 0;
     // Written now, so the frame before his next tick doesn't show the old spot.
-    if (W.el) W.el.style.transform = `translate(${(W.x - TIP[0]).toFixed(1)}px,${(W.y - TIP[1]).toFixed(1)}px)`;
+    if (cursor.el) cursor.el.style.transform = `translate(${(cursor.x - TIP[0]).toFixed(1)}px,${(cursor.y - TIP[1]).toFixed(1)}px)`;
   },
 
   show() {
-    if (W.shown || !W.el) return;
-    W.shown = true;
-    W.el.dataset.hide = "false";
+    if (cursor.shown || !cursor.el) return;
+    cursor.shown = true;
+    cursor.el.dataset.hide = "false";
   },
 };
 
 /** <CursorLayer> hands over his element; returns the cleanup. */
 export function attachWessel(el: HTMLElement) {
-  W.el = el;
-  W.tag = el.querySelector(".tag b");
-  W.x = innerWidth + 80;
-  W.y = innerHeight * 0.5;
-  lastSY = scrollY;
+  cursor.el = el;
+  cursor.tag = el.querySelector(".tag b");
+  cursor.x = innerWidth + 80;
+  cursor.y = innerHeight * 0.5;
+  lastScrollY = scrollY;
   el.dataset.hide = "true";
   raf = requestAnimationFrame(tick);
   // Pause (or the system's reduce motion) mid-beat: drop what's running and
@@ -391,31 +392,31 @@ export function attachWessel(el: HTMLElement) {
   return () => {
     off();
     cancelAnimationFrame(raf);
-    W.el = null;
+    cursor.el = null;
   };
 }
 
 /** A page is about to change: he stays where he is on screen. Taken before
  *  the route swaps, as a shorter new page can clamp the scroll under him. */
 export function holdWessel() {
-  W.hold = W.el && W.el.dataset.hide !== "true" ? [W.x, W.y] : null;
+  cursor.hold = cursor.el && cursor.el.dataset.hide !== "true" ? [cursor.x, cursor.y] : null;
 }
 
 /** A page change: new generation, fresh marks, he forgets his parking spot
  *  but holds still on screen (like the header) until the new page gives him a job. */
 export function newPage() {
   newGeneration();
-  W.lean = false;
-  W.anchor = null;
-  if (!W.hold) holdWessel();
-  W.drive = null;
+  cursor.lean = false;
+  cursor.anchor = null;
+  if (!cursor.hold) holdWessel();
+  cursor.drive = null;
 }
 
 function newGeneration() {
-  gen++;
-  W.drive = null;
+  generation++;
+  cursor.drive = null;
   wessel.press(false);
-  sels.clear();
+  selections.clear();
   clearMarks();
   beats.forEach((b) => b.reset?.());
   chain = Promise.resolve();
@@ -453,8 +454,8 @@ function seen(el: Element, f: number) {
 }
 
 function trigger(b: Beat) {
-  const need = b.need ?? T.need.default;
-  if (b.done || b.q || !W.el) return;
+  const need = b.need ?? wesselMotion.need.default;
+  if (b.done || b.q || !cursor.el) return;
   b.q = true;
   chain = chain.then(async () => {
     b.q = false;
@@ -462,13 +463,13 @@ function trigger(b: Beat) {
     if (b.done || !beats.has(b) || (!calm() && !seen(b.el, need))) return;
     b.done = true;
     if (calm()) return b.still?.();
-    const g = gen;
+    const g = generation;
     // He always plays his full beat. If you're moving fast he waits a
     // breath; a flick past skips it, and it plays when you come back.
-    for (let i = 0; i < T.fastScroll.waitMs / 60 && !calm() && SP > T.fastScroll.waitAbovePxPerSec; i++)
+    for (let i = 0; i < wesselMotion.fastScroll.waitMs / 60 && !calm() && scrollPeak > wesselMotion.fastScroll.waitAbovePxPerSec; i++)
       await wait(60);
-    if (g !== gen || !beats.has(b) || !b.el.isConnected) return;
-    if (!calm() && (SP > T.fastScroll.skipAbovePxPerSec || !seen(b.el, need))) {
+    if (g !== generation || !beats.has(b) || !b.el.isConnected) return;
+    if (!calm() && (scrollPeak > wesselMotion.fastScroll.skipAbovePxPerSec || !seen(b.el, need))) {
       b.done = false;
       // Flicked past: it plays when you come back, or once you stop here.
       setTimeout(() => trigger(b), 500);
@@ -483,7 +484,7 @@ function trigger(b: Beat) {
       if (e !== STALE && b.el.isConnected) console.error(e);
     }
     busy = false;
-    if (g === gen && !b.keep) wessel.free();
+    if (g === generation && !b.keep) wessel.free();
   });
 }
 
@@ -516,12 +517,12 @@ export function registerBeat(el: HTMLElement, spec: BeatSpec) {
 
 /** Shows Wessel after a moment, even before his first beat. */
 export function arrive(ms = 600) {
-  const g = gen;
+  const g = generation;
   const wait = calm() ? 0 : ms;
   setTimeout(() => wessel.show(), wait);
   // No job on the new page after a moment: he stops holding his old spot
   // (which may now be over copy) and goes back to resting.
   setTimeout(() => {
-    if (g === gen && !W.drive && !busy) W.hold = null;
+    if (g === generation && !cursor.drive && !busy) cursor.hold = null;
   }, wait + 1200);
 }

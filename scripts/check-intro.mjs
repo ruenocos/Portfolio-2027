@@ -125,7 +125,8 @@ for (const at of [300, 1200, 1900]) {
 // The ready gate: a slow poster holds the face (1.2s at most), then it plays on.
 {
   const { p, ctx } = await page({}, (p) =>
-    p.route(/\.(jpg|png|webp|avif)(\?|$)/, async (r) => {
+    // Pictures load straight from /public or through Next's resizer (lib/image).
+    p.route(/\.(jpg|png|webp|avif)(\?|$)|\/_next\/image\?/, async (r) => {
       await new Promise((res) => setTimeout(res, 6000));
       r.continue().catch(() => {});
     }),
