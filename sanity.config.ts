@@ -10,7 +10,7 @@ import { structure } from "./src/sanity/structure";
 import { resolve } from "./src/sanity/presentation";
 
 export default defineConfig({
-  name: "wessel-cv",
+  name: "wessel-oud",
   title: "Wessel Oud",
   basePath: "/studio",
   projectId,

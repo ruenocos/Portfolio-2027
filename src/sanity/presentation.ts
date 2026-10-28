@@ -10,10 +10,6 @@ export const resolve: PresentationPluginOptions["resolve"] = {
   locations: {
     home: defineLocations({ message: "The home page", locations: [{ title: "Home", href: "/" }] }),
     about: defineLocations({ message: "The About page", locations: [{ title: "About", href: "/about" }] }),
-    siteSettings: defineLocations({
-      message: "Used on every page",
-      locations: [{ title: "Home", href: "/" }],
-    }),
     project: defineLocations({
       select: { title: "title", slug: "slug.current", hasCase: "hasCase" },
       resolve: (doc) => ({
@@ -25,14 +21,5 @@ export const resolve: PresentationPluginOptions["resolve"] = {
       }),
     }),
     playgroundPiece: defineLocations({ message: "On the Playground", locations: [{ title: "Playground", href: "/playground" }] }),
-    caseStudy: defineLocations({
-      select: { title: "title", slug: "slug.current" },
-      resolve: (doc) => ({
-        locations: [
-          { title: doc?.title || "Case study", href: `/work/${doc?.slug}` },
-          { title: "Home", href: "/" },
-        ],
-      }),
-    }),
   },
 };

@@ -5,7 +5,7 @@ import { ModeProvider } from "@/components/ModeProvider";
 import { snapshotScript } from "@/lib/html";
 import { bootScript, motionScript } from "@/lib/motion";
 import { modeScript, themeColorScript } from "@/lib/mode";
-import { IS_PRODUCTION, SITE_URL } from "@/lib/site";
+import { SITE_URL, mocksScript } from "@/lib/site";
 import "./globals.css";
 
 // next/font sets --nf-*; tokens.css puts them in front of the fallbacks.
@@ -27,7 +27,6 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     <html
       lang="en"
       data-mode="light"
-      data-live={IS_PRODUCTION ? "" : undefined}
       suppressHydrationWarning
       className={`${display.variable} ${mono.variable} ${serif.variable}`}
     >
@@ -35,7 +34,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         {/* Sets the mode and the motion state before the first paint,
             so dark never flashes light and a paused visit never moves. */}
         <meta name="theme-color" content="#FAF8F4" />
-        <script dangerouslySetInnerHTML={{ __html: [modeScript, themeColorScript, bootScript, motionScript, snapshotScript].join(";") }} />
+        <script dangerouslySetInnerHTML={{ __html: [modeScript, themeColorScript, bootScript, motionScript, mocksScript, snapshotScript].join(";") }} />
       </head>
       <body>
         <KeepHtml />

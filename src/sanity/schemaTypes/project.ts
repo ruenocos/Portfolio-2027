@@ -1,3 +1,5 @@
+import { ProjectsIcon } from "@sanity/icons/Projects";
+import { orderRankField, orderRankOrdering } from "@sanity/orderable-document-list";
 import { defineArrayMember, defineField, defineType } from "sanity";
 import { TOOLS } from "../../lib/tools";
 
@@ -7,6 +9,9 @@ export const project = defineType({
   name: "project",
   title: "Project",
   type: "document",
+  icon: ProjectsIcon,
+  description:
+    "Home and Work show the built-in rows until a project is published here, then only published ones. Publish all of them together.",
   groups: [
     { name: "row", title: "Row", default: true },
     { name: "media", title: "Media" },
@@ -69,16 +74,24 @@ export const project = defineType({
       group: "row",
       initialValue: false,
       description: "Off: the media says \"Case study soon\" instead of linking.",
+      validation: (rule) =>
+        rule.custom((on, { document }) =>
+          on && !(document?.sections as unknown[] | undefined)?.length
+            ? { message: "The case page has no sections yet, so it shows the mock case.", level: "warning" }
+            : true,
+        ),
     }),
     defineField({ name: "featured", title: "Show on Home", type: "boolean", group: "row", initialValue: true }),
-    defineField({ name: "order", type: "number", group: "row", initialValue: 10 }),
+    // Set by dragging in the Projects list.
+    orderRankField({ type: "project" }),
     defineField({
       name: "poster",
       title: "Portrait poster",
       type: "image",
       group: "media",
-      description: "3:4, shown while the loop loads and whenever motion is paused.",
+      description: "3:4, shown while the loop loads and whenever motion is paused. Set the focal point: the site crops around it.",
       options: { hotspot: true },
+      validation: (rule) => rule.warning().required(),
     }),
     defineField({
       name: "video",
@@ -131,6 +144,6 @@ export const project = defineType({
       ],
     }),
   ],
-  orderings: [{ title: "Order", name: "order", by: [{ field: "order", direction: "asc" }] }],
+  orderings: [orderRankOrdering],
   preview: { select: { title: "title", subtitle: "timeline", media: "poster" } },
 });
