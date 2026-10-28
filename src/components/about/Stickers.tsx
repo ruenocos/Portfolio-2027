@@ -28,25 +28,49 @@ const now = () => performance.now();
 const calm = () => getMotion().calm;
 const DT = 1000 / 60;
 
-// One shape per kind of thing, and each shape keeps its own feel when
-// it lands: cards are light and flat, blocks are heavy, balls bounce.
 // A card's corner index, like a rank: the initials, or the first two
 // letters of a one-word name (so Catan and Codenames don't share a "C").
 const index = (t: string) => {
   const w = t.split(/\s+/);
   return (w.length > 1 ? w.map((x) => x[0]).join("") : t.slice(0, 2)).slice(0, 3).toUpperCase();
 };
-const ORDER: StickerKind[] = ["card", "square", "round", "pill"];
+
+type Pt = [number, number];
+// Five-point star, tip up, chunky (inner radius 56% of the outer).
+const star = (R: number, cx: number, cy: number): Pt[] =>
+  Array.from({ length: 10 }, (_, k) => {
+    const a = ((-90 + 36 * k) * Math.PI) / 180;
+    const r = k % 2 ? R * 0.56 : R;
+    return [cx + r * Math.cos(a), cy + r * Math.sin(a)];
+  });
+// Four silhouettes, drawn at their desktop size (the phone scales them
+// evenly). pts outline the shape; hull is what the physics body uses
+// (convex, so the star rests on its tips); r rounds the corners.
+const SHAPES: Record<StickerKind, { w: number; h: number; r: number; pts: Pt[]; hull?: Pt[] }> = {
+  card: { w: 128, h: 180, r: 8, pts: [[0, 0], [104, 0], [128, 24], [128, 180], [0, 180]] },
+  hex: { w: 136, h: 156, r: 12, pts: [[68, 0], [136, 39], [136, 117], [68, 156], [0, 117], [0, 39]] },
+  star: { w: 152, h: 145, r: 9, pts: star(80, 76, 80), hull: star(80, 76, 80).filter((_, k) => k % 2 === 0) },
+  round: { w: 120, h: 120, r: 0, pts: [] },
+};
+// Inset by r and stroked r wide with round joins: the same outline with
+// soft corners.
+const soft = ({ w, h, r, pts }: (typeof SHAPES)[StickerKind]) =>
+  pts.map(([x, y]) => `${(w / 2 + (x - w / 2) * (1 - (2 * r) / w)).toFixed(1)},${(h / 2 + (y - h / 2) * (1 - (2 * r) / h)).toFixed(1)}`).join(" ");
+
+// One shape per kind of thing, and each keeps its own feel when it
+// lands: cards are light and flat, hexagons are heavy, stars bounce.
+const ORDER: StickerKind[] = ["card", "hex", "star", "round"];
 const FEEL: Record<StickerKind, { restitution: number; frictionAir: number; density: number }> = {
   card: { restitution: 0.1, frictionAir: 0.022, density: 0.0011 },
-  square: { restitution: 0.12, frictionAir: 0.012, density: 0.0022 },
-  round: { restitution: 0.5, frictionAir: 0.008, density: 0.0014 },
-  pill: { restitution: 0.25, frictionAir: 0.012, density: 0.0016 },
+  hex: { restitution: 0.12, frictionAir: 0.012, density: 0.0022 },
+  star: { restitution: 0.5, frictionAir: 0.01, density: 0.0014 },
+  round: { restitution: 0.35, frictionAir: 0.008, density: 0.0014 },
 };
 
 /**
- * Off screen (About v09): hobby stickers with weight, four shapes for four
- * kinds of thing (card games, making, moving, people). They fall into the
+ * Off screen (About v10): hobby stickers with weight, four silhouettes for
+ * four kinds of thing: cut-corner cards (card and board games), hexagons
+ * (making), stars (moving), circles (people and play). They fall into the
  * board when it scrolls in, pile up and knock into each other. Grab one
  * and throw it; arrow keys push it, Enter makes it hop. "Tidy up" sorts
  * them into a row per kind like auto layout; "Mess it up" tosses them.
@@ -83,9 +107,16 @@ export function Stickers({ items }: { items: Sticker[] }) {
       }
       const { w, h } = size(i);
       e.style.visibility = "";
+      // A body sits on its centre of mass; the element turns about its box
+      // centre. off is the gap between the two, turned with the body.
+      const o = b.plugin.off ?? { x: 0, y: 0 };
+      const c = Math.cos(b.angle);
+      const sn = Math.sin(b.angle);
+      const x = b.position.x - (o.x * c - o.y * sn);
+      const y = b.position.y - (o.x * sn + o.y * c);
       // translate and rotate as their own properties, so the CSS scale on
       // hover and drag grows the sticker in place instead of shifting it.
-      e.style.translate = `${(b.position.x - w / 2).toFixed(1)}px ${(b.position.y - h / 2).toFixed(1)}px`;
+      e.style.translate = `${(x - w / 2).toFixed(1)}px ${(y - h / 2).toFixed(1)}px`;
       e.style.rotate = `${b.angle.toFixed(3)}rad`;
     });
   };
@@ -95,14 +126,19 @@ export function Stickers({ items }: { items: Sticker[] }) {
     const { w, h } = size(i);
     const k = items[i].kind;
     const opts = { angle: a, friction: 0.5, ...FEEL[k] };
-    // The body matches what you see: balls roll, cards and blocks keep
-    // their corners, pills are round at the ends.
-    const corner = { card: 10, square: 18, pill: h / 2 - 1, round: 0 }[k];
-    const b =
-      k === "round"
-        ? P.M.Bodies.circle(x, y, w / 2, opts)
-        : P.M.Bodies.rectangle(x, y, w, h, { ...opts, chamfer: { radius: Math.min(corner, Math.min(w, h) / 2 - 1) } });
-    b.plugin = { w, h };
+    // The body matches the silhouette: circles roll, the rest are the
+    // shape's own corners (the star's are its tips).
+    const S = SHAPES[k];
+    let off = { x: 0, y: 0 };
+    let b: MBody;
+    if (k === "round") b = P.M.Bodies.circle(x, y, w / 2, opts);
+    else {
+      const v = (S.hull ?? S.pts).map(([px, py]) => ({ x: ((px - S.w / 2) * w) / S.w, y: ((py - S.h / 2) * h) / S.h }));
+      off = P.M.Vertices.centre(v);
+      b = P.M.Bodies.fromVertices(x + off.x, y + off.y, [v], { ...opts, angle: 0 });
+      P.M.Body.setAngle(b, a);
+    }
+    b.plugin = { w, h, off };
     P.bodies[i] = b;
     P.M.Composite.add(P.engine.world, b);
     return b;
@@ -526,26 +562,36 @@ export function Stickers({ items }: { items: Sticker[] }) {
             {tidy ? "Mess it up" : "Tidy up"}
           </button>
         </div>
-        {items.map((s, i) => (
-          <button
-            key={`${s.kind}-${i}`}
-            ref={(el) => {
-              els.current[i] = el;
-            }}
-            type="button"
-            className="stk"
-            data-kind={s.kind}
-            data-label={s.kind === "card" ? index(s.text) : undefined}
-            data-drag={dragging === i ? "" : undefined}
-            aria-describedby="stk-help"
-            style={{ visibility: "hidden", zIndex: 5 + z.indexOf(i) }}
-            onPointerDown={down(i)}
-            onKeyDown={key(i)}
-            onClick={(e) => e.detail === 0 && hop(i)}
-          >
-            {s.text}
-          </button>
-        ))}
+        {items.map((s, i) => {
+          const S = SHAPES[s.kind];
+          return (
+            <button
+              key={`${s.kind}-${i}`}
+              ref={(el) => {
+                els.current[i] = el;
+              }}
+              type="button"
+              className="stk"
+              data-kind={s.kind}
+              data-label={s.kind === "card" ? index(s.text) : undefined}
+              data-drag={dragging === i ? "" : undefined}
+              aria-describedby="stk-help"
+              style={{ visibility: "hidden", zIndex: 5 + z.indexOf(i) }}
+              onPointerDown={down(i)}
+              onKeyDown={key(i)}
+              onClick={(e) => e.detail === 0 && hop(i)}
+            >
+              <svg className="shp" viewBox={`0 0 ${S.w} ${S.h}`} aria-hidden="true">
+                {s.kind === "round" ? (
+                  <circle cx={S.w / 2} cy={S.h / 2} r={S.w / 2 - 1} />
+                ) : (
+                  <polygon points={soft(S)} strokeWidth={S.r * 2} strokeLinejoin="round" />
+                )}
+              </svg>
+              <span>{s.text}</span>
+            </button>
+          );
+        })}
       </div>
       <div className="side" />
     </section>

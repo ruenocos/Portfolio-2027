@@ -157,35 +157,49 @@
     background: var(--grape);
     color: var(--on-grape);
   }
-  /* Four kinds, four shapes, one fill each. Words sit top-left on the
-     flat shapes and centred on the round ones, all on one type step. */
+  /* Four kinds, four silhouettes, one fill each. The shape is an SVG
+     behind the words, so it can be a star or a cut corner and still cast
+     a shadow. Words sit top-left on the card and centred on the rest. */
   .stk {
     --fill: var(--canvas);
+    --edge: var(--fill);
     --on: var(--ink);
     position: absolute;
     left: 0;
     top: 0;
+    isolation: isolate;
     display: flex;
-    align-items: flex-start;
-    justify-content: flex-start;
+    align-items: center;
+    justify-content: center;
+    padding: 12px;
     font-family: var(--font-display);
     font-weight: 500;
     font-size: var(--type-lead-size);
     line-height: 1.1;
     letter-spacing: -0.01em;
-    text-align: left;
+    text-align: center;
     color: var(--on);
-    background: var(--fill);
+    background: none;
     touch-action: none;
     cursor: grab;
     user-select: none;
-    box-shadow:
-      0 1px 0 rgb(0 0 0 / 0.06),
-      0 12px 24px -14px rgb(0 0 0 / 0.4);
     will-change: translate, rotate;
-    transition:
-      scale var(--dur-ui) var(--ease-ui),
-      box-shadow var(--dur-ui) var(--ease-ui);
+    transition: scale var(--dur-ui) var(--ease-ui);
+  }
+  .stk > span {
+    position: relative;
+  }
+  .shp {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+    fill: var(--fill);
+    stroke: var(--edge);
+    filter: drop-shadow(0 1px 0 rgb(0 0 0 / 0.06)) drop-shadow(0 10px 12px rgb(0 0 0 / 0.2));
+    transition: filter var(--dur-ui) var(--ease-ui);
   }
   @media (hover: hover) and (pointer: fine) {
     .stk:hover {
@@ -195,21 +209,26 @@
   .stk[data-drag] {
     cursor: grabbing;
     scale: 1.06;
-    box-shadow:
-      0 1px 0 rgb(0 0 0 / 0.06),
-      0 26px 40px -18px rgb(0 0 0 / 0.5);
   }
+  .stk[data-drag] .shp {
+    filter: drop-shadow(0 1px 0 rgb(0 0 0 / 0.06)) drop-shadow(0 22px 20px rgb(0 0 0 / 0.26));
+  }
+  /* Focus hugs the silhouette instead of drawing a box around it. */
   .stk:focus-visible {
-    outline: 2px solid var(--grape);
-    outline-offset: 3px;
+    outline: none;
+  }
+  .stk:focus-visible .shp {
+    --edge: var(--grape);
   }
   .stk[data-kind="card"] {
     --fill: var(--grape);
     --on: var(--on-grape);
+    align-items: flex-start;
+    justify-content: flex-start;
     width: 128px;
     height: 180px;
     padding: 14px 12px;
-    border-radius: 10px;
+    text-align: left;
   }
   /* The one card detail: an index like a rank, turned, in the far corner. */
   .stk[data-kind="card"]::after {
@@ -224,38 +243,33 @@
     rotate: 180deg;
     opacity: 0.6;
   }
-  .stk[data-kind="square"] {
+  .stk[data-kind="hex"] {
     --fill: var(--ink);
     --on: var(--canvas);
-    width: 148px;
-    height: 148px;
-    padding: 16px;
-    border-radius: 18px;
+    width: 136px;
+    height: 156px;
   }
-  .stk[data-kind="round"] {
+  .stk[data-kind="star"] {
     --fill: var(--tang);
     --on: var(--on-tang);
-    align-items: center;
-    justify-content: center;
+    width: 152px;
+    height: 145px;
+    /* The star's middle sits low: nudge the word onto it. */
+    padding: 28px 0 0;
+    font-size: var(--type-body-size);
+  }
+  .stk[data-kind="round"] {
     width: 120px;
     height: 120px;
-    padding: 0 12px;
-    border-radius: 50%;
-    text-align: center;
+    padding: 0 10px;
   }
-  .stk[data-kind="pill"] {
-    align-items: center;
-    padding: 16px 24px;
-    border-radius: var(--radius-pill);
-    white-space: nowrap;
-    box-shadow:
-      inset 0 0 0 1.5px var(--ink),
-      0 12px 24px -14px rgb(0 0 0 / 0.4);
+  .stk[data-kind="round"] .shp {
+    --edge: var(--ink);
+    stroke-width: 1.5px;
   }
-  .stk[data-kind="pill"][data-drag] {
-    box-shadow:
-      inset 0 0 0 1.5px var(--ink),
-      0 26px 40px -18px rgb(0 0 0 / 0.5);
+  .stk[data-kind="round"]:focus-visible .shp {
+    --edge: var(--grape);
+    stroke-width: 3px;
   }
 
   @media (width < 900px) {
@@ -282,28 +296,31 @@
     }
     .stk[data-kind="card"] {
       width: 96px;
-      height: 134px;
+      height: 135px;
       padding: 10px;
-      border-radius: 8px;
       font-size: var(--type-small-size);
     }
     .stk[data-kind="card"]::after {
       right: 9px;
       bottom: 8px;
     }
-    .stk[data-kind="square"] {
-      width: 100px;
-      height: 100px;
-      padding: 12px;
-      border-radius: 14px;
+    .stk[data-kind="hex"] {
+      width: 98px;
+      height: 112px;
+      padding: 8px;
+      font-size: var(--type-small-size);
+    }
+    .stk[data-kind="star"] {
+      width: 114px;
+      height: 109px;
+      padding-top: 20px;
       font-size: var(--type-small-size);
     }
     .stk[data-kind="round"] {
-      width: 88px;
-      height: 88px;
-    }
-    .stk[data-kind="pill"] {
-      padding: 12px 18px;
+      width: 92px;
+      height: 92px;
+      padding: 0 8px;
+      font-size: var(--type-small-size);
     }
   }
   html[data-motion="calm"] :is(.pcard, .stk) {

@@ -2,9 +2,10 @@ import type { Fact } from "@/components/parts/Facts";
 import { FALLBACK_HOME, type Photo } from "./home";
 
 export type Job = { when: string; place: string; role: string };
-/** One shape per kind of thing: card games are cards, making is a block,
- * moving is a ball, people are pills. The shape sets the fill too. */
-export type StickerKind = "card" | "square" | "round" | "pill";
+/** One silhouette per kind of thing, and it sets the fill: card and board
+ * games are cut-corner cards, making is a hexagon, moving is a star,
+ * people and play are circles. */
+export type StickerKind = "card" | "hex" | "star" | "round";
 export type Sticker = { text: string; kind: StickerKind };
 export type AboutContent = {
   hello: string;
@@ -41,9 +42,10 @@ export const FALLBACK_ABOUT: AboutContent = {
     { when: "2017 – 2020", place: "ROC Horizon College", role: "Applicatie & Media ontwikkeling" },
   ],
   stickers: [
-    // Off screen v09 (2026-10-28). Wons's own list, reworded and sorted
-    // into four kinds; Codenames, Ticket to Ride and Exploding Kittens are
-    // suggestions Wons invited ("add some more board game names").
+    // Off screen v10 (2026-10-28). Wons's list as playful single words
+    // (game titles stay as they are); MoveEeE dropped at Wons's ask.
+    // Codenames, Ticket to Ride and Exploding Kittens are suggestions
+    // Wons invited ("add some more board game names").
     { text: "Catan", kind: "card" },
     { text: "Flip 7", kind: "card" },
     { text: "Dalmuti", kind: "card" },
@@ -51,14 +53,13 @@ export const FALLBACK_ABOUT: AboutContent = {
     { text: "Codenames", kind: "card" },
     { text: "Ticket to Ride", kind: "card" },
     { text: "Exploding Kittens", kind: "card" },
-    { text: "Taking things apart", kind: "square" },
-    { text: "New things to learn", kind: "square" },
-    { text: "One more tutorial", kind: "square" },
-    { text: "Sports", kind: "round" },
-    { text: "Gym", kind: "round" },
-    { text: "MoveEeE", kind: "round" },
-    { text: "Friends", kind: "pill" },
-    { text: "Game night", kind: "pill" },
-    { text: "Video games, a bit", kind: "pill" },
+    { text: "Tinkering", kind: "hex" },
+    { text: "Rabbitholes", kind: "hex" },
+    { text: "Tutorials", kind: "hex" },
+    { text: "Sweating", kind: "star" },
+    { text: "Gymming", kind: "star" },
+    { text: "Mates", kind: "round" },
+    { text: "Rematch", kind: "round" },
+    { text: "Button-mashing", kind: "round" },
   ],
 };
