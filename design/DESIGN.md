@@ -50,7 +50,7 @@ Two modes, light and dark. They follow the system theme; the header switch picks
 Rules:
 - Tangerine on canvas is about 3.1:1 in light. It is fine for the giant name and graphics. **Small tangerine text uses `tang-ink`.** Tangerine pills carry dark text (`on-tang`), never white.
 - Neutrals are warm, never pure grey. Don't add new colours. Figure colours (`--d-*`, clay `--k*`) are scoped to the Focus dioramas only.
-- Mode changes cross-fade all tokens over 0.9s (`.lights`).
+- Mode changes cross-fade all tokens over 0.6s with an in-out curve (`.mode-fade`; was 0.9s, changed 2026-10-28 so it never sits in a flat grey).
 
 ## 4. Typography
 

@@ -169,9 +169,12 @@
   .arow .tool {
     --s: 24px;
   }
+  /* At rest every chip sits in one even tone (plain greyscale left Figma
+     near-invisible in dark and Claude ghosted in light); colour on hover. */
   .arow .tool img {
-    filter: grayscale(1);
-    opacity: 0.55;
+    filter: grayscale(1) contrast(0.6) brightness(1.1);
+    opacity: 0.7;
+    mix-blend-mode: luminosity;
     transition:
       filter var(--dur-ui) var(--ease-ui),
       opacity var(--dur-ui) var(--ease-ui);
@@ -197,6 +200,7 @@
   .arow:is(:hover, :focus-within) .tool img {
     filter: none;
     opacity: 1;
+    mix-blend-mode: normal;
   }
   .arow .ac {
     position: relative;

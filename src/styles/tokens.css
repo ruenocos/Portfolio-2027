@@ -25,7 +25,7 @@
   --ease-spring: linear(0,.06 2%,.24 6%,.52 11%,.84 17%,1.06 23%,1.14 28%,1.15 31%,1.1 37%,1.03 44%,.98 52%,.97 59%,.99 70%,1);
   --ease-enter-opacity: cubic-bezier(0.33, 1, 0.68, 1);
   --ease-enter-rise: cubic-bezier(0.16, 1, 0.3, 1);
-  --ease-mode: cubic-bezier(0.2, 0, 0, 1);
+  --ease-mode: cubic-bezier(0.65, 0, 0.35, 1);
   --ease-press: cubic-bezier(0.2, 0, 0, 1);
   --breakpoint-stack: 900px;
   --breakpoint-small: 600px;
@@ -36,7 +36,7 @@
   --dur-spring: 600ms;
   --dur-enter-opacity: 560ms;
   --dur-enter-rise: 720ms;
-  --dur-mode: 900ms;
+  --dur-mode: 600ms;
   --dur-press: 120ms;
   --enter-rise: 16px;
   --press-y: 1px;

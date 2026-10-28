@@ -18,6 +18,20 @@ const zone = () =>
     .formatToParts(new Date())
     .find((p) => p.type === "timeZoneName")?.value ?? "";
 
+// Someone who first came on an earlier day gets "Welcome back!" (Wons,
+// 2026-10-28). The day is stored each visit; same day reads as one visit.
+const SEEN_KEY = "wsl-seen";
+const returning = () => {
+  const today = new Date().toISOString().slice(0, 10);
+  try {
+    const last = localStorage.getItem(SEEN_KEY);
+    localStorage.setItem(SEEN_KEY, today);
+    return !!last && last !== today;
+  } catch {
+    return false;
+  }
+};
+
 /** A point on an element, in page coordinates (for marks on #ovl). */
 const pp = (el: Element, fx = 0, fy = 0, dx = 0, dy = 0): XY => {
   const r = pageBox(el);
@@ -351,7 +365,7 @@ export function Hero({ hero: c }: { hero: HomeContent["hero"] }) {
         await breath(200);
         // Phones: no room above the name (the based-in lines sit there), so
         // the pin drops into the reel's corner just under him.
-        await say("Hello!", mobile() ? pp(r, 0, 0, 12, 84) : pp(W, 0.96, 0.04, 10, -6));
+        await say(returning() ? "Welcome back!" : "Hello!", mobile() ? pp(r, 0, 0, 12, 84) : pp(W, 0.96, 0.04, 10, -6));
         await breath(700);
         // Over to the middle of the W, one click: the fill plops in.
         await wessel.go(wessel.at(W, 0.5, 0.55), { k: 150, timeout: 1200 });

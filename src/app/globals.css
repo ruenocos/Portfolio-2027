@@ -45,9 +45,15 @@
   h3 {
     text-wrap: balance;
   }
+  p,
+  dd,
+  li {
+    text-wrap: pretty;
+  }
 }
 
-/* Mode change: every token cross-fades over 0.9s (DESIGN.md §3).
+/* Mode change: every token cross-fades over 0.6s, in-out so it never sits
+   in a flat mid-grey (DESIGN.md §3; was 0.9s, Wons 2026-10-28).
    Kept under reduced motion: colour changes are allowed there. */
 .mode-fade,
 .mode-fade * {
