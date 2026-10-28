@@ -405,6 +405,9 @@
     background: var(--line);
     min-width: 0;
   }
+  .fdots {
+    display: none;
+  }
   .fig {
     padding: 64px 28px;
     display: flex;
@@ -797,6 +800,48 @@
     }
     .fig {
       padding: 40px var(--spacing-inset) 56px;
+    }
+    /* The swipe deck: one card at a time, the next one peeking in. */
+    .tracks {
+      position: relative;
+      display: flex;
+      overflow-x: auto;
+      scroll-snap-type: x mandatory;
+      overscroll-behavior-x: contain;
+      scrollbar-width: none;
+    }
+    .tracks::-webkit-scrollbar {
+      display: none;
+    }
+    .tracks > .fig {
+      flex: 0 0 86%;
+      scroll-snap-align: center;
+    }
+    .fdots {
+      display: flex;
+      justify-content: center;
+      padding-bottom: 8px;
+      background: var(--canvas);
+    }
+    .fdots button {
+      display: grid;
+      place-items: center;
+      width: var(--spacing-tap);
+      height: var(--spacing-tap);
+      cursor: pointer;
+    }
+    .fdots i {
+      width: 8px;
+      height: 8px;
+      border-radius: var(--radius-pill);
+      background: var(--line);
+      transition:
+        width var(--dur-spring) var(--ease-spring),
+        background-color var(--dur-ui) var(--ease-ui);
+    }
+    .fdots button[aria-current="true"] i {
+      width: 22px;
+      background: var(--grape);
     }
     .fig .obj {
       height: 240px;

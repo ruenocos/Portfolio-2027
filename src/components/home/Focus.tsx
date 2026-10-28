@@ -18,6 +18,8 @@ const FRAME: Record<DioKind, { n: number; alt: string }> = {
 };
 const NEED = 0.6;
 const touch = () => matchMedia("(hover: none)").matches;
+// Below 900 the three cards are a swipe deck, one at a time (mobile check v02, F1).
+const deck = () => innerWidth < 900;
 const ctr = (el: Element, fx = 0.55, fy = 0.6) => (): XY => {
   const r = el.getBoundingClientRect();
   return [r.left + r.width * fx, r.top + r.height * fy];
@@ -213,6 +215,8 @@ export function Focus({ focus: c }: { focus: HomeContent["focus"] }) {
     },
   }));
   const [stmt, typed] = useTyping(c.statement);
+  const tracks = useRef<HTMLDivElement>(null);
+  const [at, setAt] = useState(0);
 
   // Touch has no hover: a card lights while it's mostly on screen.
   useEffect(() => {
@@ -230,11 +234,63 @@ export function Focus({ focus: c }: { focus: HomeContent["focus"] }) {
     return () => io.disconnect();
   }, []);
 
+  // On touch the in-view card stays lit; a finished beat doesn't switch it off.
+  const cardLight = (k: DioKind | null) => {
+    if (k || !touch()) setLit(k);
+  };
+
   // A tool points at the work it makes: it lights its card and plays its scene.
   const chip = (k: DioKind, on: boolean) => {
     setLit(on ? k : null);
     all.current[k]?.set(on);
   };
+
+  // The deck: slide a card to the middle, and keep the dots on the one in view.
+  const slideTo = (i: number) => {
+    const t = tracks.current;
+    const card = t?.children[i] as HTMLElement | undefined;
+    if (!t || !card) return;
+    const left = card.offsetLeft - (t.clientWidth - card.offsetWidth) / 2;
+    t.scrollTo({ left, behavior: getMotion().calm ? "auto" : "smooth" });
+  };
+  const onDeck = () => {
+    const t = tracks.current;
+    if (!t || !deck()) return;
+    const mid = t.scrollLeft + t.clientWidth / 2;
+    const d = [...t.children].map((el) => {
+      const e = el as HTMLElement;
+      return Math.abs(e.offsetLeft + e.offsetWidth / 2 - mid);
+    });
+    setAt(d.indexOf(Math.min(...d)));
+  };
+  // A tap on a tool in the deck: slide to its card and play the scene once.
+  const show = (k: DioKind) => {
+    const d = all.current[k];
+    slideTo(c.tracks.findIndex((t) => t.key === k));
+    setLit(k);
+    if (!d || getMotion().calm) return;
+    d.set(true);
+    if (k === "ux") d.tap();
+    window.setTimeout(() => d.set(false), 1600);
+  };
+
+  // Phones: Wessel shows the deck once. He taps After Effects and it glides to Motion.
+  const kit = useBeat<HTMLDivElement>({
+    need: 0.9,
+    async day(g) {
+      if (!deck()) return;
+      const ae = kit.current?.querySelector<HTMLElement>('[data-tool="after-effects"]');
+      if (!ae) return;
+      await wessel.go(ctr(ae, 0.5, 0.55), { k: 220 });
+      live(g);
+      wessel.press(true);
+      await wait(140);
+      wessel.press(false);
+      show("motion");
+      await wait(1400);
+      live(g);
+    },
+  });
 
   return (
     <section className="frame" data-row aria-label="Focus">
@@ -256,7 +312,7 @@ export function Focus({ focus: c }: { focus: HomeContent["focus"] }) {
               )}
             </p>
           </div>
-          <div className="kitc" data-enter>
+          <div ref={kit} className="kitc" data-enter>
             <h3 className="text-lead">Daily kit</h3>
             <ul className="tools kit" data-size="56">
               {KIT.map((id) => {
@@ -267,8 +323,10 @@ export function Focus({ focus: c }: { focus: HomeContent["focus"] }) {
                       type="button"
                       className={`tool${lit === k ? " on" : ""}`}
                       aria-label={TOOLS[id].name}
-                      onPointerEnter={() => chip(k, true)}
-                      onPointerLeave={() => chip(k, false)}
+                      data-tool={id}
+                      onPointerEnter={(e) => e.pointerType !== "touch" && chip(k, true)}
+                      onPointerLeave={(e) => e.pointerType !== "touch" && chip(k, false)}
+                      onClick={() => deck() && show(k)}
                       onFocus={() => chip(k, true)}
                       onBlur={() => chip(k, false)}
                     >
@@ -284,9 +342,16 @@ export function Focus({ focus: c }: { focus: HomeContent["focus"] }) {
         <p id="fig-hint" className="sr-only">
           Press Enter to play the scene.
         </p>
-        <div className="tracks">
+        <div ref={tracks} className="tracks" onScroll={onDeck}>
           {c.tracks.map((t) => (
-            <Card key={t.key} track={t} lit={lit === t.key} light={setLit} dios={dios} />
+            <Card key={t.key} track={t} lit={lit === t.key} light={cardLight} dios={dios} />
+          ))}
+        </div>
+        <div className="fdots" role="group" aria-label="Focus cards">
+          {c.tracks.map((t, i) => (
+            <button key={t.key} type="button" aria-label={t.title} aria-current={at === i || undefined} onClick={() => slideTo(i)}>
+              <i />
+            </button>
           ))}
         </div>
       </div>
