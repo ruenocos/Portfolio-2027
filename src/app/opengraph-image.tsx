@@ -6,17 +6,17 @@ import { FALLBACK_HOME } from "@/content/home";
 import { FACE, FEATURES } from "@/lib/smiley";
 
 // The link preview for every page (Slack, LinkedIn, iMessage, X). No text:
-// platforms print the title and description under it. Just the logo and a
-// small portrait in Wessel's selection handles (Wons, 2026-10-28: "logo,
-// picture small, handles, that's it"). Light mode, built once.
+// platforms print the title and description under it. The portrait in
+// Wessel's selection handles is the main thing, the smiley sits top right
+// (Wons, 2026-10-28). Light mode, built once.
 
-export const alt = "Wessel Oud's smiley logo next to a small portrait of him";
+export const alt = "A portrait of Wessel Oud with his smiley logo in the corner";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
 const c = tokens.color.light;
 const PHOTO = FALLBACK_HOME.about.photos[0].src; // the portrait
-const PIC = { w: 210, h: 280 };
+const PIC = { w: 330, h: 440 };
 
 // The portrait as a data URL. Cached, so the image is built once instead of per visit.
 async function photoData() {
@@ -64,8 +64,8 @@ export default async function Image() {
         <div style={{ display: "flex", borderRight: line }}>
           <Dots />
         </div>
-        <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 88 }}>
-          <svg width="230" height="230" viewBox="0 0 212 212">
+        <div style={{ flex: 1, display: "flex", position: "relative", alignItems: "center", justifyContent: "center" }}>
+          <svg width="96" height="96" viewBox="0 0 212 212" style={{ position: "absolute", top: 40, right: 40 }}>
             <path fill={tang} fillRule="evenodd" d={FACE} />
             <path fill={tang} d={FEATURES} />
           </svg>
