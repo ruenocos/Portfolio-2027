@@ -45,6 +45,11 @@
   h3 {
     text-wrap: balance;
   }
+  p,
+  dd,
+  li {
+    text-wrap: pretty;
+  }
 }
 
 /* Mode change: every token cross-fades over 0.9s (DESIGN.md §3).

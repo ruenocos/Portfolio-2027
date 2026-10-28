@@ -27,7 +27,13 @@ export function useInViewVideo(rate = RATE) {
       } else v.pause();
       if (calm) setOn(false);
     };
-    const playing = () => setOn(true);
+    // Light up only once a real frame is painted: Safari can fire "playing"
+    // before the first frame, which flashed a black box over the poster.
+    const playing = () => {
+      if (typeof v.requestVideoFrameCallback === "function") v.requestVideoFrameCallback(() => setOn(true));
+      else if (v.currentTime > 0) setOn(true);
+      else v.addEventListener("timeupdate", () => setOn(true), { once: true });
+    };
     v.addEventListener("playing", playing);
     // Fetch a little early so it's ready when it scrolls in.
     const near = new IntersectionObserver(([e]) => {
@@ -65,7 +71,7 @@ export function MediaFill({ poster, video, alt = "", rate }: MediaSrc & { rate?:
       {/* Posters come from Sanity's image CDN in Phase 4; a plain img keeps them out of next/image's resizer. */}
       {/* eslint-disable-next-line @next/next/no-img-element */}
       {poster && <img src={poster} alt={alt} data-err={err} onError={() => setErr(true)} loading="lazy" decoding="async" />}
-      {video && <video ref={ref} data-src={video} muted loop playsInline preload="none" data-on={on} aria-hidden="true" />}
+      {video && <video ref={ref} data-src={video} poster={poster} muted loop playsInline preload="none" data-on={on} aria-hidden="true" />}
     </span>
   );
 }
