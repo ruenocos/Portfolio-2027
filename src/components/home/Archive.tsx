@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
-import { Arrow } from "@/components/parts/Arrow";
 import { Hop } from "@/components/shell/Hop";
 import { useBeat } from "@/components/canvas/useBeat";
 import type { ArchiveCard } from "@/content/home";
@@ -12,7 +11,7 @@ import { SIZES, srcSet } from "@/lib/image";
 
 /**
  * Archive (DESIGN.md §6): a hand of cards resting closed at .82, with
- * "All work →" in Statement. Hover (or a phone scrolling it in) fans it;
+ * "All work" in Statement. Hover (or a phone scrolling it in) fans it;
  * Wessel fans it once.
  */
 export function Archive({ cards }: { cards: ArchiveCard[] }) {
@@ -70,6 +69,7 @@ export function Archive({ cards }: { cards: ArchiveCard[] }) {
         ref={beat}
         className="cell arch"
         data-open={open}
+        data-hop-host
         onPointerEnter={() => !touch() && setHover(true)}
         onPointerLeave={() => !touch() && setHover(false)}
       >
@@ -100,9 +100,6 @@ export function Archive({ cards }: { cards: ArchiveCard[] }) {
         <div className="allw" data-enter>
           <Link href="/work" className="text-statement" onFocus={() => setHover(true)} onBlur={() => setHover(false)}>
             <Hop text="All work" />
-            <span className="ar" aria-hidden="true">
-              <Arrow dir="right" />
-            </span>
           </Link>
         </div>
       </div>

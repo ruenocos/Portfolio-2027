@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import { Read } from "@/components/case/Read";
 import { Crumb } from "@/components/parts/Crumb";
@@ -25,19 +24,12 @@ export async function generateMetadata({ params }: PageProps<"/work/[slug]">): P
 
 /**
  * Case page (case-study-spec v02): crumb → opening (title | lead) → header
- * video → facts → the read → the crumb again, then the footer (its air row
- * is the spec's 240px gap).
+ * video → facts → the read → the next project, then the footer (its air
+ * row is the spec's 240px gap). Fully prerendered per slug, with no
+ * Suspense fallback: a streamed hole showed an empty page (header and
+ * cursors only) on load and between cases (Wons 2026-10-28).
  */
-export default function CasePage({ params }: PageProps<"/work/[slug]">) {
-  // The slug is URL data: behind Suspense so the shell can show at once.
-  return (
-    <Suspense fallback={<div className="min-h-svh" aria-hidden="true" />}>
-      <Case params={params} />
-    </Suspense>
-  );
-}
-
-async function Case({ params }: Pick<PageProps<"/work/[slug]">, "params">) {
+export default async function CasePage({ params }: PageProps<"/work/[slug]">) {
   const { slug } = await params;
   const o = await getDraftFetchOptions();
   const [c, projects] = await Promise.all([getCase(slug, o), getWork(o)]);
@@ -56,13 +48,13 @@ async function Case({ params }: Pick<PageProps<"/work/[slug]">, "params">) {
   return (
     <>
       <Crumb {...crumb} />
-      <section className="frame" data-row aria-labelledby="ttl">
+      <section className="frame" data-row data-steps aria-labelledby="ttl">
         <div className="side" />
         {/* Nothing written yet beside the title: it takes the full row. */}
         <div className="copen" data-solo={!c.lead && !c.intro ? "" : undefined}>
           <div className="cell ot">
             <span data-enter>
-              <SectionLabel as="p" name={`${c.sections.length ? "Case" : "Project"} · ${c.title}`} />
+              <SectionLabel as="p" name={c.sections.length ? "Case" : "Project"} />
             </span>
             <h1 id="ttl" className="text-statement" lang={c.lang} data-enter>
               {c.title}
@@ -112,7 +104,7 @@ async function Case({ params }: Pick<PageProps<"/work/[slug]">, "params">) {
       <Facts items={c.facts} />
       {/* The short page (no case written yet) has no read. */}
       {c.sections.length > 0 && (
-        <section className="frame" data-row aria-label="Case study">
+        <section className="frame" data-row data-steps aria-label="Case study">
           <div className="side" />
           <Read sections={c.sections} />
           <div className="side" />
@@ -122,12 +114,11 @@ async function Case({ params }: Pick<PageProps<"/work/[slug]">, "params">) {
       {crumb.next && after && (
         <>
           <Divider label={{ name: "Next project" }} />
-          <ProjectRows projects={[after]} label="Next project" />
+          <ProjectRows projects={[after]} label="Next project" next />
         </>
       )}
-      {/* The Next row above is the way on, so the bar at the end only goes
-          back to all work (Wons 2026-10-28: two "next"s made no sense). */}
-      <Crumb label="Case navigation, end" />
+      {/* No bar at the end: the Next row is the way on and Work in the
+          header is the way back (Wons 2026-10-28). */}
     </>
   );
 }

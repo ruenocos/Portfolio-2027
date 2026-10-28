@@ -9,49 +9,9 @@
     gap: 24px;
     padding: var(--spacing-section) var(--spacing-inset) var(--spacing-inset);
   }
-  /* The hand of posters on the title's row: small, overlapping, a little
-     fanned, like prints laid on the desk. Pointing at one lifts it. */
-  .whand {
-    display: flex;
-    align-items: flex-end;
-    padding-right: 8px;
-  }
-  .whand a {
-    position: relative;
-    width: 72px;
-    aspect-ratio: 3 / 4;
-    margin-left: -18px;
-    border-radius: 10px;
-    overflow: hidden;
-    background: var(--fill);
-    box-shadow: var(--shadow-outline);
-    rotate: calc(var(--i) * 3deg);
-    translate: 0 calc(var(--i) * var(--i) * 2px);
-    transition:
-      translate var(--dur-spring) var(--ease-spring),
-      rotate var(--dur-spring) var(--ease-spring);
-  }
-  .whand a img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-  }
-  @media (hover: hover) and (pointer: fine) {
-    .whand a:hover {
-      z-index: 1;
-      rotate: 0deg;
-      translate: 0 -12px;
-      outline: 1.5px solid var(--grape);
-      outline-offset: 3px;
-    }
-  }
-  html[data-motion="calm"] .whand a {
-    transition: none;
-  }
-  @media (width < 900px) {
-    .whand {
-      display: none;
-    }
+  /* A little air between the filter and the rows. */
+  .wgap > * {
+    height: 40px;
   }
   .wfbar {
     display: flex;
@@ -221,21 +181,10 @@
        before you point at it; pointing grows it into the peek. */
     scale: 0.24;
     pointer-events: none;
-    box-shadow: var(--shadow-outline);
+    box-shadow: inset 0 0 0 1px var(--frame-edge), var(--shadow-outline);
     transition:
       opacity var(--dur-ui) var(--ease-ui),
       scale var(--dur-spring) var(--ease-spring);
-  }
-  /* No size pill and no tools ring here: the peek, underline and arrow are
-     enough, and every tool in a row is used for that project anyway. */
-  .arow .apk .hsz {
-    display: none;
-  }
-  .arow .apk .hsel {
-    inset: -6px;
-    /* Follows the picture's corner (radius 24) at its 6px offset. */
-    border-radius: calc(var(--radius-media, 24px) + 6px);
-    opacity: 0;
   }
   /* Pointing at a row hides the other rows' thumbs, so the peek never
      overlaps one. */
@@ -243,30 +192,11 @@
     opacity: 0;
   }
   /* Dark: a hairline keeps black posters from melting into the canvas. */
-  html[data-mode="dark"] :is(.arow .apk, .whand a:not(:hover)) {
+  html[data-mode="dark"] .arow .apk {
     outline: 1px solid color-mix(in srgb, var(--mute) 55%, transparent);
-  }
-  /* Your selection is an outline only: handles are Wessel's. */
-  .arow .apk .hsel i {
-    display: none;
   }
   .arow:is(:hover, :focus-within) .apk .hsel {
     opacity: 1;
-  }
-  /* The first row grows down and the last grows up, so the peek stays
-     inside the list. */
-  @media (width >= 900px) {
-    .arow:first-child .apk {
-      top: calc(50% - 28px);
-      translate: -50% 0;
-      transform-origin: 50% 0;
-    }
-    .arow:last-child .apk {
-      top: auto;
-      bottom: calc(50% - 28px);
-      translate: -50% 0;
-      transform-origin: 50% 100%;
-    }
   }
   .arow .soontag {
     left: auto;

@@ -127,7 +127,8 @@
   }
   .sc .fimg {
     border-radius: var(--radius-media);
-    background: var(--fill);
+    background: var(--canvas);
+    box-shadow: inset 0 0 0 1px var(--frame-edge);
     overflow: hidden;
   }
   .sc .fimg img {

@@ -344,7 +344,8 @@
     position: relative;
     display: block;
     border-radius: var(--radius-media);
-    background: var(--fill);
+    background: var(--canvas);
+    box-shadow: inset 0 0 0 1px var(--frame-edge);
     isolation: isolate;
   }
   .media[data-ratio="portrait"] {
@@ -419,12 +420,13 @@
     min-width: 0;
   }
   /* A project still to write has no role or tools yet: title | media, no
-     empty third cell (it comes back with ?mocks). */
+     empty third cell (it comes back with ?mocks). Not in the case page's
+     Next row, which keeps its thirds so every next project looks the same. */
   @media (width >= 900px) {
-    html:not([data-mocks]) .pj[data-gap] {
+    html:not([data-mocks]) :not([data-next]) > .pj[data-gap] {
       grid-template-columns: repeat(2, minmax(0, 1fr));
     }
-    html:not([data-mocks]) .pj[data-gap] > .pr {
+    html:not([data-mocks]) :not([data-next]) > .pj[data-gap] > .pr {
       display: none;
     }
   }
@@ -923,34 +925,11 @@
 }
 
 /* ---------- project card hover ----------
-   The whole row is the target, like the All work cell: the title's grape
-   underline draws and its arrow slides (All work's move), the row's tools
-   ring up like Daily kit chips, and your grape selection snaps round the
-   card with its real size. Pictures never move here (the scroll depth does). */
+   The whole row is the target and one clickable text: pointing anywhere on
+   it hops and colours the title like a header link (Hop's [data-hop-host]),
+   the tools lift like Daily kit chips, and your grape selection snaps round
+   the card. Pictures never move here (the scroll depth does). */
 @layer components {
-  .pj .pl h3 .tt,
-  .arow h3 .tt {
-    background: linear-gradient(var(--grape), var(--grape)) 0 100% / 0% 2px no-repeat;
-    padding-bottom: 4px;
-    transition: background-size var(--dur-spring) var(--ease-ui);
-  }
-  /* Grape at rest, like every other link arrow; hover slides it. */
-  .pj .pl h3 .ta,
-  .arow h3 .ta {
-    color: var(--grape);
-    display: inline-flex;
-    width: 0.62em;
-    margin-left: 0.22em;
-    vertical-align: -0.02em;
-    transition:
-      transform var(--dur-spring) var(--ease-spring),
-      color var(--dur-ui) var(--ease-ui);
-  }
-  .pj .pl h3 .ta svg,
-  .arow h3 .ta svg {
-    width: 100%;
-    height: auto;
-  }
   :is(.pj, .arow) .media .hov {
     position: absolute;
     inset: 0;
@@ -958,52 +937,26 @@
     border-radius: inherit;
     pointer-events: none;
   }
+  /* Your selection: a grape outline that follows the picture's corner at
+     its 6px offset, the same on home, Work and the case's Next row. No
+     handles (those are Wessel's) and no size pill. */
   :is(.pj, .arow) .media .hsel {
     position: absolute;
-    inset: -7px;
+    inset: -6px;
     border: 1.5px solid var(--grape);
-    border-radius: 4px;
+    border-radius: calc(var(--radius-media, 24px) + 6px);
     opacity: 0;
     scale: 1.04;
     transition:
       opacity var(--dur-ui) var(--ease-ui),
       scale var(--dur-spring) var(--ease-spring);
   }
-  :is(.pj, .arow) .media .hsel > i {
-    position: absolute;
-    width: 9px;
-    height: 9px;
-    border-radius: 50%;
-    background: var(--canvas);
-    border: 1.5px solid var(--grape);
-  }
-  :is(.pj, .arow) .media .hsel > i:nth-child(1) { left: -5px; top: -5px; }
-  :is(.pj, .arow) .media .hsel > i:nth-child(2) { right: -5px; top: -5px; }
-  :is(.pj, .arow) .media .hsel > i:nth-child(3) { right: -5px; bottom: -5px; }
-  :is(.pj, .arow) .media .hsel > i:nth-child(4) { left: -5px; bottom: -5px; }
-  :is(.pj, .arow) .media .hsz {
-    position: absolute;
-    left: 50%;
-    top: calc(100% + 10px);
-    translate: -50% 0;
-    padding: 3px 7px;
-    border-radius: 4px;
-    background: var(--grape);
-    color: var(--canvas);
-    font: 500 11px/1.2 var(--font-mono);
-    white-space: nowrap;
-  }
   .pj .tools .tool:nth-child(2) { transition-delay: 0ms, 40ms, 0ms, 0ms, 40ms; }
   .pj .tools .tool:nth-child(3) { transition-delay: 0ms, 80ms, 0ms, 0ms, 80ms; }
 
   @media (hover: hover) and (pointer: fine) {
     .pj:has(.media[href]) { cursor: pointer; }
-    :is(.pj, .arow):is(:hover, :focus-within) h3 .tt { background-size: 100% 2px; }
-    :is(.pj, .arow):is(:hover, :focus-within) h3 .ta { transform: translateX(8px); }
     .pj:is(:hover, :focus-within) .tools .tool {
-      box-shadow:
-        0 0 0 3px var(--canvas),
-        0 0 0 4.5px var(--grape);
       transform: translateY(-3px);
     }
     :is(.pj, .arow):is(:hover, :focus-within) .media .hsel {
@@ -1011,7 +964,7 @@
       scale: 1;
     }
   }
-  html[data-motion="calm"] :is(.pj, .arow) :is(.tt, .ta, .hsel, .tool, .apk) {
+  html[data-motion="calm"] :is(.pj, .arow) :is(.hsel, .tool, .apk) {
     transition: none;
   }
 }

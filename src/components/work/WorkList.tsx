@@ -74,6 +74,11 @@ export function WorkList({ projects }: { projects: Project[] }) {
         </div>
         <div className="side" />
       </section>
+      <div className="frame wgap" data-row aria-hidden="true">
+        <div className="side" />
+        <div className="cell bg-dots" />
+        <div className="side" />
+      </div>
       <section className="frame" data-row aria-label="Projects">
         <div className="side" />
         <div className="ruled min-w-0">

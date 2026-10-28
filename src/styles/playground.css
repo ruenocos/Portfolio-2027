@@ -44,31 +44,6 @@
     margin: 0;
     will-change: transform;
   }
-  /* Frame name: Micro caps just above the tile's top-left, like Figma's. */
-  .pgcv .fl {
-    position: absolute;
-    display: block;
-    left: 2px;
-    bottom: calc(100% + 8px);
-    max-width: calc(100% - 4px);
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    color: var(--mute);
-    pointer-events: none;
-    opacity: 0;
-    transition:
-      color var(--dur-ui) var(--ease-ui),
-      translate var(--dur-spring) var(--ease-spring),
-      opacity 500ms var(--ease-ui);
-    transition-delay: 0ms, 0ms, var(--d, 0ms);
-  }
-  .pgcv .post.in .fl {
-    opacity: 1;
-  }
-  .pgcv .post[data-hover] .fl {
-    color: var(--grape);
-  }
   /* The tile you're over: a thin grape outline, no handles (those are his). */
   .pgcv .post[data-hover] .pi {
     outline: 1.5px solid var(--grape);
@@ -88,6 +63,12 @@
       translate var(--dur-spring) var(--ease-spring),
       opacity 500ms var(--ease-ui);
     transition-delay: var(--d, 0ms);
+  }
+  /* A tile waiting for its picture: page colour and a hairline (prompt
+     cards keep their fill, they have no picture to wait for). */
+  .pgcv .pi:has(img, video):not([data-tint]) {
+    background: var(--canvas);
+    box-shadow: inset 0 0 0 1px var(--frame-edge);
   }
   .pgcv .post.in .pi {
     opacity: 1;
@@ -208,10 +189,6 @@
     .pgcol {
       min-height: 560px;
     }
-    /* No room for frame names between phone tiles: the open view names it. */
-    .pgcv .fl {
-      display: none;
-    }
     .pgcv .pi,
     .pgcv .lbm {
       border-radius: 16px;
@@ -220,7 +197,7 @@
       display: none;
     }
   }
-  html[data-motion="calm"] .pgcv :is(.pi, .lbm, .lb, .fl, .lbc) {
+  html[data-motion="calm"] .pgcv :is(.pi, .lbm, .lb, .lbc) {
     transition: opacity 200ms var(--ease-ui);
   }
   html[data-motion="calm"] .pgcv[data-moving] .post.in .pi {

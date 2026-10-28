@@ -6,6 +6,7 @@ import { useEffect } from "react";
 import { useMotion } from "@/components/useMotion";
 import motionTokens from "../../../design/motion-tokens.json";
 import { clamp, cssBezier } from "@/lib/math";
+import { movers, onHairline } from "@/lib/hairline";
 
 const { easing, entrance, scrollSystem: sx } = motionTokens;
 const out3 = (x: number) => 1 - (1 - x) ** 3;
@@ -292,6 +293,8 @@ function start() {
   // A block below the fold waits for it, once per visit (data-sx-unit stays
   // on what has entered; Pause clears it from what was still waiting).
   const enter = (el: HTMLElement) => {
+    // A tile enters as its content (lib/hairline).
+    if (onHairline(el)) return movers(el).forEach(enter);
     if (el.dataset.sxUnit !== undefined) return;
     el.dataset.sxUnit = "";
     const r = el.getBoundingClientRect();
@@ -346,6 +349,8 @@ function start() {
       const inside = [...texts.keys()].some((t) => t.contains(el) || el.contains(t));
       const kind = motionKind(el);
       if (kind === "entrance") return; // the entrance pass takes it
+      // A tile (an Experience row) dims as its own text, never as a whole.
+      if (onHairline(el)) return void passed.add(el);
       if (inside || kind !== "reveal" || !below(el)) return void passed.add(el);
       const t: Text = { el, lines: [], peak: [], top: 0, last: "-" };
       texts.set(el, t);

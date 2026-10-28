@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { Pin } from "@/components/canvas/Pin";
-import { Arrow } from "@/components/parts/Arrow";
+import { Hop } from "@/components/shell/Hop";
 import { useBeat } from "@/components/canvas/useBeat";
 import { useMotion } from "@/components/useMotion";
 import { announce } from "@/lib/motion";
@@ -93,10 +93,17 @@ function useMagnet() {
  * Tablet: text | media. Phone: one column.
  * Wessel drops a pin on the media and selects it.
  */
-export function ProjectRow({ project: p, hidden, leaving }: { project: Project; hidden?: boolean; leaving?: boolean }) {
+export function ProjectRow({
+  project: p,
+  hidden,
+  leaving,
+}: {
+  project: Project;
+  hidden?: boolean;
+  leaving?: boolean;
+}) {
   const media = useMagnet();
   const pin = useRef<HTMLSpanElement>(null);
-  const size = useRef<HTMLElement>(null);
   const [soon, setSoon] = useState(false);
   const mock = (f: "summary" | "role" | "note" | "media") => (p.mock?.includes(f) ? "" : undefined);
   const gap = p.placeholder;
@@ -188,13 +195,7 @@ export function ProjectRow({ project: p, hidden, leaving }: { project: Project; 
     <>
       {/* Your selection: it snaps round the card when you come to the row. */}
       <span className="hov" aria-hidden="true">
-        <span className="hsel">
-          <i />
-          <i />
-          <i />
-          <i />
-          <b className="hsz" ref={size} />
-        </span>
+          <span className="hsel" />
       </span>
       <MediaFill poster={p.media.poster} video={p.media.video} />
       {p.note && (
@@ -216,11 +217,6 @@ export function ProjectRow({ project: p, hidden, leaving }: { project: Project; 
     if ((e.target as Element).closest("a, button") || getSelection()?.toString()) return;
     media.current?.click();
   };
-  // Your selection's size pill reads the media's real size.
-  const sizeUp = () => {
-    const m = media.current;
-    if (m && size.current) size.current.textContent = `${Math.round(m.offsetWidth)} × ${Math.round(m.offsetHeight)}`;
-  };
 
   return (
     <article
@@ -229,18 +225,15 @@ export function ProjectRow({ project: p, hidden, leaving }: { project: Project; 
       data-gap={gap ? "" : undefined}
       hidden={hidden}
       data-leaving={leaving || undefined}
-      onPointerEnter={sizeUp}
+      data-hop-host
+      data-you={p.href ? "View case" : "Case study soon"}
+     
       onClick={rowClick}
     >
       <div className="cell pl">
         <div>
           <h3 className="text-title" lang={p.lang} data-mock={gap ? "" : undefined}>
-            <span className="tt">{p.title}</span>
-            {p.href && (
-              <span className="ta" aria-hidden="true">
-                <Arrow dir="right" />
-              </span>
-            )}
+            <span className="tt">{gap ? p.title : <Hop text={p.title} />}</span>
             {gap && (
               <span aria-hidden="true">
                 <MockTag className="ml-2.5 align-middle" />
@@ -265,7 +258,6 @@ export function ProjectRow({ project: p, hidden, leaving }: { project: Project; 
             href={p.href}
             className="media"
             data-ratio="portrait"
-            data-you="View case"
             aria-label={p.label}
           >
             {inner}
@@ -277,7 +269,6 @@ export function ProjectRow({ project: p, hidden, leaving }: { project: Project; 
             type="button"
             className="media"
             data-ratio="portrait"
-            data-you="Case study soon"
             aria-label={`${p.label} Case study soon.`}
             onClick={notYet}
           >
@@ -301,12 +292,26 @@ export function ProjectRow({ project: p, hidden, leaving }: { project: Project; 
   );
 }
 
-/** The rows sit in one ruled stack inside the frame. */
-export function ProjectRows({ projects, label = "Selected work", id }: { projects: Project[]; label?: string; id?: string }) {
+/**
+ * The rows sit in one ruled stack inside the frame. `next` is the case
+ * page's Next project row: always the full thirds, so
+ * a project still to write gets the same media size as a written one.
+ */
+export function ProjectRows({
+  projects,
+  label = "Selected work",
+  id,
+  next,
+}: {
+  projects: Project[];
+  label?: string;
+  id?: string;
+  next?: boolean;
+}) {
   return (
     <section className="frame" data-row id={id} aria-label={label}>
       <div className="side" />
-      <div className="ruled min-w-0">
+      <div className="ruled min-w-0" data-next={next ? "" : undefined}>
         {projects.map((p) => (
           <ProjectRow key={p.title} project={p} />
         ))}

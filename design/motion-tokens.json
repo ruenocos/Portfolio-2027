@@ -199,8 +199,9 @@
     },
     "loadEntrance": {
       "uses": "entrance grammar (enter-opacity 560 + enter-rise 720, 16px)",
-      "rowStaggerMs": 80,
-      "maxSteps": 4,
+      "rowStaggerMs": 120,
+      "listStaggerMs": 60,
+      "maxSteps": 8,
       "skip": "home first-visit boot, paused, reduced"
     },
     "pausedOrReduced": "instant swap, no entrance",

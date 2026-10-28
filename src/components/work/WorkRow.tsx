@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
+import { Hop } from "@/components/shell/Hop";
 import { useEffect, useRef, useState } from "react";
-import { Arrow } from "@/components/parts/Arrow";
 import { MediaFill } from "@/components/parts/Media";
 import { SIZES } from "@/lib/image";
 import { MockTag, Slot } from "@/components/parts/Pills";
@@ -69,7 +69,6 @@ function usePeekMagnet() {
  */
 export function WorkRow({ project: p, hidden, leaving }: { project: Project; hidden?: boolean; leaving?: boolean }) {
   const peek = usePeekMagnet();
-  const size = useRef<HTMLElement>(null);
   const [soon, setSoon] = useState(false);
   const gap = p.placeholder;
 
@@ -82,24 +81,17 @@ export function WorkRow({ project: p, hidden, leaving }: { project: Project; hid
     clearTimeout(sayingSoon.current);
     sayingSoon.current = window.setTimeout(() => setSoon(false), 1600);
   };
-  const sizeUp = () => {
-    const m = peek.current;
-    if (m && size.current) size.current.textContent = `${Math.round(m.offsetWidth)} × ${Math.round(m.offsetHeight)}`;
-  };
 
+  // No arrow or underline on the title: it hops like a header link and your
+  // "View case" tag says the rest (Wons 2026-10-28).
   const title = (
-    <>
-      <span className="tt">{p.title}</span>
-      {p.href && (
-        <span className="ta" aria-hidden="true">
-          <Arrow dir="right" />
-        </span>
-      )}
-    </>
+    <span className="tt">
+      <Hop text={p.title} />
+    </span>
   );
 
   return (
-    <article className="arow" hidden={hidden} data-gap={gap || undefined} data-leaving={leaving || undefined} onPointerEnter={sizeUp}>
+    <article className="arow" data-hop-host hidden={hidden} data-gap={gap || undefined} data-leaving={leaving || undefined}>
       <div className="cell al">
         <h3 className="text-lead" lang={p.lang}>
           {/* The title is the row's target; its hit area stretches over the whole row. */}
@@ -123,13 +115,7 @@ export function WorkRow({ project: p, hidden, leaving }: { project: Project; hid
         <span className="ay">{gap ? <Slot>Year</Slot> : p.timeline}</span>
         <span ref={peek} className="media apk" data-ratio="portrait" aria-hidden="true">
           <span className="hov">
-            <span className="hsel">
-              <i />
-              <i />
-              <i />
-              <i />
-              <b className="hsz" ref={size} />
-            </span>
+          <span className="hsel" />
           </span>
           <MediaFill poster={p.media.poster} video={p.media.video} sizes={SIZES.peek} />
         </span>

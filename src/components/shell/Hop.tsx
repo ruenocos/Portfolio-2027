@@ -1,11 +1,14 @@
 "use client";
 
-import { useRef } from "react";
+import { useEffect, useRef } from "react";
 import { getMotion } from "@/lib/motion";
 
 // Letter hop: a text link's label springs up letter by letter on hover.
-// The house style for every text link (Wons, 2026-10-27). Screen readers
-// get the plain text from the hidden copy.
+// The house style for every clickable text (Wons, 2026-10-27; 2026-10-28:
+// one effect everywhere, no underlines). It plays when the pointer enters
+// its host: the closest [data-hop-host] (a whole project tile), else the
+// link or button around it. The host's hover also turns it grape (shell.css).
+// Screen readers get the plain text from the hidden copy.
 // Words as lists of [letter, stagger index]; the spaces between stay strings.
 // One running count per code point, so the stagger has no gaps.
 function groups(text: string): (string | [string, number][])[] {
@@ -15,11 +18,17 @@ function groups(text: string): (string | [string, number][])[] {
 
 export function Hop({ text }: { text: string }) {
   const ref = useRef<HTMLSpanElement>(null);
-  const go = () => {
+  useEffect(() => {
     const el = ref.current;
-    if (!el || getMotion().calm || el.classList.contains("go")) return;
-    el.classList.add("go");
-  };
+    const host = el?.closest<HTMLElement>("[data-hop-host]") ?? el?.closest<HTMLElement>("a,button") ?? el;
+    if (!el || !host) return;
+    const go = () => {
+      if (getMotion().calm || el.classList.contains("go")) return;
+      el.classList.add("go");
+    };
+    host.addEventListener("pointerenter", go);
+    return () => host.removeEventListener("pointerenter", go);
+  }, []);
   return (
     <>
       <span className="sr-only">{text}</span>
@@ -27,7 +36,6 @@ export function Hop({ text }: { text: string }) {
         ref={ref}
         className="hop"
         aria-hidden="true"
-        onPointerEnter={go}
         onAnimationEnd={(e) => {
           const letters = e.currentTarget.querySelectorAll("i");
           if (e.target === letters[letters.length - 1]) e.currentTarget.classList.remove("go");

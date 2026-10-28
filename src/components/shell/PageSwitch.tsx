@@ -75,6 +75,12 @@ export function PageSwitch() {
       veil.className = "veil";
       veil.style.left = `${main.left}px`;
       veil.style.width = `${main.width}px`;
+      // Case to case, the case bar holds still: the veil starts under it
+      // while it sits at the top of the screen.
+      const bar = /^\/work\/[^/]+$/.test(location.pathname) && /^\/work\/[^/]+$/.test(url.pathname)
+        ? document.querySelector("main .crumb")?.getBoundingClientRect()
+        : null;
+      if (bar && bar.top >= 0 && bar.top < 120) veil.style.top = `${bar.bottom}px`;
       document.body.append(veil);
       leaving.veil = veil;
       veil.animate([{ opacity: 0 }, { opacity: 1 }], { duration: OUT, easing: ease, fill: "forwards" });

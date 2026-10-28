@@ -5,6 +5,10 @@
 @layer components {
   :root {
     --stagger: 60ms; /* motion-tokens entrance.stagger */
+    /* An empty media frame (picture still loading) is the page colour with
+       this hairline in its shape; the picture covers it once it's in
+       (Wons picked B, 2026-10-28: no grey slab in dark). */
+    --frame-edge: color-mix(in srgb, var(--mute) 35%, transparent);
   }
 
   /* ---------- canvas ---------- */
@@ -142,9 +146,6 @@
   .hd .ct:hover {
     color: var(--grape);
   }
-  .hd .ct .ar {
-    color: var(--grape);
-  }
   .hd .ctw {
     display: flex;
     align-items: center;
@@ -155,7 +156,16 @@
     padding: 0 calc(var(--spacing-inset) - 6px);
   }
 
-  /* letter hop */
+  /* letter hop. A whole tile ([data-hop-host]) is one clickable text:
+     pointing anywhere on it hops and colours its title like a header link. */
+  .hop {
+    transition: color var(--dur-ui) var(--ease-ui);
+  }
+  @media (hover: hover) and (pointer: fine) {
+    [data-hop-host]:is(:hover, :focus-within) .hop {
+      color: var(--grape);
+    }
+  }
   .hop .hw {
     white-space: nowrap;
   }
@@ -309,6 +319,17 @@
     flex-direction: column;
     gap: var(--spacing-hairline);
     background: var(--line);
+    /* A short page (Work filtered down to one row) still reaches the
+       bottom of the screen: the spacer above the footer takes the slack,
+       so no bare hairline colour shows under the footer. */
+    flex: 1 0 auto;
+  }
+  .footer-air {
+    flex: 1 0 auto;
+  }
+  .footer-air.divider.divider-tall > :is(.cell, .side) {
+    height: auto;
+    min-height: var(--spacing-divider-tall);
   }
   .fcols {
     display: grid;
@@ -581,9 +602,6 @@
     }
     .mnav a[aria-current="page"],
     .mnav a:active {
-      color: var(--grape);
-    }
-    .mnav .ar {
       color: var(--grape);
     }
     .mnav a:focus-visible {

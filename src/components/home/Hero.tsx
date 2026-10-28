@@ -92,10 +92,10 @@ export function Hero({ hero: content }: { hero: HomeContent["hero"] }) {
   useIdleNod(hero, idle);
 
   return (
-    <section className="frame" data-row data-still aria-labelledby="h-name">
+    <section className="frame" data-row data-still data-steps aria-labelledby="h-name">
       <div className="side" />
       <div ref={hero} className="cell hero bg-dots" data-hero>
-      <p className="hmeta text-label">
+      <p className="hmeta text-label" data-enter>
         <span>Based in</span>
         <b>{content.basedIn}</b>
         <span>Local time</span>
@@ -106,7 +106,7 @@ export function Hero({ hero: content }: { hero: HomeContent["hero"] }) {
       <h1 id="h-name" className="sr-only">
         {`Wessel Oud, ${content.role.join(" ").replace(/^./, (m) => m.toLowerCase())}`}
       </h1>
-      <div ref={name} className="name text-display">
+      <div ref={name} className="name text-display" data-enter>
         <span className="w" aria-hidden="true">
           <Letters word="Wessel" group={[2, 6]} />
         </span>
@@ -130,7 +130,7 @@ export function Hero({ hero: content }: { hero: HomeContent["hero"] }) {
           <Letters word="Oud" />
         </span>
       </div>
-      <p className="role text-accent" aria-hidden="true">
+      <p className="role text-accent" aria-hidden="true" data-enter>
         {content.role[0]}
         <br />
         {content.role[1]}
