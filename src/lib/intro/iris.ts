@@ -222,8 +222,8 @@ export function playIntro(): Promise<void> {
         sm.draw(t);
         // The glance eases back as he lands, so the swap to the logo doesn't jump.
         const g = ui(prog(t, I.glance));
-        const back = ui(prog(t, [I.fly.t[1] - 0.14, I.fly.t[1]]));
-        sm.feat.style.translate = `${lerp(lerp(drift[0], -9, g), 0, back)}px ${lerp(lerp(drift[1], -7, g), 0, back)}px`;
+        const ret = ui(prog(t, [I.fly.t[1] - 0.14, I.fly.t[1]]));
+        sm.feat.style.translate = `${lerp(lerp(drift[0], -9, g), 0, ret)}px ${lerp(lerp(drift[1], -7, g), 0, ret)}px`;
         sm.feat.style.scale = "";
         const k = move(prog(t, I.fly.t));
         const p = arc(home, dest, k, lift);

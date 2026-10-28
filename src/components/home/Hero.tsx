@@ -290,7 +290,7 @@ export function Hero({ hero: c }: { hero: HomeContent["hero"] }) {
       // After the intro he glides in from the edge instead of appearing mid-hero.
       const intro = !!document.documentElement.dataset.boot;
       await playIntro();
-      if (intro) wessel.offstage();
+      if (intro && h.isConnected) wessel.offstage();
       live(g);
       // It skips once the hero is scrolled 45% away, or on any key or click.
       let skip = false;

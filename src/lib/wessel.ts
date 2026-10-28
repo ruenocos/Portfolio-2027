@@ -351,6 +351,8 @@ export const wessel = {
     W.x = innerWidth + 80;
     W.y = innerHeight * 0.5;
     W.vx = W.vy = 0;
+    // Written now, so the frame before his next tick doesn't show the old spot.
+    if (W.el) W.el.style.transform = `translate(${(W.x - TIP[0]).toFixed(1)}px,${(W.y - TIP[1]).toFixed(1)}px)`;
   },
 
   show() {
