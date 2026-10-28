@@ -7,6 +7,7 @@
 @import "../styles/case.css";
 @import "../styles/about.css";
 @import "../styles/playground.css";
+@import "../styles/scroll.css";
 
 @layer base {
   html {

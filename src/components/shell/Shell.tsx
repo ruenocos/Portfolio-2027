@@ -5,6 +5,7 @@ import { Footer } from "./Footer";
 import { Header } from "./Header";
 import { PageFade } from "./PageFade";
 import { PageSwitch } from "./PageSwitch";
+import { ScrollSystem } from "./ScrollSystem";
 import { SmoothScroll } from "./SmoothScroll";
 
 // The site shell: the ruled canvas with the header on top and the footer
@@ -31,6 +32,8 @@ export function Shell({ children }: { children: React.ReactNode }) {
       <PageSwitch />
       <Entrance />
       <SmoothScroll />
+      {/* After SmoothScroll, so a new page has jumped to the top before it measures. */}
+      <ScrollSystem />
     </>
   );
 }
