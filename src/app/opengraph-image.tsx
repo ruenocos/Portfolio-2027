@@ -1,28 +1,29 @@
-import { readFile } from "node:fs/promises";
-import { join } from "node:path";
 import { ImageResponse } from "next/og";
 import tokens from "../../design/tokens.json";
-import { FALLBACK_HOME } from "@/content/home";
 import { FACE, FEATURES } from "@/lib/smiley";
 
-// The link preview for every page (Slack, LinkedIn, iMessage, X). No text:
-// platforms print the title and description under it. The portrait in
-// Wessel's selection handles is the main thing, the smiley sits top right
-// (Wons, 2026-10-28). Light mode, built once.
+// The link preview for every page (Slack, LinkedIn, iMessage, X). The hero's
+// name with the smiley where the reel sits: "Wessel [smiley] Oud", nothing
+// else (Wons, 2026-10-28). Platforms print the title and description under
+// it. Light mode, built once.
 
-export const alt = "A portrait of Wessel Oud with his smiley logo in the corner";
+export const alt = "Wessel Oud, with his smiley logo between the two names";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
 const c = tokens.color.light;
-const PHOTO = FALLBACK_HOME.about.photos[0].src; // the portrait
-const PIC = { w: 330, h: 440 };
+const NAME = 148;
 
-// The portrait as a data URL. Cached, so the image is built once instead of per visit.
-async function photoData() {
+// Bricolage Grotesque as TTF (the renderer can't read woff2), cut down to the
+// letters we set. Cached, so the image is built once instead of per visit.
+async function font(family: string, text: string) {
   "use cache";
-  const file = await readFile(join(process.cwd(), "public", PHOTO));
-  return `data:image/jpeg;base64,${file.toString("base64")}`;
+  const css = await (
+    await fetch(`https://fonts.googleapis.com/css2?family=${family}&text=${encodeURIComponent(text)}`)
+  ).text();
+  const url = css.match(/src: url\((.+?)\)/)?.[1];
+  if (!url) throw new Error(`No font file for ${family}`);
+  return (await fetch(url)).arrayBuffer();
 }
 
 // The canvas's dotted side band. Drawn as circles: the renderer doesn't
@@ -41,48 +42,39 @@ function Dots() {
 }
 
 export default async function Image() {
-  const photo = await photoData();
+  const display = await font("Bricolage+Grotesque:opsz,wght@96,800", "WesselOud");
   const line = `2px solid ${c.line.$value}`;
   const tang = c.tang.$value;
-  const handle = (pos: React.CSSProperties) => (
-    <div
-      style={{
-        position: "absolute",
-        width: 16,
-        height: 16,
-        borderRadius: 8,
-        background: c.canvas.$value,
-        border: `2.5px solid ${tang}`,
-        ...pos,
-      }}
-    />
-  );
+  const word = { fontSize: NAME, lineHeight: 1, letterSpacing: "-0.04em" };
 
   return new ImageResponse(
     (
-      <div style={{ display: "flex", width: "100%", height: "100%", background: c.canvas.$value }}>
+      <div
+        style={{
+          display: "flex",
+          width: "100%",
+          height: "100%",
+          background: c.canvas.$value,
+          color: c.ink.$value,
+          fontFamily: "Bricolage",
+        }}
+      >
         <div style={{ display: "flex", borderRight: line }}>
           <Dots />
         </div>
-        <div style={{ flex: 1, display: "flex", position: "relative", alignItems: "center", justifyContent: "center" }}>
-          <svg width="96" height="96" viewBox="0 0 212 212" style={{ position: "absolute", top: 40, right: 40 }}>
+        <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 24 }}>
+          <span style={word}>Wessel</span>
+          <svg width="116" height="116" viewBox="0 0 212 212">
             <path fill={tang} fillRule="evenodd" d={FACE} />
             <path fill={tang} d={FEATURES} />
           </svg>
-          {/* The portrait inside Wessel's selection: box, round handles. */}
-          <div style={{ display: "flex", position: "relative", padding: 6, border: `2.5px solid ${tang}` }}>
-            <img src={photo} width={PIC.w} height={PIC.h} style={{ borderRadius: 18, objectFit: "cover" }} alt="" />
-            {handle({ left: -9, top: -9 })}
-            {handle({ right: -9, top: -9 })}
-            {handle({ right: -9, bottom: -9 })}
-            {handle({ left: -9, bottom: -9 })}
-          </div>
+          <span style={word}>Oud</span>
         </div>
         <div style={{ display: "flex", borderLeft: line }}>
           <Dots />
         </div>
       </div>
     ),
-    size,
+    { ...size, fonts: [{ name: "Bricolage", data: display, weight: 800, style: "normal" }] },
   );
 }
