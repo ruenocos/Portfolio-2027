@@ -105,7 +105,7 @@ async function about() {
     photos: await Promise.all(a.photos.map(async (p) => ({ _key: key(p.src), ...(await image(p.src))!, alt: p.alt }))),
     facts: a.facts.map((f) => ({ _key: key(f.label), label: f.label, value: f.value, sub: f.sub })),
     experience: a.experience.map((j) => ({ _key: key(`${j.place}-${j.when}`), when: j.when, place: j.place, role: j.role })),
-    stickers: a.stickers.map((s) => ({ _key: key(s.text), _type: "sticker", text: s.text, tone: s.tone, shape: s.shape, size: s.size })),
+    offScreen: a.stickers.map((s) => ({ _key: key(s.text), _type: "sticker", text: s.text, kind: s.kind })),
   });
 }
 

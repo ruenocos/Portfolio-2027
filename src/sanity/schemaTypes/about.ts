@@ -57,8 +57,10 @@ export const about = defineType({
       ],
     }),
     defineField({
-      name: "stickers",
+      // v09 (2026-10-28): replaces the old "stickers" list (tone + shape).
+      name: "offScreen",
       title: "Off screen stickers",
+      description: "The shape is the kind of thing and sets the fill.",
       type: "array",
       of: [
         defineArrayMember({
@@ -67,26 +69,22 @@ export const about = defineType({
           fields: [
             defineField({ name: "text", type: "string", validation: (rule) => rule.required().max(24) }),
             defineField({
-              name: "tone",
+              name: "kind",
               type: "string",
-              options: { list: ["tang", "grape", "ink", "outline"], layout: "radio" },
-              initialValue: "tang",
-            }),
-            defineField({
-              name: "shape",
-              type: "string",
-              description: "Pill for most words, round for short ones, card for card games, tile for the big ones.",
-              options: { list: ["pill", "round", "card", "tile"], layout: "radio" },
+              options: {
+                list: [
+                  { title: "Card · card and board games", value: "card" },
+                  { title: "Square · making and learning", value: "square" },
+                  { title: "Round · moving", value: "round" },
+                  { title: "Pill · people and play", value: "pill" },
+                ],
+                layout: "radio",
+              },
               initialValue: "pill",
-            }),
-            defineField({
-              name: "size",
-              type: "string",
-              options: { list: ["s", "m", "l"], layout: "radio" },
-              initialValue: "m",
+              validation: (rule) => rule.required(),
             }),
           ],
-          preview: { select: { title: "text", subtitle: "shape" } },
+          preview: { select: { title: "text", subtitle: "kind" } },
         }),
       ],
     }),

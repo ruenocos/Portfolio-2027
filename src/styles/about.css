@@ -146,7 +146,7 @@
     min-height: var(--spacing-tap);
     padding: 0 16px;
     border-radius: var(--radius-pill);
-    border: 1px solid var(--grape);
+    border: 1.5px solid var(--grape);
     color: var(--grape);
     background: var(--canvas);
     transition:
@@ -157,158 +157,105 @@
     background: var(--grape);
     color: var(--on-grape);
   }
+  /* Four kinds, four shapes, one fill each. Words sit top-left on the
+     flat shapes and centred on the round ones, all on one type step. */
   .stk {
+    --fill: var(--canvas);
+    --on: var(--ink);
     position: absolute;
     left: 0;
     top: 0;
-    display: inline-flex;
-    align-items: center;
-    padding: 14px 22px;
-    border-radius: var(--radius-pill);
-    white-space: nowrap;
+    display: flex;
+    align-items: flex-start;
+    justify-content: flex-start;
+    font-family: var(--font-display);
+    font-weight: 500;
+    font-size: var(--type-lead-size);
+    line-height: 1.1;
+    letter-spacing: -0.01em;
+    text-align: left;
+    color: var(--on);
+    background: var(--fill);
     touch-action: none;
     cursor: grab;
     user-select: none;
     box-shadow:
-      0 2px 0 rgb(0 0 0 / 0.08),
-      0 14px 26px -16px rgb(0 0 0 / 0.45);
-    will-change: transform;
+      0 1px 0 rgb(0 0 0 / 0.06),
+      0 12px 24px -14px rgb(0 0 0 / 0.4);
+    will-change: translate, rotate;
+    transition:
+      scale var(--dur-ui) var(--ease-ui),
+      box-shadow var(--dur-ui) var(--ease-ui);
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .stk:hover {
+      scale: 1.04;
+    }
   }
   .stk[data-drag] {
     cursor: grabbing;
-    transition: none;
+    scale: 1.06;
     box-shadow:
-      0 2px 0 rgb(0 0 0 / 0.08),
-      0 24px 36px -16px rgb(0 0 0 / 0.5);
+      0 1px 0 rgb(0 0 0 / 0.06),
+      0 26px 40px -18px rgb(0 0 0 / 0.5);
   }
-  .stk[data-tone="tang"] {
-    background: var(--tang);
-    color: var(--on-tang);
+  .stk:focus-visible {
+    outline: 2px solid var(--grape);
+    outline-offset: 3px;
   }
-  .stk[data-tone="grape"] {
-    background: var(--grape);
-    color: var(--on-grape);
+  .stk[data-kind="card"] {
+    --fill: var(--grape);
+    --on: var(--on-grape);
+    width: 128px;
+    height: 180px;
+    padding: 14px 12px;
+    border-radius: 10px;
   }
-  .stk[data-tone="ink"] {
-    background: var(--ink);
-    color: var(--canvas);
+  /* The one card detail: an index like a rank, turned, in the far corner. */
+  .stk[data-kind="card"]::after {
+    content: attr(data-label);
+    position: absolute;
+    right: 12px;
+    bottom: 10px;
+    font-family: var(--font-mono);
+    font-size: var(--type-micro-size);
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    rotate: 180deg;
+    opacity: 0.6;
   }
-  .stk[data-tone="outline"] {
-    background: var(--canvas);
-    color: var(--ink);
-    border: 1.5px solid var(--ink);
+  .stk[data-kind="square"] {
+    --fill: var(--ink);
+    --on: var(--canvas);
+    width: 148px;
+    height: 148px;
+    padding: 16px;
+    border-radius: 18px;
   }
-
-  /* Shapes and sizes (2026-10-28). Pill is the default above; s and l
-     only change the padding, the type step comes from the class. */
-  .stk[data-size="s"] {
-    padding: 10px 16px;
-  }
-  .stk[data-size="l"] {
-    padding: 18px 30px;
-  }
-  .stk:is([data-shape="round"], [data-shape="card"], [data-shape="tile"]) {
-    --fs: var(--type-lead-size);
-    font-family: var(--font-display);
-    font-size: var(--fs);
-    line-height: 1.15;
-    white-space: normal;
-  }
-  .stk[data-size="s"]:not([data-shape="pill"]) {
-    --fs: var(--type-body-size);
-  }
-  .stk[data-size="l"]:not([data-shape="pill"]) {
-    --fs: var(--type-title-size);
-  }
-  .stk[data-shape="round"] {
+  .stk[data-kind="round"] {
+    --fill: var(--tang);
+    --on: var(--on-tang);
+    align-items: center;
     justify-content: center;
-    width: var(--d, 104px);
-    height: var(--d, 104px);
+    width: 120px;
+    height: 120px;
     padding: 0 12px;
     border-radius: 50%;
     text-align: center;
   }
-  .stk[data-shape="round"][data-size="s"] {
-    --d: 76px;
+  .stk[data-kind="pill"] {
+    align-items: center;
+    padding: 16px 24px;
+    border-radius: var(--radius-pill);
+    white-space: nowrap;
+    box-shadow:
+      inset 0 0 0 1.5px var(--ink),
+      0 12px 24px -14px rgb(0 0 0 / 0.4);
   }
-  .stk[data-shape="round"][data-size="l"] {
-    --d: 132px;
-  }
-  /* A playing card: name in the top corner, turned again in the bottom one. */
-  .stk[data-shape="card"] {
-    align-items: flex-start;
-    width: 120px;
-    height: 168px;
-    padding: 12px 14px;
-    border-radius: 12px;
-  }
-  .stk[data-shape="card"]::after {
-    content: attr(data-label);
-    position: absolute;
-    right: 14px;
-    bottom: 12px;
-    font-family: var(--font-mono);
-    font-size: var(--type-micro-size);
-    line-height: 14px;
-    letter-spacing: 0.04em;
-    rotate: 180deg;
-    opacity: 0.7;
-  }
-  .stk[data-shape="tile"] {
-    align-items: flex-end;
-    width: 176px;
-    height: 176px;
-    padding: 18px 20px;
-    border-radius: 20px;
-  }
-  .stk[data-shape="tile"][data-size="l"] {
-    width: 216px;
-    height: 216px;
-  }
-  .stk[data-shape="die"] {
-    width: 64px;
-    height: 64px;
-    padding: 10px;
-    border-radius: 14px;
-  }
-  .pips {
-    display: grid;
-    grid-template: repeat(3, 1fr) / repeat(3, 1fr);
-    place-items: center;
-    width: 100%;
-    height: 100%;
-  }
-  .pips > i {
-    width: 9px;
-    height: 9px;
-    border-radius: 50%;
-  }
-  .pips > i[data-on] {
-    background: currentColor;
-  }
-  .stk[data-shape="smiley"] {
-    justify-content: center;
-    width: 112px;
-    height: 112px;
-    padding: 0;
-    border-radius: 50%;
-  }
-  .stk[data-shape="smiley"] svg {
-    width: 76%;
-    height: 76%;
-  }
-  .stk[data-shape="photo"] {
-    flex-direction: column;
-    width: 136px;
-    padding: 8px 8px 30px;
-    border-radius: 4px;
-  }
-  .stk[data-shape="photo"] img {
-    width: 120px;
-    height: 120px;
-    object-fit: cover;
-    border-radius: 2px;
-    pointer-events: none;
+  .stk[data-kind="pill"][data-drag] {
+    box-shadow:
+      inset 0 0 0 1.5px var(--ink),
+      0 26px 40px -18px rgb(0 0 0 / 0.5);
   }
 
   @media (width < 900px) {
@@ -328,70 +275,35 @@
       padding: 18px var(--spacing-inset);
     }
     .board {
-      min-height: 820px;
+      min-height: 720px;
     }
     .stk {
-      padding: 12px 18px;
+      font-size: var(--type-body-size);
     }
-    .stk[data-size="s"] {
-      padding: 8px 14px;
+    .stk[data-kind="card"] {
+      width: 96px;
+      height: 134px;
+      padding: 10px;
+      border-radius: 8px;
+      font-size: var(--type-small-size);
     }
-    .stk:is([data-shape="round"], [data-shape="card"], [data-shape="tile"]) {
-      --fs: var(--type-body-size);
+    .stk[data-kind="card"]::after {
+      right: 9px;
+      bottom: 8px;
     }
-    .stk[data-size="s"]:not([data-shape="pill"]) {
-      --fs: var(--type-small-size);
-    }
-    .stk[data-size="l"]:not([data-shape="pill"]) {
-      --fs: var(--type-title-size);
-    }
-    .stk[data-shape="round"] {
-      --d: 84px;
-    }
-    .stk[data-shape="round"][data-size="s"] {
-      --d: 64px;
-    }
-    .stk[data-shape="round"][data-size="l"] {
-      --d: 104px;
-    }
-    .stk[data-shape="card"] {
-      width: 92px;
-      height: 128px;
-      padding: 10px 12px;
-    }
-    .stk[data-shape="card"]::after {
-      right: 12px;
-      bottom: 10px;
-    }
-    .stk[data-shape="tile"] {
-      width: 120px;
-      height: 120px;
-      padding: 14px 16px;
-    }
-    .stk[data-shape="tile"][data-size="l"] {
-      width: 140px;
-      height: 140px;
-    }
-    .stk[data-shape="die"] {
-      width: 52px;
-      height: 52px;
-      padding: 8px;
-    }
-    .pips > i {
-      width: 7px;
-      height: 7px;
-    }
-    .stk[data-shape="smiley"] {
-      width: 84px;
-      height: 84px;
-    }
-    .stk[data-shape="photo"] {
+    .stk[data-kind="square"] {
       width: 100px;
-      padding: 6px 6px 22px;
+      height: 100px;
+      padding: 12px;
+      border-radius: 14px;
+      font-size: var(--type-small-size);
     }
-    .stk[data-shape="photo"] img {
+    .stk[data-kind="round"] {
       width: 88px;
       height: 88px;
+    }
+    .stk[data-kind="pill"] {
+      padding: 12px 18px;
     }
   }
   html[data-motion="calm"] :is(.pcard, .stk) {

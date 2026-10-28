@@ -2,10 +2,10 @@ import type { Fact } from "@/components/parts/Facts";
 import { FALLBACK_HOME, type Photo } from "./home";
 
 export type Job = { when: string; place: string; role: string };
-export type StickerShape = "pill" | "round" | "card" | "tile";
-export type StickerSize = "s" | "m" | "l";
-/** shape and size are optional: a plain sticker is a medium pill. */
-export type Sticker = { text: string; tone: "tang" | "grape" | "ink" | "outline"; shape?: StickerShape; size?: StickerSize };
+/** One shape per kind of thing: card games are cards, making is a block,
+ * moving is a ball, people are pills. The shape sets the fill too. */
+export type StickerKind = "card" | "square" | "round" | "pill";
+export type Sticker = { text: string; kind: StickerKind };
 export type AboutContent = {
   hello: string;
   lead: string;
@@ -41,21 +41,24 @@ export const FALLBACK_ABOUT: AboutContent = {
     { when: "2017 – 2020", place: "ROC Horizon College", role: "Applicatie & Media ontwikkeling" },
   ],
   stickers: [
-    // Shapes follow what the thing is (2026-10-28): the card games are
-    // playing cards, short words are round, the big ones are tiles.
-    { text: "Sports", tone: "tang", shape: "round", size: "l" },
-    { text: "Board games", tone: "grape", shape: "tile", size: "l" },
-    { text: "Friends", tone: "ink", size: "l" },
-    { text: "A bit of gaming", tone: "outline" },
-    { text: "Learning new things", tone: "tang", shape: "tile", size: "m" },
-    // Added by Wons 2026-10-27 ("more items … react to each other").
-    { text: "Catan", tone: "grape", shape: "card" },
-    { text: "Flip 7", tone: "tang", shape: "card" },
-    { text: "Dalmuti", tone: "outline", shape: "card" },
-    { text: "Monopoly", tone: "ink", shape: "card" },
-    { text: "Gym", tone: "tang", shape: "round", size: "s" },
-    { text: "Tinkering", tone: "grape", size: "s" },
-    { text: "YouTube", tone: "outline", size: "s" },
-    { text: "MoveEeE", tone: "ink", shape: "round" },
+    // Off screen v09 (2026-10-28). Wons's own list, reworded and sorted
+    // into four kinds; Codenames, Ticket to Ride and Exploding Kittens are
+    // suggestions Wons invited ("add some more board game names").
+    { text: "Catan", kind: "card" },
+    { text: "Flip 7", kind: "card" },
+    { text: "Dalmuti", kind: "card" },
+    { text: "Monopoly", kind: "card" },
+    { text: "Codenames", kind: "card" },
+    { text: "Ticket to Ride", kind: "card" },
+    { text: "Exploding Kittens", kind: "card" },
+    { text: "Taking things apart", kind: "square" },
+    { text: "New things to learn", kind: "square" },
+    { text: "One more tutorial", kind: "square" },
+    { text: "Sports", kind: "round" },
+    { text: "Gym", kind: "round" },
+    { text: "MoveEeE", kind: "round" },
+    { text: "Friends", kind: "pill" },
+    { text: "Game night", kind: "pill" },
+    { text: "Video games, a bit", kind: "pill" },
   ],
 };

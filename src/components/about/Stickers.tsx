@@ -3,9 +3,8 @@
 import { useEffect, useRef, useState } from "react";
 import type { Body as MBody, Constraint as MConstraint, Engine as MEngine } from "matter-js";
 import { useBeat } from "@/components/canvas/useBeat";
-import type { Sticker } from "@/content/about";
+import type { Sticker, StickerKind } from "@/content/about";
 import { announce, getMotion } from "@/lib/motion";
-import { FACE, FEATURES } from "@/lib/smiley";
 import { live, wait, wessel, type XY } from "@/lib/wessel";
 
 type Matter = typeof import("matter-js");
@@ -17,6 +16,7 @@ type Pile = {
   grab: MConstraint | null;
   // Tidy: each sticker springs to its slot, then gravity takes over again.
   tidyTo: { x: number; y: number }[] | null;
+  tidyFrom: { x: number; y: number; a: number }[];
   tidyT: number;
   // Tidied stickers stay locked in their rows until someone touches one.
   locked: boolean;
@@ -28,31 +28,32 @@ const now = () => performance.now();
 const calm = () => getMotion().calm;
 const DT = 1000 / 60;
 
-// Things on the board that aren't words, so they carry no copy: two dice
-// for the board games, his smiley, and one of his own cat photos.
-type Thing = { thing: "die" | "smiley" | "photo"; tone: Sticker["tone"]; label: string; src?: string };
-const THINGS: Thing[] = [
-  { thing: "die", tone: "outline", label: "A die" },
-  { thing: "smiley", tone: "tang", label: "Wessel’s smiley" },
-  { thing: "photo", tone: "outline", label: "Photo of a ginger cat with a crocheted coaster on its head", src: "/media/about-cat-cushion.jpg" },
-  { thing: "die", tone: "ink", label: "A die" },
-];
-type Item = Sticker | Thing;
-const isThing = (it: Item): it is Thing => "thing" in it;
-const isRound = (it: Item) => (isThing(it) ? it.thing === "smiley" : it.shape === "round");
-// Which of the nine pip spots are filled for each face of a die.
-const PIPS = [[], [4], [0, 8], [0, 4, 8], [0, 2, 6, 8], [0, 2, 4, 6, 8], [0, 2, 3, 5, 6, 8]];
+// One shape per kind of thing, and each shape keeps its own feel when
+// it lands: cards are light and flat, blocks are heavy, balls bounce.
+// A card's corner index, like a rank: the initials, or the first two
+// letters of a one-word name (so Catan and Codenames don't share a "C").
+const index = (t: string) => {
+  const w = t.split(/\s+/);
+  return (w.length > 1 ? w.map((x) => x[0]).join("") : t.slice(0, 2)).slice(0, 3).toUpperCase();
+};
+const ORDER: StickerKind[] = ["card", "square", "round", "pill"];
+const FEEL: Record<StickerKind, { restitution: number; frictionAir: number; density: number }> = {
+  card: { restitution: 0.1, frictionAir: 0.022, density: 0.0011 },
+  square: { restitution: 0.12, frictionAir: 0.012, density: 0.0022 },
+  round: { restitution: 0.5, frictionAir: 0.008, density: 0.0014 },
+  pill: { restitution: 0.25, frictionAir: 0.012, density: 0.0016 },
+};
 
 /**
- * Off screen (About v08): hobby stickers with weight. They fall into the
+ * Off screen (About v09): hobby stickers with weight, four shapes for four
+ * kinds of thing (card games, making, moving, people). They fall into the
  * board when it scrolls in, pile up and knock into each other. Grab one
- * and throw it; arrow keys push it, Enter makes it hop. "Tidy up" lines
- * them up along the bottom like auto layout; "Mess it up" tosses them.
+ * and throw it; arrow keys push it, Enter makes it hop. "Tidy up" sorts
+ * them into a row per kind like auto layout; "Mess it up" tosses them.
  * Wessel picks one up and drops it.
  * Physics (matter-js) loads only here, when the board is near.
  */
-export function Stickers({ items: words }: { items: Sticker[] }) {
-  const items: Item[] = [...words, ...THINGS];
+export function Stickers({ items }: { items: Sticker[] }) {
   const board = useRef<HTMLDivElement>(null);
   const btn = useRef<HTMLButtonElement>(null);
   const els = useRef<(HTMLButtonElement | null)[]>([]);
@@ -60,8 +61,6 @@ export function Stickers({ items: words }: { items: Sticker[] }) {
   const [tidy, setTidy] = useState(false);
   const [z, setZ] = useState<number[]>(() => items.map((_, i) => i));
   const [dragging, setDragging] = useState<number | null>(null);
-  // Dice start on fixed faces (same on server and client) and reroll on a hop.
-  const [faces, setFaces] = useState<number[]>(() => items.map((_, i) => (i % 2 ? 3 : 5)));
   const tidyRef = useRef(false);
   useEffect(() => {
     tidyRef.current = tidy;
@@ -84,23 +83,26 @@ export function Stickers({ items: words }: { items: Sticker[] }) {
       }
       const { w, h } = size(i);
       e.style.visibility = "";
-      e.style.transform = `translate(${(b.position.x - w / 2).toFixed(1)}px,${(b.position.y - h / 2).toFixed(1)}px) rotate(${b.angle.toFixed(3)}rad)`;
+      // translate and rotate as their own properties, so the CSS scale on
+      // hover and drag grows the sticker in place instead of shifting it.
+      e.style.translate = `${(b.position.x - w / 2).toFixed(1)}px ${(b.position.y - h / 2).toFixed(1)}px`;
+      e.style.rotate = `${b.angle.toFixed(3)}rad`;
     });
   };
 
   const add = (i: number, x: number, y: number, a = rnd(-0.25, 0.25)) => {
     const P = pile.current!;
     const { w, h } = size(i);
-    const it = items[i];
-    const opts = { angle: a, restitution: 0.25, friction: 0.5, frictionAir: 0.012, density: 0.0016 };
-    // The body matches what you see: circles roll, cards and tiles have
-    // their own corners, pills are fully round at the ends.
-    const corner = isThing(it)
-      ? { die: 14, photo: 4, smiley: 0 }[it.thing]
-      : { pill: h / 2 - 1, card: 12, tile: 20, round: 0 }[it.shape ?? "pill"];
-    const b = isRound(it)
-      ? P.M.Bodies.circle(x, y, w / 2, opts)
-      : P.M.Bodies.rectangle(x, y, w, h, { ...opts, chamfer: { radius: Math.min(corner, Math.min(w, h) / 2 - 1) } });
+    const k = items[i].kind;
+    const opts = { angle: a, friction: 0.5, ...FEEL[k] };
+    // The body matches what you see: balls roll, cards and blocks keep
+    // their corners, pills are round at the ends.
+    const corner = { card: 10, square: 18, pill: h / 2 - 1, round: 0 }[k];
+    const b =
+      k === "round"
+        ? P.M.Bodies.circle(x, y, w / 2, opts)
+        : P.M.Bodies.rectangle(x, y, w, h, { ...opts, chamfer: { radius: Math.min(corner, Math.min(w, h) / 2 - 1) } });
+    b.plugin = { w, h };
     P.bodies[i] = b;
     P.M.Composite.add(P.engine.world, b);
     return b;
@@ -132,39 +134,58 @@ export function Stickers({ items: words }: { items: Sticker[] }) {
     draw();
   };
 
-  // The slots "Tidy up" lines them into: rows along the bottom like auto
-  // layout, tallest first so each row is close to even, each row
-  // bottom-aligned on the one below.
+  // The slots "Tidy up" sorts them into: kind by kind, cards at the
+  // bottom. Kinds share a row when they fit (a wider gap apart); a kind
+  // that has to wrap gets its own rows, balanced so none is left alone.
+  // Each row is centred and sits bottom-aligned on the one below.
   const slots = () => {
     const b = board.current!;
     const W = b.clientWidth;
     const H = b.clientHeight;
-    const pad = innerWidth < 900 ? 20 : 40;
-    const gap = 10;
-    const order = items.map((_, i) => i).sort((p, q) => size(q).h - size(p).h);
-    const rows: number[][] = [[]];
-    let rw = pad;
-    order.forEach((i) => {
-      const { w } = size(i);
-      if (rw + w > W - pad && rows.at(-1)!.length) {
-        rows.push([]);
-        rw = pad;
+    const phone = innerWidth < 900;
+    const pad = phone ? 20 : 40;
+    const gap = phone ? 8 : 12;
+    const apart = phone ? 16 : 32;
+    const room = W - 2 * pad;
+    const span = (r: number[]) => r.reduce((t, i, n) => t + size(i).w + (n ? (items[r[n - 1]].kind === items[i].kind ? gap : apart) : 0), 0);
+    const rows: number[][] = [];
+    ORDER.forEach((k) => {
+      const kind = items.map((it, i) => (it.kind === k ? i : -1)).filter((i) => i >= 0);
+      if (!kind.length) return;
+      const last = rows.at(-1);
+      if (last && span([...last, ...kind]) <= room) {
+        last.push(...kind);
+        return;
       }
-      rows.at(-1)!.push(i);
-      rw += w + gap;
+      if (span(kind) <= room) {
+        rows.push(kind);
+        return;
+      }
+      // Wrap: as many per row as fit, then spread them evenly over the rows.
+      let fit = 1;
+      while (fit < kind.length && span(kind.slice(0, fit + 1)) <= room) fit++;
+      const n = Math.ceil(kind.length / fit);
+      for (let j = 0, at = 0; j < n; j++) {
+        const take = Math.floor(kind.length / n) + (j < kind.length % n ? 1 : 0);
+        rows.push(kind.slice(at, (at += take)));
+      }
     });
     const out: { x: number; y: number }[] = [];
     let base = H - pad;
     rows.forEach((r) => {
-      let x = pad;
-      r.forEach((i) => {
+      let x = (W - span(r)) / 2;
+      r.forEach((i, n) => {
         const { w, h } = size(i);
+        if (n) x += items[r[n - 1]].kind === items[i].kind ? gap : apart;
         out[i] = { x: x + w / 2, y: base - h / 2 };
-        x += w + gap;
+        x += w;
       });
       base -= Math.max(...r.map((i) => size(i).h)) + gap;
     });
-    return out;
+    // How tall the board has to be for the top row to clear "Tidy up".
+    const bt = b.querySelector<HTMLElement>(".btop");
+    const need = H - base - gap + (bt ? bt.offsetTop + bt.offsetHeight : 0) + gap * 2;
+    return { out, need };
   };
 
   const release = () => {
@@ -183,11 +204,18 @@ export function Stickers({ items: words }: { items: Sticker[] }) {
   const neat = () => {
     const P = pile.current;
     if (!P) return;
-    const to = slots();
+    let { out: to, need } = slots();
+    // A narrow board can't hold every row: it grows to fit, then stays.
+    if (need > board.current!.clientHeight) {
+      board.current!.style.minHeight = `${Math.ceil(need)}px`;
+      walls(P);
+      ({ out: to, need } = slots());
+    }
     items.forEach((_, i) => {
       if (!P.bodies[i]) add(i, to[i].x, to[i].y - 400, 0);
     });
     P.bodies.forEach((b) => b && P.M.Body.setStatic(b, true));
+    P.tidyFrom = P.bodies.map((b) => ({ x: b!.position.x, y: b!.position.y, a: b!.angle }));
     P.tidyTo = to;
     P.tidyT = now();
     P.locked = true;
@@ -238,15 +266,20 @@ export function Stickers({ items: words }: { items: Sticker[] }) {
       const P = pile.current;
       if (!P || !seen || dead) return;
       if (P.tidyTo) {
-        const t = Math.min(1, (performance.now() - P.tidyT) / 520);
-        const e = 1 - Math.pow(1 - t, 3);
+        // Each sticker glides from where it lay to its slot (ease-out
+        // quart), kind by kind, 24ms apart, so the sort reads as a wave.
+        let done = true;
         P.bodies.forEach((bd, i) => {
           if (!bd) return;
+          const t = Math.min(1, Math.max(0, (now() - P.tidyT - ORDER.indexOf(items[i].kind) * 60 - i * 24) / 560));
+          if (t < 1) done = false;
+          const e = 1 - Math.pow(1 - t, 4);
+          const f = P.tidyFrom[i];
           const to = P.tidyTo![i];
-          P.M.Body.setPosition(bd, { x: bd.position.x + (to.x - bd.position.x) * e, y: bd.position.y + (to.y - bd.position.y) * e });
-          P.M.Body.setAngle(bd, bd.angle * (1 - e));
+          P.M.Body.setPosition(bd, { x: f.x + (to.x - f.x) * e, y: f.y + (to.y - f.y) * e });
+          P.M.Body.setAngle(bd, f.a * (1 - e));
         });
-        if (t >= 1) P.tidyTo = null;
+        if (done) P.tidyTo = null;
       }
       // Weighted like a roly-poly: a sticker always rights itself, so
       // none ends up upside down and unreadable.
@@ -265,7 +298,7 @@ export function Stickers({ items: words }: { items: Sticker[] }) {
       const M = await import("matter-js");
       if (dead || pile.current) return;
       const engine = M.Engine.create({ gravity: { x: 0, y: 1.1 } });
-      const P: Pile = { M, engine, bodies: items.map(() => null), walls: [], grab: null, tidyTo: null, tidyT: 0, locked: false };
+      const P: Pile = { M, engine, bodies: items.map(() => null), walls: [], grab: null, tidyTo: null, tidyFrom: [], tidyT: 0, locked: false };
       pile.current = P;
       walls(P);
       const W = b.clientWidth;
@@ -307,9 +340,22 @@ export function Stickers({ items: words }: { items: Sticker[] }) {
       w = innerWidth;
       const P = pile.current;
       if (!P) return;
+      // A tidy may have grown the board; start from its own height again.
+      b.style.minHeight = "";
       walls(P);
       const W = b.clientWidth;
-      P.bodies.forEach((bd) => bd && bd.position.x > W - 20 && P.M.Body.setPosition(bd, { x: W - 80, y: -40 }));
+      P.bodies.forEach((bd, i) => {
+        if (!bd) return;
+        // Past the phone breakpoint the stickers change size: the bodies follow.
+        const { w: nw, h: nh } = size(i);
+        if (Math.abs(nw - bd.plugin.w) > 1 || Math.abs(nh - bd.plugin.h) > 1) {
+          if (P.grab?.bodyB === bd) letGo();
+          P.M.Composite.remove(P.engine.world, bd);
+          add(i, bd.position.x, bd.position.y, bd.angle);
+        }
+        const nb = P.bodies[i]!;
+        if (nb.position.x > W - 20) P.M.Body.setPosition(nb, { x: W - 80, y: -40 });
+      });
       if (tidyRef.current) neat();
       if (calm()) settle(120);
     };
@@ -364,12 +410,6 @@ export function Stickers({ items: words }: { items: Sticker[] }) {
     setTidy(false);
     P.M.Body.setVelocity(bd, { x: rnd(-1.5, 1.5), y: -11 });
     P.M.Body.setAngularVelocity(bd, rnd(-0.12, 0.12));
-    const it = items[i];
-    if (isThing(it) && it.thing === "die") {
-      const n = 1 + pick(6);
-      setFaces((f) => f.map((v, k) => (k === i ? n : v)));
-      announce(`Rolled a ${n}`);
-    }
     if (calm()) settle(120);
   };
 
@@ -481,57 +521,31 @@ export function Stickers({ items: words }: { items: Sticker[] }) {
       <div className="side" />
       <div ref={board} className="cell board bg-dots">
         <div className="btop">
-          <p className="sr-only">Stickers you can throw around. Arrow keys push the one in focus, Enter makes it hop.</p>
-          <button ref={btn} type="button" className="tidy text-micro-caps" onClick={toggle}>
+          <p id="stk-help" className="sr-only">Stickers you can throw around. Arrow keys push the one in focus, Enter makes it hop.</p>
+          <button ref={btn} type="button" className="tidy text-micro-caps" aria-pressed={tidy} onClick={toggle}>
             {tidy ? "Mess it up" : "Tidy up"}
           </button>
         </div>
-        {items.map((s, i) => {
-          const t = isThing(s) ? s : null;
-          const w = isThing(s) ? null : s;
-          const name = t ? (t.thing === "die" ? `${t.label} showing ${faces[i]}` : t.label) : w!.text;
-          return (
-            <button
-              key={w ? w.text : `${t!.thing}-${i}`}
-              ref={(el) => {
-                els.current[i] = el;
-              }}
-              type="button"
-              // Pills take the type steps; the other shapes size their own words
-              // (about.css) so they can step down on a phone.
-              className={w && (w.shape ?? "pill") === "pill" ? `stk ${{ s: "text-body", m: "text-lead", l: "text-title" }[w.size ?? "m"]}` : "stk"}
-              data-tone={s.tone}
-              data-shape={w ? (w.shape ?? "pill") : t!.thing}
-              data-size={w ? (w.size ?? "m") : undefined}
-              data-label={w?.text}
-              data-drag={dragging === i ? "" : undefined}
-              aria-label={`${name}, sticker. Arrow keys push it.`}
-              style={{ visibility: "hidden", zIndex: 5 + z.indexOf(i) }}
-              onPointerDown={down(i)}
-              onKeyDown={key(i)}
-              onClick={(e) => e.detail === 0 && hop(i)}
-            >
-              {w?.text}
-              {t?.thing === "die" && (
-                <span className="pips" aria-hidden="true">
-                  {Array.from({ length: 9 }, (_, k) => (
-                    <i key={k} data-on={PIPS[faces[i]].includes(k) ? "" : undefined} />
-                  ))}
-                </span>
-              )}
-              {t?.thing === "smiley" && (
-                <svg viewBox="0 0 212 212" aria-hidden="true">
-                  <path fill="currentColor" fillRule="evenodd" d={FACE} />
-                  <path fill="currentColor" d={FEATURES} />
-                </svg>
-              )}
-              {t?.thing === "photo" && (
-                // eslint-disable-next-line @next/next/no-img-element -- a small sticker, it never needs next/image
-                <img src={t.src} alt="" draggable={false} />
-              )}
-            </button>
-          );
-        })}
+        {items.map((s, i) => (
+          <button
+            key={`${s.kind}-${i}`}
+            ref={(el) => {
+              els.current[i] = el;
+            }}
+            type="button"
+            className="stk"
+            data-kind={s.kind}
+            data-label={s.kind === "card" ? index(s.text) : undefined}
+            data-drag={dragging === i ? "" : undefined}
+            aria-describedby="stk-help"
+            style={{ visibility: "hidden", zIndex: 5 + z.indexOf(i) }}
+            onPointerDown={down(i)}
+            onKeyDown={key(i)}
+            onClick={(e) => e.detail === 0 && hop(i)}
+          >
+            {s.text}
+          </button>
+        ))}
       </div>
       <div className="side" />
     </section>
