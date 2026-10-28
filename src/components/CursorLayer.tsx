@@ -11,7 +11,7 @@ import { Cursor } from "./canvas/Cursor";
 // give him jobs with useBeat().
 // The visitor gets a plain grape "You" cursor on mouse devices: it only
 // points, and over a project it says "View case" (any [data-you] element
-// names its own label). It sits in the shell, so Sanity Studio gets none of it.
+// names its own label; on the playground, the tile's title). It sits in the shell, so Sanity Studio gets none of it.
 export function CursorLayer() {
   const pathname = usePathname();
   const wes = useRef<HTMLDivElement>(null);
@@ -83,6 +83,8 @@ export function CursorLayer() {
     addEventListener("pointerdown", down);
     addEventListener("pointerup", up);
     addEventListener("wsl:you", say);
+    // Something moved under a still pointer (the playground board pans).
+    addEventListener("wsl:look", scrolled);
     document.addEventListener("mouseout", out);
     return () => {
       root.classList.remove("youcur");
@@ -92,6 +94,7 @@ export function CursorLayer() {
       removeEventListener("pointerdown", down);
       removeEventListener("pointerup", up);
       removeEventListener("wsl:you", say);
+      removeEventListener("wsl:look", scrolled);
       document.removeEventListener("mouseout", out);
     };
   }, []);
