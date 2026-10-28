@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { Pin } from "@/components/canvas/Pin";
+import { Arrow } from "@/components/parts/Arrow";
 import { useBeat } from "@/components/canvas/useBeat";
 import { useMotion } from "@/components/useMotion";
 import { announce } from "@/lib/motion";
@@ -63,7 +64,7 @@ function useMagnet() {
     };
     const move = (e: PointerEvent) => {
       const R = r.getBoundingClientRect();
-      const M = el.parentElement!.getBoundingClientRect();
+      const M = el.closest(".pc")!.getBoundingClientRect();
       const { clientX: x, clientY: y } = e;
       const out = y < R.top || y > R.bottom || x < R.left || x > R.right;
       if (out || (x >= M.left && x <= M.right)) m.tx = m.ty = 0;
@@ -95,6 +96,7 @@ function useMagnet() {
 export function ProjectRow({ project: p, hidden, leaving }: { project: Project; hidden?: boolean; leaving?: boolean }) {
   const media = useMagnet();
   const pin = useRef<HTMLSpanElement>(null);
+  const size = useRef<HTMLElement>(null);
   const [soon, setSoon] = useState(false);
   const mock = (f: "summary" | "role" | "note" | "media") => (p.mock?.includes(f) ? "" : undefined);
   const gap = p.placeholder;
@@ -184,6 +186,16 @@ export function ProjectRow({ project: p, hidden, leaving }: { project: Project; 
 
   const inner = (
     <>
+      {/* Your selection: it snaps round the card when you come to the row. */}
+      <span className="hov" aria-hidden="true">
+        <span className="hsel">
+          <i />
+          <i />
+          <i />
+          <i />
+          <b className="hsz" ref={size} />
+        </span>
+      </span>
       <MediaFill poster={p.media.poster} video={p.media.video} />
       {p.note && (
         <Pin ref={pin} live note={false} data-mock={mock("note")}>
@@ -198,12 +210,36 @@ export function ProjectRow({ project: p, hidden, leaving }: { project: Project; 
     </>
   );
 
+  // The whole row is the card's target: a click anywhere opens it, unless
+  // it lands on a link or you were selecting text.
+  const rowClick = (e: React.MouseEvent) => {
+    if ((e.target as Element).closest("a, button") || getSelection()?.toString()) return;
+    media.current?.click();
+  };
+  // Your selection's size pill reads the media's real size.
+  const sizeUp = () => {
+    const m = media.current;
+    if (m && size.current) size.current.textContent = `${Math.round(m.offsetWidth)} × ${Math.round(m.offsetHeight)}`;
+  };
+
   return (
-    <article ref={row} className="pj" hidden={hidden} data-leaving={leaving || undefined}>
+    <article
+      ref={row}
+      className="pj"
+      hidden={hidden}
+      data-leaving={leaving || undefined}
+      onPointerEnter={sizeUp}
+      onClick={rowClick}
+    >
       <div className="cell pl">
         <div>
           <h3 className="text-title" lang={p.lang} data-mock={gap ? "" : undefined}>
-            {p.title}
+            <span className="tt">{p.title}</span>
+            {p.href && (
+              <span className="ta" aria-hidden="true">
+                <Arrow dir="right" />
+              </span>
+            )}
             {gap && (
               <span aria-hidden="true">
                 <MockTag className="ml-2.5 align-middle" />
