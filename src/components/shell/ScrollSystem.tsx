@@ -95,34 +95,28 @@ const hydrated = () =>
 function whenSettled(fn: () => void) {
   if (settled) return (fn(), () => {});
   const t0 = performance.now();
+  const ric = typeof requestIdleCallback === "function";
   let timer = 0;
   let idle = 0;
-  // Fibers are attached a moment before React commits the hydrated tree, so
-  // the start also waits for the main thread to go idle after that.
   let idles = 0;
-  const go = () => {
-    // Two idle moments in a row: React has nothing left to commit.
-    if (++idles < 2)
-      return void (idle =
-        typeof requestIdleCallback === "function"
-          ? requestIdleCallback(go, { timeout: 500 })
-          : window.setTimeout(go, 200));
+  const afterIdle = () =>
+    ric ? (idle = requestIdleCallback(go, { timeout: 500 })) : (timer = window.setTimeout(go, 200));
+  // Fibers are attached a moment before React commits the hydrated tree, so
+  // the start also waits for two idle moments in a row after that.
+  function go() {
+    if (++idles < 2) return void afterIdle();
     settled = true;
     fn();
-  };
+  }
   const check = () => {
     if (document.readyState === "complete" && (hydrated() || performance.now() - t0 > HYDRATION_GIVE_UP_MS))
-      idle =
-        typeof requestIdleCallback === "function"
-          ? requestIdleCallback(go, { timeout: 500 })
-          : window.setTimeout(go, 200);
+      afterIdle();
     else timer = window.setTimeout(check, 100);
   };
   check();
   return () => {
     clearTimeout(timer);
-    if (typeof cancelIdleCallback === "function") cancelIdleCallback(idle);
-    clearTimeout(idle);
+    if (ric) cancelIdleCallback(idle);
   };
 }
 
@@ -351,7 +345,9 @@ function start() {
     main.querySelectorAll<HTMLElement>(TEXT).forEach((el) => {
       if (texts.has(el) || passed.has(el)) return;
       const inside = [...texts.keys()].some((t) => t.contains(el) || el.contains(t));
-      if (inside || motionKind(el) !== "reveal" || !below(el)) return void passed.add(el);
+      const kind = motionKind(el);
+      if (kind === "entrance") return; // the entrance pass takes it
+      if (inside || kind !== "reveal" || !below(el)) return void passed.add(el);
       const t: Text = { el, lines: [], peak: [], top: 0, last: "-" };
       texts.set(el, t);
       measure(t);
@@ -363,11 +359,13 @@ function start() {
     // ahead and show only once decoded, like every other picture.
     main.querySelectorAll<HTMLElement>("img,video").forEach((m) => {
       if (pics.has(m) || passed.has(m)) return;
-      passed.add(m);
       const own = !!m.closest(OWN);
-      const frame =
-        m.closest(NOT_PICTURE) || m.parentElement?.closest("[aria-hidden='true']:not(.hand)") ? null : frameOf(m);
+      if (m.closest(NOT_PICTURE) || m.parentElement?.closest("[aria-hidden='true']:not(.hand)"))
+        return void passed.add(m);
+      // Not sized yet (still loading, in a hidden row): looked at again next scan.
+      const frame = frameOf(m);
       if (!frame || frame.clientHeight < MIN_FRAME_PX || !below(frame)) return;
+      passed.add(m);
       nearIo.observe(frame);
       if (m instanceof HTMLImageElement && !(m.complete && m.naturalWidth)) {
         m.dataset.sxImg = "wait";
@@ -390,7 +388,8 @@ function start() {
     main.querySelectorAll<HTMLElement>(`${ENTER_GROUPS},${ENTER_LEAVES},${TEXT}`).forEach((el) => {
       if (passed.has(el) || el.closest("[data-sx-unit]")) return;
       const loose = !el.matches(ENTER_GROUPS) && el.parentElement?.closest(ENTER_GROUPS);
-      if (loose || motionKind(el) !== "entrance" || !below(el) || taken(el)) return void passed.add(el);
+      if (loose || motionKind(el) !== "entrance" || taken(el)) return void passed.add(el);
+      if (!below(el)) return;
       if (el.offsetHeight) enter(el);
     });
     // Gone from the page (a filter, a live edit): let go.
