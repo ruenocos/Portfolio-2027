@@ -13,7 +13,7 @@
 // does.
 
 import motionTokens from "../../../design/motion-tokens.json";
-import { BOOT_KEY } from "../motion";
+import { BOOT_KEY, getMotion, subscribeMotion } from "../motion";
 import { FACE, FEATURES } from "../smiley";
 
 const I = motionTokens.intro;
@@ -126,7 +126,9 @@ export function playIntro(): Promise<void> {
     const onResize = () => {
       if (innerWidth !== vw0 || Math.abs(innerHeight - vh0) > 150) sk();
     };
-    const onVis = () => document.hidden && sk();
+    // rAF stops in a hidden tab, so end it here rather than skip.
+    const onVis = () => document.hidden && finish();
+    let unMotion = () => {};
     const onShow = (e: PageTransitionEvent) => e.persisted && finish();
     let watchdog = 0;
 
@@ -138,11 +140,14 @@ export function playIntro(): Promise<void> {
         clearTimeout(watchdog);
         evs.forEach((e) => removeEventListener(e, sk));
         removeEventListener("resize", onResize);
+        unMotion();
         removeEventListener("pageshow", onShow);
         document.removeEventListener("visibilitychange", onVis);
         if (logo) logo.style.opacity = "";
         delete root.dataset.boot;
         sessionStorage.setItem(BOOT_KEY, "1");
+        // Focus never stays on the pill as it goes.
+        if (btn && document.activeElement === btn) document.getElementById("main")?.focus({ preventScroll: true });
       } catch {}
       // The pill fades, then the layer goes (the sheet is already clear).
       btn?.classList.add("out");
@@ -157,9 +162,10 @@ export function playIntro(): Promise<void> {
 
     stop = finish;
     if (!root.dataset.boot) return resolve();
-    // Too late (JS arrived after the CSS failsafe cleared the sheet), or a
-    // background tab: the finished page, no intro.
-    if (performance.now() > I.failsafeS * 1000 || document.hidden) return finish();
+    // Pause or reduced motion switched on since the first paint, too late
+    // (JS arrived after the CSS failsafe cleared the sheet), or a background
+    // tab: the finished page, no intro.
+    if (getMotion().calm || performance.now() > I.failsafeS * 1000 || document.hidden) return finish();
 
     try {
       logo = document.querySelector<SVGElement>(".hd .home .logo");
@@ -183,6 +189,7 @@ export function playIntro(): Promise<void> {
       document.body.prepend(btn);
 
       evs.forEach((e) => addEventListener(e, sk, { passive: true }));
+      unMotion = subscribeMotion(() => getMotion().calm && sk());
       addEventListener("resize", onResize);
       addEventListener("pageshow", onShow);
       document.addEventListener("visibilitychange", onVis);
@@ -192,7 +199,12 @@ export function playIntro(): Promise<void> {
       const L = logo?.getBoundingClientRect();
       const SZ = Math.min(200, innerWidth * 0.4);
       const home = [innerWidth / 2, innerHeight / 2];
-      const dest = L ? [L.left + L.width / 2, L.top + L.height / 2] : [40, 40];
+      let dest = L ? [L.left + L.width / 2, L.top + L.height / 2] : [40, 40];
+      // Measured again once the fonts are in, in case the header moved.
+      const measure = () => {
+        const R = logo?.getBoundingClientRect();
+        if (R?.width) dest = [R.left + R.width / 2, R.top + R.height / 2];
+      };
       const end = L?.width || 32;
       const diag = Math.hypot(innerWidth, innerHeight);
       const lift = innerHeight * 0.05;
@@ -202,7 +214,8 @@ export function playIntro(): Promise<void> {
 
       const seek = (t: number) => {
         sm.draw(t);
-        const g = ui(prog(t, I.glance));
+        // The glance eases back as he lands, so the swap to the logo doesn't jump.
+        const g = ui(prog(t, I.glance)) - ui(prog(t, [I.fly.t[1] - 0.14, I.fly.t[1]]));
         sm.feat.style.translate = `${lerp(drift[0], -9, g)}px ${lerp(drift[1], -7, g)}px`;
         sm.feat.style.scale = "";
         const k = move(prog(t, I.fly.t));
@@ -228,14 +241,18 @@ export function playIntro(): Promise<void> {
       };
       // While the gate waits, the eyes wander and blink once.
       const wander = (w: number) => {
-        drift = [Math.sin(w * 4.2) * 7, Math.sin(w * 2.9 + 1) * 3.5];
+        const in_ = clamp(w / 0.15);
+        drift = [Math.sin(w * 4.2) * 7 * in_, (Math.sin(w * 2.9 + 1) - Math.sin(1)) * 3.5 * in_];
         sm.feat.style.translate = `${drift[0]}px ${drift[1]}px`;
         const bl = clamp((w - 0.5) / 0.12);
         sm.feat.style.scale = `1 ${1 - Math.sin(bl * Math.PI) * 0.85}`;
       };
 
       let ready = false;
-      pageReady().then(() => (ready = true));
+      pageReady().then(() => {
+        ready = true;
+        measure();
+      });
       const t0 = performance.now();
       let shift = 0;
       let waitFrom = -1;
@@ -248,7 +265,8 @@ export function playIntro(): Promise<void> {
           if (!skip && t >= I.gate.at && waitFrom !== -2) {
             if (waitFrom < 0) waitFrom = now;
             const w = (now - waitFrom) / 1000;
-            if (!ready && w < I.gate.maxWait) {
+            const blinking = w > 0.5 && w < 0.62;
+            if ((!ready || blinking) && w < I.gate.maxWait) {
               seek(I.gate.at);
               wander(w);
               raf = requestAnimationFrame(frame);
@@ -280,3 +298,27 @@ export function playIntro(): Promise<void> {
 
 /** Ends the intro at once (the home page unmounting mid-intro). */
 export const endIntro = () => stop();
+
+/** The hero holds the intro while it's mounted. Leaving home mid-intro
+ *  ends it; a remount (dev, or a cached route coming back) doesn't. */
+let holders = 0;
+export function holdIntro() {
+  holders++;
+  void playIntro();
+  return () => {
+    holders--;
+    setTimeout(() => holders || stop(), 0);
+  };
+}
+
+/** Runs fn once the intro has handed over (at once if there is none). */
+export function afterIntro(fn: () => void) {
+  const root = document.documentElement;
+  if (!root.dataset.boot) return fn();
+  const mo = new MutationObserver(() => {
+    if (root.dataset.boot) return;
+    mo.disconnect();
+    fn();
+  });
+  mo.observe(root, { attributes: true, attributeFilter: ["data-boot"] });
+}

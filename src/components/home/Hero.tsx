@@ -6,7 +6,7 @@ import { MockTag } from "@/components/parts/Pills";
 import { useMotion } from "@/components/useMotion";
 import { useBeat } from "@/components/canvas/useBeat";
 import type { HomeContent } from "@/content/home";
-import { endIntro, playIntro } from "@/lib/intro/iris";
+import { holdIntro, playIntro } from "@/lib/intro/iris";
 import { getMotion } from "@/lib/motion";
 import { isBusy, live, pageBox, put, putPin, select, wait, wessel, type XY } from "@/lib/wessel";
 
@@ -281,11 +281,8 @@ export function Hero({ hero: c }: { hero: HomeContent["hero"] }) {
 
   // The first visit's intro starts as soon as the hero is there; the hello
   // beat (and Wessel) wait for it to hand over.
-  // Leaving home mid-intro ends it (a remount, as in dev, doesn't).
-  useEffect(() => {
-    void playIntro();
-    return () => void setTimeout(() => document.querySelector("[data-hero]") || endIntro(), 0);
-  }, []);
+  // The intro is held while the hero is mounted; leaving home mid-intro ends it.
+  useEffect(() => holdIntro(), []);
 
   const hero = useBeat<HTMLDivElement>({
     async day(g) {

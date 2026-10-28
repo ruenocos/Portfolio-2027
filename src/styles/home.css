@@ -908,6 +908,7 @@ html[data-boot] .cur.wes {
   height: 100%;
   overflow: visible;
 }
+/* A canvas pill on the sheet: ink on canvas reads in light and dark. */
 .iskip {
   position: fixed;
   right: 40px;
@@ -916,18 +917,17 @@ html[data-boot] .cur.wes {
   height: 34px;
   padding: 0 14px;
   border-radius: var(--radius-pill);
-  border: 1px solid var(--canvas);
-  background: transparent;
-  color: var(--canvas);
-  cursor: pointer;
-  transition:
-    opacity 240ms var(--ease-ui),
-    background-color 240ms var(--ease-ui),
-    color 240ms var(--ease-ui);
-}
-.iskip:hover {
+  border: 0;
   background: var(--canvas);
   color: var(--ink);
+  cursor: pointer;
+  animation: iskip-in 240ms var(--ease-ui) backwards;
+  transition:
+    opacity 240ms var(--ease-ui),
+    scale 120ms var(--ease-ui);
+}
+.iskip:active {
+  scale: 0.96;
 }
 .iskip:focus-visible {
   outline: 2px solid var(--canvas);
@@ -942,6 +942,11 @@ html[data-boot] .cur.wes {
     right: 16px;
     bottom: 20px;
     height: 44px;
+  }
+}
+@keyframes iskip-in {
+  from {
+    opacity: 0;
   }
 }
 @keyframes wsl-failsafe {

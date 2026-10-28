@@ -76,10 +76,11 @@ export function announce(text: string) {
  *  lib/intro/iris). Decided before the first paint, so the tangerine sheet
  *  (CSS, until the intro takes over) is the very first thing you see. Only
  *  on a fresh, visible, top-of-page load of "/", never paused, reduced,
- *  saveData, a deep link or a back/forward restore. Runs before
+ *  saveData, a deep link or a back/forward restore. If the intro never takes
+ *  over (no JS, a render error) the flag clears itself at 4.5s. Runs before
  *  motionScript, which then skips the house entrance. */
 export const BOOT_KEY = "wsl-boot";
-export const bootScript = `try{var h=document.documentElement,n=performance.getEntriesByType("navigation")[0],c=navigator.connection;if(location.pathname==="/"&&!location.hash&&!sessionStorage.getItem("${BOOT_KEY}")&&localStorage.getItem("${PAUSE_KEY}")!=="1"&&!matchMedia("(prefers-reduced-motion: reduce)").matches&&!(c&&c.saveData)&&!(n&&n.type==="back_forward")&&document.visibilityState!=="hidden")h.dataset.boot="pending"}catch(e){}`;
+export const bootScript = `try{var h=document.documentElement,n=performance.getEntriesByType("navigation")[0],c=navigator.connection;if(location.pathname==="/"&&!location.hash&&!sessionStorage.getItem("${BOOT_KEY}")&&localStorage.getItem("${PAUSE_KEY}")!=="1"&&!matchMedia("(prefers-reduced-motion: reduce)").matches&&!(c&&c.saveData)&&!(n&&n.type==="back_forward")&&document.visibilityState!=="hidden"){h.dataset.boot="pending";setTimeout(function(){if(h.dataset.boot==="pending")delete h.dataset.boot},4500)}}catch(e){}`;
 // Runs in <head> before the first paint, next to the mode script.
 // "entering" hides the first screen until the house entrance picks it up;
 // it removes itself after 1.5s in case scripts never run.

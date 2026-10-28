@@ -2,6 +2,7 @@
 
 import { usePathname } from "next/navigation";
 import { useEffect, useRef } from "react";
+import { afterIntro } from "@/lib/intro/iris";
 import { TIP, arrive, attachWessel, newPage } from "@/lib/wessel";
 import { Cursor } from "./canvas/Cursor";
 
@@ -23,9 +24,10 @@ export function CursorLayer() {
     return attachWessel(el);
   }, []);
 
+  // On home's first visit he makes his entrance once the intro hands over.
   useEffect(() => {
     newPage();
-    arrive();
+    afterIntro(arrive);
   }, [pathname]);
 
   useEffect(() => {

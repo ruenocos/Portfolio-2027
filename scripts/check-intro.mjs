@@ -64,8 +64,8 @@ for (const at of [300, 1200, 1900]) {
   const { p, ctx } = await page();
   await p.goto(BASE + "/", { waitUntil: "commit" });
   await p.waitForSelector(".iskip", { timeout: 4000 });
+  check("Skip pill is first in tab order", await p.evaluate(() => document.body.firstElementChild?.classList.contains("iskip")));
   await p.keyboard.press("Tab");
-  check("Skip pill is first in tab order", await p.evaluate(() => document.activeElement?.classList.contains("iskip")));
   await p.waitForTimeout(500);
   const s = await state(p);
   check("key press skips", clean(s), JSON.stringify(s));
@@ -116,12 +116,15 @@ for (const at of [300, 1200, 1900]) {
 {
   const { p, ctx } = await page({}, (p) => p.route(/\/_next\/static\/chunks\/.*\.js/, (r) => r.abort()));
   await p.goto(BASE + "/", { waitUntil: "domcontentloaded" });
-  await p.waitForTimeout(4500);
+  await p.waitForTimeout(4200);
   const v = await p.evaluate(() => {
     const s = getComputedStyle(document.body, "::before");
     return { boot: document.documentElement.dataset.boot, content: s.content, vis: s.visibility, op: s.opacity };
   });
   check("no JS: failsafe clears the sheet at 4s", v.boot === "pending" && v.content !== "none" && v.vis === "hidden", JSON.stringify(v));
+  await p.waitForTimeout(800);
+  const s = await state(p);
+  check("no JS: the boot flag clears itself at 4.5s", s.boot === null && s.wes !== "hidden", JSON.stringify(s));
   await ctx.close();
 }
 
@@ -134,6 +137,43 @@ for (const at of [300, 1200, 1900]) {
   await p.waitForTimeout(500);
   const s = await state(p);
   check("resize skips", clean(s), JSON.stringify(s));
+  await ctx.close();
+}
+
+// Leaving home mid-intro ends it; switching on reduced motion mid-intro skips it.
+{
+  const { p, ctx } = await page();
+  await p.goto(BASE + "/", { waitUntil: "commit" });
+  await p.waitForSelector('html[data-boot="playing"]', { timeout: 4000 });
+  await p.evaluate(() => document.querySelector('a[href="/work"]')?.dispatchEvent(new MouseEvent("click", { bubbles: true, cancelable: true })));
+  await p.waitForTimeout(600);
+  const s = await state(p);
+  check("navigating away ends it", p.url().endsWith("/work") && !s.boot && !s.layer, JSON.stringify(s));
+  await ctx.close();
+}
+{
+  const { p, ctx } = await page();
+  await p.goto(BASE + "/", { waitUntil: "commit" });
+  await p.waitForSelector('html[data-boot="playing"]', { timeout: 4000 });
+  await p.emulateMedia({ reducedMotion: "reduce" });
+  await p.waitForTimeout(500);
+  const s = await state(p);
+  check("reduced motion mid-intro skips it", clean(s), JSON.stringify(s));
+  await ctx.close();
+}
+// A throw mid-frame still leaves the page.
+{
+  const { p, ctx } = await page({}, (p) =>
+    p.addInitScript(() => {
+      const raf = window.requestAnimationFrame.bind(window);
+      let n = 0;
+      window.requestAnimationFrame = (f) => raf((t) => (document.querySelector(".ilayer") && ++n === 20 ? (() => { const st = CSSStyleDeclaration.prototype; const d = Object.getOwnPropertyDescriptor(st, "maskImage"); Object.defineProperty(st, "maskImage", { set() { throw new Error("boom"); }, configurable: true }); f(t); if (d) Object.defineProperty(st, "maskImage", d); else delete st.maskImage; })() : f(t)));
+    }),
+  );
+  await p.goto(BASE + "/", { waitUntil: "commit" });
+  await p.waitForTimeout(4000);
+  const s = await state(p);
+  check("a throw mid-frame: page clean", clean(s), JSON.stringify(s));
   await ctx.close();
 }
 
