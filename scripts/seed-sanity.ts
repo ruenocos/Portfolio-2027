@@ -110,6 +110,9 @@ async function about() {
 }
 
 async function playground() {
+  // Ids come from the first titles, so once posts exist (and may be renamed
+  // in the Studio) a second run would only add duplicates.
+  if (!dry && (await client.fetch(`count(*[_type == "playgroundPiece"])`))) return console.log("skip playground: posts already exist");
   const real = FALLBACK_POSTS.filter((p) => !p.mock && p.src);
   for (const [i, p] of real.entries()) {
     await fill({
