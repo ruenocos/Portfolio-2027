@@ -73,7 +73,7 @@ export const project = defineType({
       type: "boolean",
       group: "row",
       initialValue: false,
-      description: "Off: the media says \"Case study soon\" instead of linking.",
+      description: "Off: the project's page is the short one (title, summary, video, facts). On: the full case below.",
       validation: (rule) =>
         rule.custom((on, { document }) =>
           on && !(document?.sections as unknown[] | undefined)?.length

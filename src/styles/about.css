@@ -133,7 +133,9 @@
   .board {
     position: relative;
     overflow: hidden;
-    min-height: 520px;
+    /* Sized to the pile (it rests in the bottom half), so the board
+       doesn't open on an empty field. */
+    min-height: 420px;
     padding: 40px var(--spacing-inset);
   }
   .btop {

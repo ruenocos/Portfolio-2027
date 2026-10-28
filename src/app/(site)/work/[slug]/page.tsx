@@ -8,6 +8,7 @@ import { Facts } from "@/components/parts/Facts";
 import { ProjectRows } from "@/components/parts/ProjectRow";
 import { MediaFigure } from "@/components/parts/Media";
 import { MockTag } from "@/components/parts/Pills";
+import { SectionLabel } from "@/components/parts/SectionLabel";
 import { caseSlugs, getCase, getWork } from "@/content/get";
 import { getDraftFetchOptions } from "@/sanity/live";
 import { HeroBeat } from "@/components/case/HeroBeat";
@@ -38,14 +39,15 @@ export default function CasePage({ params }: PageProps<"/work/[slug]">) {
 async function Case({ params }: Pick<PageProps<"/work/[slug]">, "params">) {
   const { slug } = await params;
   const o = await getDraftFetchOptions();
-  const [c, { selected }] = await Promise.all([getCase(slug, o), getWork(o)]);
+  const [c, projects] = await Promise.all([getCase(slug, o), getWork(o)]);
   if (!c) notFound();
 
-  // Where this case sits in the selected work, and the one after it.
-  const i = selected.findIndex((p) => p.href === `/work/${slug}`);
-  const after = i >= 0 ? selected[(i + 1) % selected.length] : undefined;
+  // Where this project sits in the work, and the one after it (every
+  // project has a page, so Next always opens one).
+  const i = projects.findIndex((p) => p.href === `/work/${slug}`);
+  const after = i >= 0 ? projects[(i + 1) % projects.length] : undefined;
   const crumb = {
-    count: i >= 0 ? `Case ${i + 1}/${selected.length}` : undefined,
+    count: i >= 0 ? `Project ${i + 1}/${projects.length}` : undefined,
     next: after && after.href !== `/work/${slug}` ? { label: after.title, href: after.href } : undefined,
   };
   const mock = (f: "lead" | "intro" | "caption") => (c.mock?.includes(f) ? "" : undefined);
@@ -57,12 +59,9 @@ async function Case({ params }: Pick<PageProps<"/work/[slug]">, "params">) {
         <div className="side" />
         <div className="copen">
           <div className="cell ot">
-            <p className="text-label" data-enter>
-              <span className="text-tang-ink" aria-hidden="true">
-                #
-              </span>{" "}
-              Case · {c.title}
-            </p>
+            <span data-enter>
+              <SectionLabel as="p" name={`Case · ${c.title}`} />
+            </span>
             <h1 id="ttl" className="text-statement" lang={c.lang} data-enter>
               {c.title}
             </h1>
@@ -108,16 +107,19 @@ async function Case({ params }: Pick<PageProps<"/work/[slug]">, "params">) {
         </section>
       )}
       <Facts items={c.facts} />
-      <section className="frame" data-row aria-label="Case study">
-        <div className="side" />
-        <Read sections={c.sections} />
-        <div className="side" />
-      </section>
-      {/* The next case as its own row, so the read ends on a door, not a bar. */}
+      {/* The short page (no case written yet) has no read. */}
+      {c.sections.length > 0 && (
+        <section className="frame" data-row aria-label="Case study">
+          <div className="side" />
+          <Read sections={c.sections} />
+          <div className="side" />
+        </section>
+      )}
+      {/* The next project as its own row, so the page ends on a door, not a bar. */}
       {crumb.next && after && (
         <>
-          <Divider label={{ name: "Next case" }} />
-          <ProjectRows projects={[after]} label="Next case" />
+          <Divider label={{ name: "Next project" }} />
+          <ProjectRows projects={[after]} label="Next project" />
         </>
       )}
       <Crumb {...crumb} label="Case navigation, end" />

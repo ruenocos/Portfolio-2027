@@ -93,7 +93,8 @@ export function Bookend() {
         live(g);
       }
       const mob = innerWidth < 900;
-      await wessel.go(wessel.at(bkn.current!, 0.5, 1, mob ? 40 : 120, mob ? 22 : 30));
+      // He rests under the smiley, clear of both words.
+      await wessel.go(wessel.at(bkn.current!, 0.5, 1, mob ? -6 : -8, mob ? 26 : 34));
     },
     still() {
       show(true);

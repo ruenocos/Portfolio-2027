@@ -492,7 +492,7 @@ export function Stickers({ items }: { items: Sticker[] }) {
       <div ref={board} className="cell board bg-dots">
         <div className="btop">
           <p id="stk-help" className="sr-only">Stickers you can throw around. Arrow keys push the one in focus, Enter makes it hop.</p>
-          <button ref={btn} type="button" className="tidy text-micro-caps" aria-pressed={tidy} onClick={toggle}>
+          <button ref={btn} type="button" className="tidy text-small" aria-pressed={tidy} onClick={toggle}>
             {tidy ? "Mess it up" : "Tidy up"}
           </button>
         </div>

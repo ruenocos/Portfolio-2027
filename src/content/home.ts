@@ -1,5 +1,5 @@
 import type { Project } from "@/components/parts/ProjectRow";
-import { FALLBACK_PROJECTS } from "./projects";
+import { FALLBACK_FEATURED } from "./projects";
 
 // Everything the home page says and shows. Sanity fills it (the "home"
 // singleton plus the featured projects); until a field is filled there,
@@ -44,7 +44,7 @@ export const FALLBACK_HOME: HomeContent = {
       { src: "/media/about-hat.jpg", alt: "Wessel in a denim bucket hat, mid-thought" },
     ],
   },
-  projects: FALLBACK_PROJECTS,
+  projects: FALLBACK_FEATURED,
   focus: {
     statement: "Primarily working on the details you feel before you notice them",
     tracks: [
@@ -53,16 +53,14 @@ export const FALLBACK_HOME: HomeContent = {
       { key: "ai", title: "AI / automation", line: "Exports, handoff files, content updates: the jobs I’d rather a plugin did." },
     ],
   },
-  // The fanned hand above "All work". The three projects plus placeholder
-  // tiles until the archive is real.
+  // The fanned hand above "All work": all six projects, the three still to
+  // write on placeholder tiles.
   archive: [
-    { src: "/media/archive-tile5.jpg", name: "Archive 05", mock: true },
-    { src: "/media/archive-tile3.jpg", name: "Archive 03", mock: true },
-    { src: "/media/archive-tile1.jpg", name: "Archive 01", mock: true },
+    { src: "/media/archive-tile3.jpg", name: "AniPlanner", mock: true },
+    { src: "/media/archive-tile1.jpg", name: "Orka", mock: true },
     { src: "/media/archive-ui-motion.jpg", name: "UI motion study" },
     { src: "/media/archive-desaak.jpg", name: "De Saak" },
     { src: "/media/archive-designer-tool.jpg", name: "Designer tool" },
-    { src: "/media/archive-tile2.jpg", name: "Archive 02", mock: true },
-    { src: "/media/archive-tile4.jpg", name: "Archive 04", mock: true },
+    { src: "/media/archive-tile2.jpg", name: "Wagg.le", mock: true },
   ],
 };

@@ -13,7 +13,8 @@
   --radius-tag: 2px;
   --spacing-inset: 40px;
   --spacing-section: 96px;
-  --spacing-divider: 168px;
+  --spacing-divider: 128px;
+  --spacing-divider-tall: 168px;
   --spacing-header: 90px;
   --spacing-side: max(96px, (100vw - 1600px) / 2);
   --spacing-content-max: 1600px;
@@ -110,7 +111,8 @@
     --type-email-size: clamp(24px, 6.2vw, 32px);
     --spacing-inset: 20px;
     --spacing-section: 40px;
-    --spacing-divider: 96px;
+    --spacing-divider: 72px;
+    --spacing-divider-tall: 96px;
     --spacing-side: 16px;
   }
 }

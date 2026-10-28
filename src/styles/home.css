@@ -22,7 +22,7 @@
 
   /* ---------- hero ---------- */
   .hero {
-    height: clamp(480px, calc(80svh - 91px), 720px);
+    height: clamp(480px, calc(72svh - 91px), 680px);
     overflow: hidden;
     isolation: isolate;
   }
@@ -754,11 +754,6 @@
       position: relative;
       inset: auto;
       margin-top: var(--spacing-section);
-    }
-    /* The band under the hero. */
-    .divider.divider-tall > .cell,
-    .divider.divider-tall > .side {
-      height: calc(var(--spacing-divider) * 1.25);
     }
     .about {
       grid-template-columns: minmax(0, 1fr);

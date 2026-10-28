@@ -33,7 +33,7 @@
   }
   .divider.divider-tall > .cell,
   .divider.divider-tall > .side {
-    height: 240px;
+    height: var(--spacing-divider-tall);
   }
 
   /* ---------- pills and chips ---------- */

@@ -348,7 +348,9 @@ export function Hero({ hero: c }: { hero: HomeContent["hero"] }) {
         await wessel.go(wessel.at(W, 0.96, 0.04), { k: 120, timeout: 1400 });
         chk();
         await breath(200);
-        await say("Hello!", pp(W, 0.96, 0.04, 10, -6));
+        // Phones: no room above the name (the based-in lines sit there), so
+        // the pin drops into the reel's corner just under him.
+        await say("Hello!", mobile() ? pp(r, 0, 0, 12, 84) : pp(W, 0.96, 0.04, 10, -6));
         await breath(700);
         // Over to the middle of the W, one click: the fill plops in.
         await wessel.go(wessel.at(W, 0.5, 0.55), { k: 150, timeout: 1200 });
@@ -403,7 +405,8 @@ export function Hero({ hero: c }: { hero: HomeContent["hero"] }) {
         await wessel.drag(wessel.at(r, 0, 0, -2, -2), wessel.at(r, 1, 1, inset, inset), 640, (e) => (s.grow = Math.max(0.02, e)));
         live(g);
         s.grow = 1;
-        s.size();
+        // Phones: the reel already holds his tag, the pin and the Reel chip; no size label.
+        if (!mobile()) s.size();
         wessel.press(false);
         playReel();
         r.dataset.invite = "";

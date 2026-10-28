@@ -3,7 +3,55 @@
 
 @layer components {
   .whero {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 24px;
     padding: var(--spacing-section) var(--spacing-inset) var(--spacing-inset);
+  }
+  /* The hand of posters on the title's row: small, overlapping, a little
+     fanned, like prints laid on the desk. Pointing at one lifts it. */
+  .whand {
+    display: flex;
+    align-items: flex-end;
+    padding-right: 8px;
+  }
+  .whand a {
+    position: relative;
+    width: 72px;
+    aspect-ratio: 3 / 4;
+    margin-left: -18px;
+    border-radius: 10px;
+    overflow: hidden;
+    background: var(--fill);
+    box-shadow: var(--shadow-outline);
+    rotate: calc(var(--i) * 3deg);
+    translate: 0 calc(var(--i) * var(--i) * 2px);
+    transition:
+      translate var(--dur-spring) var(--ease-spring),
+      rotate var(--dur-spring) var(--ease-spring);
+  }
+  .whand a img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .whand a:hover {
+      z-index: 1;
+      rotate: 0deg;
+      translate: 0 -12px;
+      outline: 1.5px solid var(--grape);
+      outline-offset: 3px;
+    }
+  }
+  html[data-motion="calm"] .whand a {
+    transition: none;
+  }
+  @media (width < 900px) {
+    .whand {
+      display: none;
+    }
   }
   .wfbar {
     display: flex;
@@ -124,6 +172,10 @@
       filter var(--dur-ui) var(--ease-ui),
       opacity var(--dur-ui) var(--ease-ui);
   }
+  /* Dark: grey logos on near-black need more light to read at rest. */
+  html[data-mode="dark"] .arow:not(:hover, :focus-within) .tool img {
+    opacity: 0.8;
+  }
   .arow:is(:hover, :focus-within) .tool img {
     filter: none;
     opacity: 1;
@@ -143,8 +195,9 @@
     z-index: 2;
     width: 176px;
     translate: -50% -50%;
-    opacity: 0;
-    scale: 0.92;
+    /* At rest it's a small thumb (42 × 56), so the list has pictures
+       before you point at it; pointing grows it into the peek. */
+    scale: 0.24;
     pointer-events: none;
     box-shadow: var(--shadow-outline);
     transition:
@@ -158,6 +211,29 @@
   }
   .arow .apk .hsel {
     inset: -6px;
+    opacity: 0;
+  }
+  /* Your selection is an outline only: handles are Wessel's. */
+  .arow .apk .hsel i {
+    display: none;
+  }
+  .arow:is(:hover, :focus-within) .apk .hsel {
+    opacity: 1;
+  }
+  /* The first row grows down and the last grows up, so the peek stays
+     inside the list. */
+  @media (width >= 900px) {
+    .arow:first-child .apk {
+      top: calc(50% - 28px);
+      translate: -50% 0;
+      transform-origin: 50% 0;
+    }
+    .arow:last-child .apk {
+      top: auto;
+      bottom: calc(50% - 28px);
+      translate: -50% 0;
+      transform-origin: 50% 100%;
+    }
   }
   .arow .soontag {
     left: auto;
@@ -171,7 +247,6 @@
   }
   @media (hover: hover) and (pointer: fine) {
     .arow:is(:hover, :focus-within) .apk {
-      opacity: 1;
       scale: 1;
     }
   }
@@ -229,5 +304,15 @@
 @media (width < 900px) {
   body:has(main .whero, main .rd) .cur.wes {
     display: none;
+  }
+}
+
+/* Desktop: the chips sit flush with the content edge; Show all waits on
+   their left instead of holding an empty slot at the end. */
+@layer components {
+  @media (width >= 900px) {
+    .wfbar .clr {
+      order: -1;
+    }
   }
 }

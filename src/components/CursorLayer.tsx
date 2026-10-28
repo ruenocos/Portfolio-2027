@@ -30,6 +30,16 @@ export function CursorLayer() {
     return afterIntro(arrive);
   }, [pathname]);
 
+  // A new page: your tag forgets the link you clicked ("View case" would
+  // otherwise hang on until the mouse moves).
+  useEffect(() => {
+    const y = you.current;
+    const tag = y?.querySelector(".tag b");
+    if (!y || !tag) return;
+    tag.textContent = "You";
+    y.dataset.on = "false";
+  }, [pathname]);
+
   useEffect(() => {
     const y = you.current;
     if (!y || !matchMedia("(hover: hover) and (pointer: fine)").matches) return;
