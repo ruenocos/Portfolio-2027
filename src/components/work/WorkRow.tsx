@@ -99,7 +99,7 @@ export function WorkRow({ project: p, hidden, leaving }: { project: Project; hid
   return (
     <article className="arow" hidden={hidden} data-leaving={leaving || undefined} onPointerEnter={sizeUp}>
       <div className="cell al">
-        <h3 className="text-title" lang={p.lang}>
+        <h3 className="text-lead" lang={p.lang}>
           {/* The title is the row's target; its hit area stretches over the whole row. */}
           {p.href ? (
             <Link href={p.href} className="hit" data-you="View case" aria-label={p.label}>
@@ -118,7 +118,7 @@ export function WorkRow({ project: p, hidden, leaving }: { project: Project; hid
         </h3>
       </div>
       <div className="cell ac">
-        <span className="text-body ay">{gap ? <Slot>Year</Slot> : p.timeline}</span>
+        <span className="ay">{gap ? <Slot>Year</Slot> : p.timeline}</span>
         <span ref={peek} className="media apk" data-ratio="portrait" aria-hidden="true">
           <span className="hov">
             <span className="hsel">
@@ -133,7 +133,7 @@ export function WorkRow({ project: p, hidden, leaving }: { project: Project; hid
         </span>
       </div>
       <div className="cell ap">
-        <span className="text-body">{gap ? <Slot>Role</Slot> : p.role}</span>
+        <span className="text-small">{gap ? <Slot>Role</Slot> : p.role}</span>
         {gap ? <EmptyTool /> : <Tools ids={p.tools} />}
       </div>
       {!p.href && (

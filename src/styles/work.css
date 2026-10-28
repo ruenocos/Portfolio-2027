@@ -52,14 +52,13 @@
     position: relative;
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: var(--spacing-hairline);
-    background: var(--line);
+    background: var(--canvas);
     min-width: 0;
   }
   .arow > .cell {
     display: flex;
     align-items: center;
-    padding: 28px var(--spacing-inset);
+    padding: 22px var(--spacing-inset);
   }
   .arow[hidden] {
     display: none;
@@ -71,9 +70,12 @@
   .arow:hover {
     z-index: 5;
   }
+  /* Calm, like an index: one ink line (the title), the values mute, the
+     tools grey until you point at the row. */
   .arow h3 {
     margin: 0;
     min-width: 0;
+    font-weight: 500;
     overflow-wrap: break-word;
     hyphens: auto;
   }
@@ -103,6 +105,28 @@
   }
   .arow .ay {
     color: var(--mute);
+    font-family: var(--font-mono);
+    font-size: var(--type-label-size);
+    letter-spacing: 0.04em;
+    line-height: 20px;
+    font-variant-numeric: tabular-nums;
+  }
+  .arow .ap > span {
+    color: var(--mute);
+  }
+  .arow .tool {
+    --s: 24px;
+  }
+  .arow .tool img {
+    filter: grayscale(1);
+    opacity: 0.55;
+    transition:
+      filter var(--dur-ui) var(--ease-ui),
+      opacity var(--dur-ui) var(--ease-ui);
+  }
+  .arow:is(:hover, :focus-within) .tool img {
+    filter: none;
+    opacity: 1;
   }
   .arow .ac {
     position: relative;
@@ -196,64 +220,6 @@
     }
     .arow .apk .hov {
       display: none;
-    }
-  }
-}
-
-/* Preview only: three calmer rows to pick from (?row=a|b|c).
-   a Type: smaller title, values in Small, smaller tools.
-   b Colour: one ink line per row, the rest mute, tools grey until hover,
-     no rules between the columns.
-   c Both. Unlayered (not in a layer), so it beats the type utilities. */
-@media all {
-  html[data-wrow="a"] .arow h3,
-  html[data-wrow="c"] .arow h3 {
-    font-size: var(--type-lead-size);
-    line-height: 28px;
-    letter-spacing: 0;
-  }
-  html[data-wrow="a"] .arow :is(.ay, .ap > span),
-  html[data-wrow="c"] .arow :is(.ay, .ap > span) {
-    font-size: var(--type-small-size);
-    line-height: 20px;
-  }
-  html[data-wrow="a"] .arow .tool,
-  html[data-wrow="c"] .arow .tool {
-    --s: 24px;
-  }
-  html[data-wrow="a"] .arow > .cell,
-  html[data-wrow="c"] .arow > .cell {
-    padding-block: 22px;
-  }
-  html[data-wrow="b"] .arow .ap > span,
-  html[data-wrow="c"] .arow .ap > span {
-    color: var(--mute);
-  }
-  html[data-wrow="c"] .arow .ay {
-    font-family: var(--font-mono);
-    font-size: var(--type-label-size);
-    letter-spacing: 0.04em;
-    font-variant-numeric: tabular-nums;
-  }
-  html[data-wrow="b"] .arow .tool img,
-  html[data-wrow="c"] .arow .tool img {
-    filter: grayscale(1);
-    opacity: 0.55;
-    transition:
-      filter var(--dur-ui) var(--ease-ui),
-      opacity var(--dur-ui) var(--ease-ui);
-  }
-  html[data-wrow="b"] .arow:is(:hover, :focus-within) .tool img,
-  html[data-wrow="c"] .arow:is(:hover, :focus-within) .tool img {
-    filter: none;
-    opacity: 1;
-  }
-  /* No column rules: one hairline per row. */
-  @media (width >= 900px) {
-    html[data-wrow="b"] .arow,
-    html[data-wrow="c"] .arow {
-      gap: 0;
-      background: var(--canvas);
     }
   }
 }
