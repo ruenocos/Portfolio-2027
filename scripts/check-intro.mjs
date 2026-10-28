@@ -16,9 +16,10 @@ const state = (p) =>
     boot: document.documentElement.dataset.boot ?? null,
     layer: !!document.querySelector(".ilayer"),
     logo: getComputedStyle(document.querySelector(".hd .home .logo")).opacity,
-    wes: getComputedStyle(document.querySelector(".cur.wes")).visibility,
+    // Wessel's cursor is held back (opacity 0) only while data-boot is set.
+    wes: !document.querySelector("html[data-boot] .cur.wes"),
   }));
-const clean = (s) => !s.boot && !s.layer && s.logo === "1" && s.wes !== "hidden";
+const clean = (s) => !s.boot && !s.layer && s.logo === "1" && s.wes;
 
 const b = await chromium.launch();
 async function page(opts = {}, setup) {
@@ -69,6 +70,10 @@ for (const at of [300, 1200, 1900]) {
   await p.waitForTimeout(500);
   const s = await state(p);
   check("key press skips", clean(s), JSON.stringify(s));
+  check("focus doesn't stay on the pill", await p.evaluate(() => !document.activeElement?.classList.contains("iskip")));
+  await p.keyboard.press("Tab");
+  const next = await p.evaluate(() => document.activeElement?.textContent?.trim());
+  check("next Tab starts at the top (skip link)", next === "Skip to content", next);
   await ctx.close();
 }
 
@@ -124,7 +129,7 @@ for (const at of [300, 1200, 1900]) {
   check("no JS: failsafe clears the sheet at 4s", v.boot === "pending" && v.content !== "none" && v.vis === "hidden", JSON.stringify(v));
   await p.waitForTimeout(800);
   const s = await state(p);
-  check("no JS: the boot flag clears itself at 4.5s", s.boot === null && s.wes !== "hidden", JSON.stringify(s));
+  check("no JS: the boot flag clears itself at 4.5s", s.boot === null && s.wes, JSON.stringify(s));
   await ctx.close();
 }
 
@@ -159,6 +164,59 @@ for (const at of [300, 1200, 1900]) {
   await p.waitForTimeout(500);
   const s = await state(p);
   check("reduced motion mid-intro skips it", clean(s), JSON.stringify(s));
+  await ctx.close();
+}
+// Pause pressed mid-intro (a click with no pointer, as a screen reader sends) skips it.
+{
+  const { p, ctx } = await page();
+  await p.goto(BASE + "/", { waitUntil: "commit" });
+  await p.waitForSelector('html[data-boot="playing"]', { timeout: 4000 });
+  await p.getByRole("button", { name: "Pause motion" }).first().evaluate((el) => el.click());
+  await p.waitForTimeout(500);
+  const s = await state(p);
+  check("Pause mid-intro skips it", clean(s), JSON.stringify(s));
+  await ctx.close();
+}
+// A scroll with no input (find in page, an anchor jump) skips it.
+{
+  const { p, ctx } = await page();
+  await p.goto(BASE + "/", { waitUntil: "commit" });
+  await p.waitForSelector('html[data-boot="playing"]', { timeout: 4000 });
+  await p.evaluate(() => scrollTo(0, 400));
+  await p.waitForTimeout(500);
+  const s = await state(p);
+  check("scroll mid-intro skips it", clean(s), JSON.stringify(s));
+  await ctx.close();
+}
+// A hidden tab mid-intro ends it.
+{
+  const { p, ctx } = await page();
+  await p.goto(BASE + "/", { waitUntil: "commit" });
+  await p.waitForSelector('html[data-boot="playing"]', { timeout: 4000 });
+  await p.evaluate(() => {
+    Object.defineProperty(document, "hidden", { get: () => true, configurable: true });
+    document.dispatchEvent(new Event("visibilitychange"));
+  });
+  await p.waitForTimeout(400);
+  const s = await state(p);
+  check("hidden tab mid-intro ends it", !s.boot && s.logo === "1", JSON.stringify(s));
+  await ctx.close();
+}
+// JS 2.5s late: no ready gate, so the sheet is gone well before 2.5 + 1.2 + 2.32s.
+{
+  const { p, ctx } = await page({}, (p) =>
+    p.route(/\/_next\/static\/chunks\/.*\.js/, async (r) => {
+      await new Promise((res) => setTimeout(res, 2500));
+      r.continue().catch(() => {});
+    }),
+  );
+  const t0 = Date.now();
+  await p.goto(BASE + "/", { waitUntil: "commit" });
+  await p.waitForFunction(() => !document.documentElement.dataset.boot, null, { timeout: 9000 }).catch(() => {});
+  const ms = Date.now() - t0;
+  await p.waitForTimeout(400);
+  const s = await state(p);
+  check("late JS: no gate, ends clean", clean(s) && ms < 5600, `${ms}ms ${JSON.stringify(s)}`);
   await ctx.close();
 }
 // A throw mid-frame still leaves the page.

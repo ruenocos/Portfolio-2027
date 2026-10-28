@@ -27,7 +27,7 @@ export function CursorLayer() {
   // On home's first visit he makes his entrance once the intro hands over.
   useEffect(() => {
     newPage();
-    afterIntro(arrive);
+    return afterIntro(arrive);
   }, [pathname]);
 
   useEffect(() => {

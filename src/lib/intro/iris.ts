@@ -118,7 +118,8 @@ export function playIntro(): Promise<void> {
     let btn: HTMLButtonElement | null = null;
     let logo: SVGElement | null = null;
     const sk = () => (skip = true);
-    const evs = ["wheel", "keydown", "pointerdown", "touchstart"] as const;
+    // A scroll counts too, input or not (find in page, a screen reader jump).
+    const evs = ["wheel", "keydown", "pointerdown", "touchstart", "scroll"] as const;
     const vw0 = innerWidth;
     const vh0 = innerHeight;
     // A phone's address bar collapsing fires resize too: only a width change
@@ -146,8 +147,10 @@ export function playIntro(): Promise<void> {
         if (logo) logo.style.opacity = "";
         delete root.dataset.boot;
         sessionStorage.setItem(BOOT_KEY, "1");
-        // Focus never stays on the pill as it goes.
-        if (btn && document.activeElement === btn) document.getElementById("main")?.focus({ preventScroll: true });
+        // Focus never stays on the pill as it goes. Blurred rather than moved,
+        // so the next Tab starts at the top: skip link, logo, nav.
+        if (btn) btn.tabIndex = -1;
+        if (btn && document.activeElement === btn) btn.blur();
       } catch {}
       // The pill fades, then the layer goes (the sheet is already clear).
       btn?.classList.add("out");
@@ -164,8 +167,10 @@ export function playIntro(): Promise<void> {
     if (!root.dataset.boot) return resolve();
     // Pause or reduced motion switched on since the first paint, too late
     // (JS arrived after the CSS failsafe cleared the sheet), or a background
-    // tab: the finished page, no intro.
-    if (getMotion().calm || performance.now() > I.failsafeS * 1000 || document.hidden) return finish();
+    // tab, or already scrolled (a restored scroll): the finished page, no intro.
+    if (getMotion().calm || performance.now() > I.failsafeS * 1000 || document.hidden || scrollY > 0) return finish();
+    // JS came late: the sheet has been up a while already, so no ready gate.
+    const late = performance.now() > I.gate.lateS * 1000;
 
     try {
       logo = document.querySelector<SVGElement>(".hd .home .logo");
@@ -193,6 +198,7 @@ export function playIntro(): Promise<void> {
       addEventListener("resize", onResize);
       addEventListener("pageshow", onShow);
       document.addEventListener("visibilitychange", onVis);
+      // The intro's own watchdog: the longest it can run, plus a second.
       watchdog = window.setTimeout(finish, (END + I.gate.maxWait + 1) * 1000);
 
       // Measured once; a real resize skips.
@@ -215,8 +221,9 @@ export function playIntro(): Promise<void> {
       const seek = (t: number) => {
         sm.draw(t);
         // The glance eases back as he lands, so the swap to the logo doesn't jump.
-        const g = ui(prog(t, I.glance)) - ui(prog(t, [I.fly.t[1] - 0.14, I.fly.t[1]]));
-        sm.feat.style.translate = `${lerp(drift[0], -9, g)}px ${lerp(drift[1], -7, g)}px`;
+        const g = ui(prog(t, I.glance));
+        const back = ui(prog(t, [I.fly.t[1] - 0.14, I.fly.t[1]]));
+        sm.feat.style.translate = `${lerp(lerp(drift[0], -9, g), 0, back)}px ${lerp(lerp(drift[1], -7, g), 0, back)}px`;
         sm.feat.style.scale = "";
         const k = move(prog(t, I.fly.t));
         const p = arc(home, dest, k, lift);
@@ -262,7 +269,7 @@ export function playIntro(): Promise<void> {
           let t = (now - t0) / 1000 - shift;
           // The ready gate: the face holds at gate.at until the page is
           // ready, gate.maxWait at most, then goes on regardless.
-          if (!skip && t >= I.gate.at && waitFrom !== -2) {
+          if (!skip && !late && t >= I.gate.at && waitFrom !== -2) {
             if (waitFrom < 0) waitFrom = now;
             const w = (now - waitFrom) / 1000;
             const blinking = w > 0.5 && w < 0.62;
@@ -312,13 +319,17 @@ export function holdIntro() {
 }
 
 /** Runs fn once the intro has handed over (at once if there is none). */
-export function afterIntro(fn: () => void) {
+export function afterIntro(fn: () => void): () => void {
   const root = document.documentElement;
-  if (!root.dataset.boot) return fn();
+  if (!root.dataset.boot) {
+    fn();
+    return () => {};
+  }
   const mo = new MutationObserver(() => {
     if (root.dataset.boot) return;
     mo.disconnect();
     fn();
   });
   mo.observe(root, { attributes: true, attributeFilter: ["data-boot"] });
+  return () => mo.disconnect();
 }

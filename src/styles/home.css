@@ -872,7 +872,7 @@ html[data-boot="pending"] body::before {
   z-index: 58;
   background: var(--tang);
   pointer-events: none;
-  /* If the intro never starts, the sheet clears itself. */
+  /* If the intro never starts, the sheet clears itself (4s = intro.failsafeS). */
   animation: wsl-failsafe 1ms 4s forwards;
 }
 html[data-boot="pending"] .hd .home .logo {
@@ -881,7 +881,7 @@ html[data-boot="pending"] .hd .home .logo {
 }
 /* Wessel arrives once the intro hands over. */
 html[data-boot] .cur.wes {
-  visibility: hidden;
+  opacity: 0;
 }
 .ilayer {
   position: fixed;

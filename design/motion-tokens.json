@@ -223,6 +223,7 @@
     "gate": {
       "at": 1.03,
       "maxWait": 1.2,
+      "lateS": 2,
       "waitsFor": [
         "document.fonts.ready",
         "reel poster decode()"

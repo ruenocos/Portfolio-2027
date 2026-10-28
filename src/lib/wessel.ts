@@ -346,6 +346,13 @@ export const wessel = {
     if (W.tag) W.tag.textContent = text ? `Wessel · ${text}` : "Wessel";
   },
 
+  /** Back off-screen right, so his next move glides in from the edge. */
+  offstage() {
+    W.x = innerWidth + 80;
+    W.y = innerHeight * 0.5;
+    W.vx = W.vy = 0;
+  },
+
   show() {
     if (W.shown || !W.el) return;
     W.shown = true;
