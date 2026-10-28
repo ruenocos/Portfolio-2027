@@ -222,6 +222,13 @@
       padding: 12px 18px;
     }
   }
+  /* Touch: the pile fills the board, so a vertical swipe on a sticker scrolls
+     the page; taps and sideways drags still play with them. */
+  @media (pointer: coarse) {
+    .stk {
+      touch-action: pan-y;
+    }
+  }
   html[data-motion="calm"] :is(.pcard, .stk) {
     transition: none;
   }

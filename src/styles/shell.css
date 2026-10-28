@@ -424,9 +424,8 @@
     }
   }
 
-  /* ---------- below 900: logo · menu (Dark mode and Pause motion in it) ---------- */
+  /* ---------- below 900: logo (+ "Wessel" past the hero) · menu ---------- */
   @media (width < 900px) {
-    .wm,
     .hd nav,
     .hd .ct {
       display: none;

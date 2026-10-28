@@ -359,10 +359,11 @@ export function Stickers({ items }: { items: Sticker[] }) {
       if (P.grab) P.grab.pointA = local(ev.clientX, ev.clientY);
       if (calm()) settle(8);
     };
-    const up = () => {
+    // A cancel is the page taking the swipe as a scroll: no hop then.
+    const up = (ev: PointerEvent) => {
       setDragging(null);
       letGo();
-      if (moved < 4) hop(i);
+      if (moved < 4 && ev.type === "pointerup") hop(i);
       if (calm()) settle();
       el.removeEventListener("pointermove", move);
       el.removeEventListener("pointerup", up);
