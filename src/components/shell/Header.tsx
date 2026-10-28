@@ -54,7 +54,8 @@ export function Header() {
     const key = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
         setOpen(false);
-        button.current?.focus();
+        // The header is sticky: focusing it must not scroll the page.
+        button.current?.focus({ preventScroll: true });
       }
       if (e.key !== "Tab") return;
       const items: HTMLElement[] = [
@@ -82,6 +83,11 @@ export function Header() {
       wide.removeEventListener("change", resize);
     };
   }, [open]);
+
+  // A tap anywhere on a settings row presses its control.
+  const tapRow = (e: React.MouseEvent<HTMLLIElement>) => {
+    if (!(e.target as Element).closest("button")) e.currentTarget.querySelector("button")?.click();
+  };
 
   const links = [
     ...NAV.map((l) => ({ ...l, arrow: undefined })),
@@ -170,11 +176,11 @@ export function Header() {
               </Link>
             </li>
           ))}
-          <li className="mset text-body">
+          <li className="mset text-body" onClick={tapRow}>
             <span aria-hidden="true">Dark mode</span>
             <ThemeSwitch />
           </li>
-          <li className="mset text-body">
+          <li className="mset text-body" onClick={tapRow}>
             {/* Same words as the button's name (WCAG 2.5.3). */}
             <span aria-hidden="true">{paused ? "Play motion" : "Pause motion"}</span>
             <PauseButton />

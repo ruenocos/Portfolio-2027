@@ -701,7 +701,13 @@
        The hero sizes to that content instead of a fixed height. */
     .hero {
       height: auto;
-      padding: 112px var(--spacing-inset) 40px;
+      padding: 32px var(--spacing-inset) var(--spacing-section);
+    }
+    .hmeta {
+      position: relative;
+      inset: auto;
+      width: max-content;
+      margin-bottom: var(--spacing-section);
     }
     .name {
       position: relative;
@@ -711,7 +717,7 @@
       grid-template-columns: auto auto;
       justify-content: space-between;
       align-items: end;
-      gap: 20px 0.12em;
+      gap: 20px 0.25em;
     }
     .name > .w:first-child {
       grid-area: 1 / 1;
@@ -727,19 +733,28 @@
       aspect-ratio: 16 / 10;
       border-radius: var(--radius-media);
     }
+    /* Tablets: a full-width reel would push the role off the first screen,
+       so it takes most of the row and leaves the role its corner. */
+    @media (width >= 600px) {
+      .reel {
+        max-width: 72%;
+        justify-self: start;
+      }
+    }
     .reel .play {
       left: 12px;
       bottom: 12px;
     }
-    /* Room under the reel for Wessel's size label and his "Have a look". */
+    /* Room under the reel for the size label of Wessel's selection. */
     .role {
       position: relative;
       inset: auto;
-      margin-top: 72px;
+      margin-top: var(--spacing-section);
     }
-    .divider.divider-tall > .cell,
-    .divider.divider-tall > .side {
-      height: 120px;
+    /* The band under the hero (not the footer's air). */
+    .divider.divider-tall:not(.footer-air) > .cell,
+    .divider.divider-tall:not(.footer-air) > .side {
+      height: calc(var(--spacing-divider) * 1.25);
     }
     .about {
       grid-template-columns: minmax(0, 1fr);

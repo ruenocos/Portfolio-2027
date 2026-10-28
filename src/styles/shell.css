@@ -424,7 +424,7 @@
     }
   }
 
-  /* ---------- below 900: logo · switch · pause · menu ---------- */
+  /* ---------- below 900: logo · menu (Dark mode and Pause motion in it) ---------- */
   @media (width < 900px) {
     .wm,
     .hd nav,
@@ -567,31 +567,40 @@
       min-height: 72px;
       padding: 0 var(--spacing-inset);
     }
+    .mnav .mset {
+      cursor: pointer;
+    }
     .mnav .mset .pzb {
       width: var(--spacing-tap);
       height: var(--spacing-tap);
       margin-left: 0;
     }
+    /* The row says it, so no tip. */
+    .mnav .mset .pzb .tip {
+      display: none;
+    }
+    /* The full switch at tap size: knob 8px under the track, travel = knob. */
     .mnav .mset .dn {
-      width: 72px;
+      --knob: calc(var(--spacing-tap) - 8px);
+      width: calc(var(--knob) * 2);
       height: var(--spacing-tap);
-      border-radius: 22px;
+      border-radius: var(--radius-pill);
     }
     .mnav .mset .dn .k {
-      width: 36px;
-      height: 36px;
+      width: var(--knob);
+      height: var(--knob);
     }
     .mnav .mset .dn[aria-checked="true"] .k {
-      transform: translateX(28px);
+      transform: translateX(calc(var(--knob) - 8px));
     }
     .mnav .mset .dn .i {
-      top: 14px;
+      top: calc(var(--spacing-tap) / 2 - 8px);
     }
     .mnav .mset .dn .sun {
-      left: 14px;
+      left: calc(var(--knob) / 2 - 4px);
     }
     .mnav .mset .dn .moon {
-      right: 14px;
+      right: calc(var(--knob) / 2 - 4px);
     }
     /* Only the root: it locks the viewport. Hiding body too makes body its
        own scroller, which unsticks the header and drops you at the top. */
