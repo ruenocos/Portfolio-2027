@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Bricolage_Grotesque, Geist_Mono, Instrument_Serif } from "next/font/google";
+import { KeepHtml } from "@/components/KeepHtml";
 import { ModeProvider } from "@/components/ModeProvider";
+import { snapshotScript } from "@/lib/html";
 import { bootScript, motionScript } from "@/lib/motion";
 import { modeScript, themeColorScript } from "@/lib/mode";
 import { IS_PRODUCTION, SITE_URL } from "@/lib/site";
@@ -33,9 +35,10 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         {/* Sets the mode and the motion state before the first paint,
             so dark never flashes light and a paused visit never moves. */}
         <meta name="theme-color" content="#FAF8F4" />
-        <script dangerouslySetInnerHTML={{ __html: [modeScript, themeColorScript, bootScript, motionScript].join(";") }} />
+        <script dangerouslySetInnerHTML={{ __html: [modeScript, themeColorScript, bootScript, motionScript, snapshotScript].join(";") }} />
       </head>
       <body>
+        <KeepHtml />
         {children}
         <p id="live" className="sr-only" aria-live="polite" />
         <ModeProvider />

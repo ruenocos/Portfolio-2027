@@ -47,6 +47,28 @@ async function page(opts = {}, setup) {
   await ctx.close();
 }
 
+// Netlify adds a comment and line breaks to <head>, React's hydration fails
+// on them and resets <html>: the intro, the mode and the motion state must
+// come back (lib/html).
+{
+  const { p, ctx } = await page({ colorScheme: "dark" }, (p) =>
+    p.route(BASE + "/", async (r) => {
+      const res = await r.fetch();
+      const html = (await res.text()).replace('<meta charSet="utf-8"/>', '$&\n<!-- hosted on Netlify -->\n');
+      await r.fulfill({ response: res, body: html });
+    }),
+  );
+  await p.goto(BASE + "/", { waitUntil: "commit" });
+  await p.waitForTimeout(1500);
+  const mid = await p.evaluate(() => ({ ...document.documentElement.dataset }));
+  check("head comment: intro still playing at 1.5s", mid.boot === "playing", JSON.stringify(mid));
+  check("head comment: mode and motion kept", mid.mode === "dark" && mid.motion === "full", JSON.stringify(mid));
+  await p.waitForTimeout(3500);
+  const s = await state(p);
+  check("head comment: ends clean", clean(s), JSON.stringify(s));
+  await ctx.close();
+}
+
 // Skips at 0.3s, 1.2s and 1.9s after it starts playing.
 for (const at of [300, 1200, 1900]) {
   const { p, ctx } = await page();
