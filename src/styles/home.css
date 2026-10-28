@@ -552,31 +552,9 @@
     gap: 0.2em;
     white-space: nowrap;
   }
-  .allw .ar {
-    display: inline-flex;
-    transition:
-      transform var(--dur-spring) var(--ease-spring),
-      color var(--dur-ui) var(--ease-ui);
-  }
-  .allw a::after {
-    content: "";
-    position: absolute;
-    left: 0;
-    right: 0;
-    bottom: -6px;
-    height: 2px;
-    border-radius: 2px;
-    background: var(--grape);
-    transform: scaleX(0);
-    transform-origin: left;
-    transition: transform var(--dur-spring) var(--ease-ui);
-  }
-  .arch[data-open="true"] .allw .ar {
-    transform: translateX(10px);
+  /* Open (hover, or a phone scrolling it in) reads as pointing at it. */
+  .arch[data-open="true"] .allw .hop {
     color: var(--grape);
-  }
-  .arch[data-open="true"] .allw a::after {
-    transform: scaleX(1);
   }
 
   /* ---------- bookend ---------- */

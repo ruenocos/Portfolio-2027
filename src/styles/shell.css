@@ -156,7 +156,16 @@
     padding: 0 calc(var(--spacing-inset) - 6px);
   }
 
-  /* letter hop */
+  /* letter hop. A whole tile ([data-hop-host]) is one clickable text:
+     pointing anywhere on it hops and colours its title like a header link. */
+  .hop {
+    transition: color var(--dur-ui) var(--ease-ui);
+  }
+  @media (hover: hover) and (pointer: fine) {
+    [data-hop-host]:is(:hover, :focus-within) .hop {
+      color: var(--grape);
+    }
+  }
   .hop .hw {
     white-space: nowrap;
   }

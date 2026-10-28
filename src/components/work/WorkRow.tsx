@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { Hop } from "@/components/shell/Hop";
 import { useEffect, useRef, useState } from "react";
 import { MediaFill } from "@/components/parts/Media";
 import { SIZES } from "@/lib/image";
@@ -88,10 +89,14 @@ export function WorkRow({ project: p, hidden, leaving }: { project: Project; hid
 
   // No arrow after the title: the underline and your "View case" tag say it
   // (Wons 2026-10-28: the arrows were too many).
-  const title = <span className="tt">{p.title}</span>;
+  const title = (
+    <span className="tt">
+      <Hop text={p.title} />
+    </span>
+  );
 
   return (
-    <article className="arow" hidden={hidden} data-gap={gap || undefined} data-leaving={leaving || undefined} onPointerEnter={sizeUp}>
+    <article className="arow" data-hop-host hidden={hidden} data-gap={gap || undefined} data-leaving={leaving || undefined} onPointerEnter={sizeUp}>
       <div className="cell al">
         <h3 className="text-lead" lang={p.lang}>
           {/* The title is the row's target; its hit area stretches over the whole row. */}

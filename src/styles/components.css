@@ -925,34 +925,11 @@
 }
 
 /* ---------- project card hover ----------
-   The whole row is the target, like the All work cell: the title's grape
-   underline draws and its arrow slides (All work's move), the row's tools
-   ring up like Daily kit chips, and your grape selection snaps round the
-   card with its real size. Pictures never move here (the scroll depth does). */
+   The whole row is the target and one clickable text: pointing anywhere on
+   it hops and colours the title like a header link (Hop's [data-hop-host]),
+   the tools lift like Daily kit chips, and your grape selection snaps round
+   the card with its real size. Pictures never move here (the scroll depth does). */
 @layer components {
-  .pj .pl h3 .tt,
-  .arow h3 .tt {
-    background: linear-gradient(var(--grape), var(--grape)) 0 100% / 0% 2px no-repeat;
-    padding-bottom: 4px;
-    transition: background-size var(--dur-spring) var(--ease-ui);
-  }
-  /* Grape at rest, like every other link arrow; hover slides it. */
-  .pj .pl h3 .ta,
-  .arow h3 .ta {
-    color: var(--grape);
-    display: inline-flex;
-    width: 0.62em;
-    margin-left: 0.22em;
-    vertical-align: -0.02em;
-    transition:
-      transform var(--dur-spring) var(--ease-spring),
-      color var(--dur-ui) var(--ease-ui);
-  }
-  .pj .pl h3 .ta svg,
-  .arow h3 .ta svg {
-    width: 100%;
-    height: auto;
-  }
   :is(.pj, .arow) .media .hov {
     position: absolute;
     inset: 0;
@@ -1000,12 +977,7 @@
 
   @media (hover: hover) and (pointer: fine) {
     .pj:has(.media[href]) { cursor: pointer; }
-    :is(.pj, .arow):is(:hover, :focus-within) h3 .tt { background-size: 100% 2px; }
-    :is(.pj, .arow):is(:hover, :focus-within) h3 .ta { transform: translateX(8px); }
     .pj:is(:hover, :focus-within) .tools .tool {
-      box-shadow:
-        0 0 0 3px var(--canvas),
-        0 0 0 4.5px var(--grape);
       transform: translateY(-3px);
     }
     :is(.pj, .arow):is(:hover, :focus-within) .media .hsel {
@@ -1013,7 +985,7 @@
       scale: 1;
     }
   }
-  html[data-motion="calm"] :is(.pj, .arow) :is(.tt, .ta, .hsel, .tool, .apk) {
+  html[data-motion="calm"] :is(.pj, .arow) :is(.hsel, .tool, .apk) {
     transition: none;
   }
 }

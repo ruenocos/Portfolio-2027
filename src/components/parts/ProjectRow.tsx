@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { Pin } from "@/components/canvas/Pin";
-import { Arrow } from "@/components/parts/Arrow";
+import { Hop } from "@/components/shell/Hop";
 import { useBeat } from "@/components/canvas/useBeat";
 import { useMotion } from "@/components/useMotion";
 import { announce } from "@/lib/motion";
@@ -97,13 +97,10 @@ export function ProjectRow({
   project: p,
   hidden,
   leaving,
-  arrow = true,
 }: {
   project: Project;
   hidden?: boolean;
   leaving?: boolean;
-  /** The → after the title. The case page's Next row goes without (Wons 2026-10-28: one arrow too many). */
-  arrow?: boolean;
 }) {
   const media = useMagnet();
   const pin = useRef<HTMLSpanElement>(null);
@@ -240,18 +237,15 @@ export function ProjectRow({
       data-gap={gap ? "" : undefined}
       hidden={hidden}
       data-leaving={leaving || undefined}
+      data-hop-host
+      data-you={p.href ? "View case" : "Case study soon"}
       onPointerEnter={sizeUp}
       onClick={rowClick}
     >
       <div className="cell pl">
         <div>
           <h3 className="text-title" lang={p.lang} data-mock={gap ? "" : undefined}>
-            <span className="tt">{p.title}</span>
-            {p.href && arrow && (
-              <span className="ta" aria-hidden="true">
-                <Arrow dir="right" />
-              </span>
-            )}
+            <span className="tt">{gap ? p.title : <Hop text={p.title} />}</span>
             {gap && (
               <span aria-hidden="true">
                 <MockTag className="ml-2.5 align-middle" />
@@ -276,7 +270,6 @@ export function ProjectRow({
             href={p.href}
             className="media"
             data-ratio="portrait"
-            data-you="View case"
             aria-label={p.label}
           >
             {inner}
@@ -288,7 +281,6 @@ export function ProjectRow({
             type="button"
             className="media"
             data-ratio="portrait"
-            data-you="Case study soon"
             aria-label={`${p.label} Case study soon.`}
             onClick={notYet}
           >
@@ -314,7 +306,7 @@ export function ProjectRow({
 
 /**
  * The rows sit in one ruled stack inside the frame. `next` is the case
- * page's Next project row: no title arrow, and always the full thirds, so
+ * page's Next project row: always the full thirds, so
  * a project still to write gets the same media size as a written one.
  */
 export function ProjectRows({
@@ -333,7 +325,7 @@ export function ProjectRows({
       <div className="side" />
       <div className="ruled min-w-0" data-next={next ? "" : undefined}>
         {projects.map((p) => (
-          <ProjectRow key={p.title} project={p} arrow={!next} />
+          <ProjectRow key={p.title} project={p} />
         ))}
       </div>
       <div className="side" />
