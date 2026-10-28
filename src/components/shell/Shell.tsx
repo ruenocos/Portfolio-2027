@@ -3,6 +3,7 @@ import { ContactPill } from "./ContactPill";
 import { Entrance } from "./Entrance";
 import { Footer } from "./Footer";
 import { Header } from "./Header";
+import { HoverPick } from "./HoverPick";
 import { PageFade } from "./PageFade";
 import { PageSwitch } from "./PageSwitch";
 import { SmoothScroll } from "./SmoothScroll";
@@ -31,6 +32,7 @@ export function Shell({ children }: { children: React.ReactNode }) {
       <PageSwitch />
       <Entrance />
       <SmoothScroll />
+      <HoverPick />
     </>
   );
 }
