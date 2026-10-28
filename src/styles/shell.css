@@ -146,9 +146,6 @@
   .hd .ct:hover {
     color: var(--grape);
   }
-  .hd .ct .ar {
-    color: var(--grape);
-  }
   .hd .ctw {
     display: flex;
     align-items: center;
@@ -596,9 +593,6 @@
     }
     .mnav a[aria-current="page"],
     .mnav a:active {
-      color: var(--grape);
-    }
-    .mnav .ar {
       color: var(--grape);
     }
     .mnav a:focus-visible {
