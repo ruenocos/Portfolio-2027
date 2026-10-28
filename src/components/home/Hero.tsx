@@ -348,7 +348,7 @@ export function Hero({ hero: c }: { hero: HomeContent["hero"] }) {
         await wessel.go(wessel.at(W, 0.96, 0.04), { k: 120, timeout: 1400 });
         chk();
         await breath(200);
-        await say("Hello!", pp(W, 0.96, 0.04, 8, -46));
+        await say("Hello!", pp(W, 0.96, 0.04, 10, -6));
         await breath(700);
         // Over to the middle of the W, one click: the fill plops in.
         await wessel.go(wessel.at(W, 0.5, 0.55), { k: 150, timeout: 1200 });
@@ -411,7 +411,7 @@ export function Hero({ hero: c }: { hero: HomeContent["hero"] }) {
           await wait(300);
           // Phones: the reel is full width, so the pin sits inside it, under its
           // caption, clear of the name, the size label and the role.
-          await say("Have a look", mobile() ? pp(r, 0, 0, 12, 40) : pp(r, 1, 0, 12, -44));
+          await say("Have a look", mobile() ? pp(r, 0, 0, 12, 84) : pp(r, 1, 0, 12, -4));
           await wait(1800);
         } finally {
           s.done();
@@ -421,7 +421,7 @@ export function Hero({ hero: c }: { hero: HomeContent["hero"] }) {
         const [fx, fy, dy] = nodSpot(h);
         await wessel.go(wessel.at(h, fx, fy, 0, dy), { k: 150, timeout: 1200 });
         chk();
-        await say("More below", mobile() ? pp(h, fx, fy, 64, dy - 24) : pp(h, fx, fy, 16, dy - 68));
+        await say("More below", mobile() ? pp(h, fx, fy, 64, dy + 20) : pp(h, fx, fy, 16, dy - 24));
         await nodDown(h);
         nudge.current.on = true;
         await wait(1200);

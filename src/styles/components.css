@@ -661,44 +661,76 @@
     z-index: 95;
   }
 
-  /* Comment pin: smiley avatar + bubble. One on screen at a time. */
+  /* Comment pin, read like a Figma comment: one card with its pointed
+     corner bottom-left (that corner is what it's about), the smiley
+     avatar, Wessel's name, then the line. One on screen at a time. */
   .pin {
     display: flex;
     align-items: flex-start;
     gap: 8px;
-    transform-origin: 0 0;
+    width: max-content;
+    max-width: 320px;
+    padding: 6px 14px 8px 6px;
+    border: 1px solid var(--line);
+    border-radius: 18px 18px 18px 4px;
+    background: var(--canvas);
+    color: var(--ink);
+    transform-origin: 0 100%;
+    box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / var(--tac-lit-outline)),
+      0 1px 2px rgb(0 0 0 / 0.08),
+      0 6px 16px -8px rgb(0 0 0 / 0.3);
   }
   .pin[data-static] {
     position: relative;
   }
   .pin .av {
-    width: 32px;
-    height: 32px;
+    width: 28px;
+    height: 28px;
     flex: none;
     display: grid;
     place-items: center;
-    border-radius: 50% 50% 50% 4px;
+    border-radius: 50%;
     background: var(--tang);
     color: var(--on-tang);
-    box-shadow: 0 2px 8px -2px rgb(0 0 0 / 0.4);
   }
   .pin .av svg {
-    width: 20px;
-    height: 20px;
+    width: 18px;
+    height: 18px;
+  }
+  .pin .cm {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    padding-top: 3px;
+    min-width: 0;
+  }
+  .pin .who {
+    display: flex;
+    gap: 6px;
+    align-items: baseline;
+    font-family: var(--font-display);
+    font-size: var(--type-small-size);
+    line-height: 20px;
+    font-weight: 600;
+    color: var(--ink);
+  }
+  .pin .who time {
+    font-weight: 400;
+    color: var(--mute);
   }
   .pin .bub {
-    padding: 8px 12px;
-    border: 1px solid var(--line);
-    border-radius: var(--radius-pin);
-    background: var(--canvas);
+    display: block;
     color: var(--ink);
     white-space: nowrap;
-    box-shadow:
-      inset 0 1px 0 rgb(255 255 255 / var(--tac-lit-outline)),
-      0 1px 2px rgb(0 0 0 / 0.08),
-      0 4px 10px -6px rgb(0 0 0 / 0.25);
   }
-  /* The note variant: tinted with Wessel's ink and tilted, like a sticky. */
+  /* The sticky variant keeps its own tinted, tilted note. */
+  .pin:has(.bub[data-note]) {
+    padding: 0;
+    border: 0;
+    background: none;
+    box-shadow: none;
+  }
   .pin .bub[data-note],
   .cur .note {
     max-width: 190px;
@@ -714,11 +746,14 @@
       0 4px 10px -6px rgb(0 0 0 / 0.25);
     rotate: -2deg;
   }
-  .pin[data-dot="true"] .bub {
+  /* Read: it folds back to the pin, like a resolved Figma comment. */
+  .pin[data-dot="true"] .cm {
     display: none;
   }
   .pin[data-dot="true"] {
-    transform: scale(0.8);
+    padding: 4px;
+    border-radius: 50% 50% 50% 4px;
+    transform: scale(0.9);
     opacity: 0.9;
   }
   .pin[hidden] {
@@ -865,5 +900,97 @@
   from {
     transform: scale(0.5);
     opacity: 0;
+  }
+}
+
+/* ---------- project card hover ----------
+   The whole row is the target, like the All work cell: the title's grape
+   underline draws and its arrow slides (All work's move), the row's tools
+   ring up like Daily kit chips, and your grape selection snaps round the
+   card with its real size. Pictures never move here (the scroll depth does). */
+@layer components {
+  .pj .pl h3 .tt,
+  .arow h3 .tt {
+    background: linear-gradient(var(--grape), var(--grape)) 0 100% / 0% 2px no-repeat;
+    padding-bottom: 4px;
+    transition: background-size var(--dur-spring) var(--ease-ui);
+  }
+  .pj .pl h3 .ta,
+  .arow h3 .ta {
+    display: inline-flex;
+    width: 0.62em;
+    margin-left: 0.22em;
+    vertical-align: -0.02em;
+    transition:
+      transform var(--dur-spring) var(--ease-spring),
+      color var(--dur-ui) var(--ease-ui);
+  }
+  .pj .pl h3 .ta svg,
+  .arow h3 .ta svg {
+    width: 100%;
+    height: auto;
+  }
+  :is(.pj, .arow) .media .hov {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    border-radius: inherit;
+    pointer-events: none;
+  }
+  :is(.pj, .arow) .media .hsel {
+    position: absolute;
+    inset: -7px;
+    border: 1.5px solid var(--grape);
+    border-radius: 4px;
+    opacity: 0;
+    scale: 1.04;
+    transition:
+      opacity var(--dur-ui) var(--ease-ui),
+      scale var(--dur-spring) var(--ease-spring);
+  }
+  :is(.pj, .arow) .media .hsel > i {
+    position: absolute;
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: var(--canvas);
+    border: 1.5px solid var(--grape);
+  }
+  :is(.pj, .arow) .media .hsel > i:nth-child(1) { left: -5px; top: -5px; }
+  :is(.pj, .arow) .media .hsel > i:nth-child(2) { right: -5px; top: -5px; }
+  :is(.pj, .arow) .media .hsel > i:nth-child(3) { right: -5px; bottom: -5px; }
+  :is(.pj, .arow) .media .hsel > i:nth-child(4) { left: -5px; bottom: -5px; }
+  :is(.pj, .arow) .media .hsz {
+    position: absolute;
+    left: 50%;
+    top: calc(100% + 10px);
+    translate: -50% 0;
+    padding: 3px 7px;
+    border-radius: 4px;
+    background: var(--grape);
+    color: var(--canvas);
+    font: 500 11px/1.2 var(--font-mono);
+    white-space: nowrap;
+  }
+  .pj .tools .tool:nth-child(2) { transition-delay: 0ms, 40ms, 0ms, 0ms, 40ms; }
+  .pj .tools .tool:nth-child(3) { transition-delay: 0ms, 80ms, 0ms, 0ms, 80ms; }
+
+  @media (hover: hover) and (pointer: fine) {
+    .pj:has(.media[href]) { cursor: pointer; }
+    :is(.pj, .arow):is(:hover, :focus-within) h3 .tt { background-size: 100% 2px; }
+    :is(.pj, .arow):is(:hover, :focus-within) h3 .ta { transform: translateX(8px); color: var(--grape); }
+    .pj:is(:hover, :focus-within) .tools .tool {
+      box-shadow:
+        0 0 0 3px var(--canvas),
+        0 0 0 4.5px var(--grape);
+      transform: translateY(-3px);
+    }
+    :is(.pj, .arow):is(:hover, :focus-within) .media .hsel {
+      opacity: 1;
+      scale: 1;
+    }
+  }
+  html[data-motion="calm"] :is(.pj, .arow) :is(.tt, .ta, .hsel, .tool, .apk) {
+    transition: none;
   }
 }

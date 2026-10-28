@@ -1,5 +1,5 @@
-/* Work overview (approved v03): page title, the tool filter bar, then the
-   home's project rows in two groups. */
+/* Work overview: page title, the tool filter bar, then every project as a
+   compact row in two groups. */
 
 @layer components {
   .whero {
@@ -40,6 +40,186 @@
       position: absolute;
       top: calc(var(--spacing-inset) - 10px);
       right: var(--spacing-inset);
+    }
+  }
+}
+
+/* Work rows (compact): one ruled line per project on the project rows'
+   thirds. The media only peeks up in the middle column while you point at
+   the row; it scales in as a whole, the picture inside stays put. */
+@layer components {
+  .arow {
+    position: relative;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    background: var(--canvas);
+    min-width: 0;
+  }
+  .arow > .cell {
+    display: flex;
+    align-items: center;
+    padding: 22px var(--spacing-inset);
+  }
+  .arow[hidden] {
+    display: none;
+  }
+  .arow[data-leaving] {
+    opacity: 0;
+    transition: opacity var(--dur-ui) var(--ease-ui);
+  }
+  .arow:hover {
+    z-index: 5;
+  }
+  /* Calm, like an index: one ink line (the title), the values mute, the
+     tools grey until you point at the row. */
+  .arow h3 {
+    margin: 0;
+    min-width: 0;
+    font-weight: 500;
+    overflow-wrap: break-word;
+    hyphens: auto;
+  }
+  .arow .hit {
+    font: inherit;
+    color: inherit;
+    text-align: start;
+    background: none;
+    border: 0;
+    padding: 0;
+    cursor: pointer;
+  }
+  /* The whole row is the target. */
+  .arow .hit::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+  }
+  .arow .hit:focus-visible {
+    outline: none;
+  }
+  .arow .hit:focus-visible::after {
+    outline: 2px solid var(--grape);
+    outline-offset: -4px;
+    border-radius: var(--radius-focus);
+  }
+  .arow .ay {
+    color: var(--mute);
+    font-family: var(--font-mono);
+    font-size: var(--type-label-size);
+    letter-spacing: 0.04em;
+    line-height: 20px;
+    font-variant-numeric: tabular-nums;
+  }
+  .arow .ap > span {
+    color: var(--mute);
+  }
+  .arow .tool {
+    --s: 24px;
+  }
+  .arow .tool img {
+    filter: grayscale(1);
+    opacity: 0.55;
+    transition:
+      filter var(--dur-ui) var(--ease-ui),
+      opacity var(--dur-ui) var(--ease-ui);
+  }
+  .arow:is(:hover, :focus-within) .tool img {
+    filter: none;
+    opacity: 1;
+  }
+  .arow .ac {
+    position: relative;
+  }
+  .arow .ap {
+    justify-content: space-between;
+    gap: 16px;
+  }
+  .arow .apk {
+    position: absolute;
+    /* Right of centre, so it never covers the year. */
+    left: 62%;
+    top: 50%;
+    z-index: 2;
+    width: 176px;
+    translate: -50% -50%;
+    opacity: 0;
+    scale: 0.92;
+    pointer-events: none;
+    box-shadow: var(--shadow-outline);
+    transition:
+      opacity var(--dur-ui) var(--ease-ui),
+      scale var(--dur-spring) var(--ease-spring);
+  }
+  /* No size pill and no tools ring here: the peek, underline and arrow are
+     enough, and every tool in a row is used for that project anyway. */
+  .arow .apk .hsz {
+    display: none;
+  }
+  .arow .apk .hsel {
+    inset: -6px;
+  }
+  .arow .soontag {
+    left: auto;
+    right: var(--spacing-inset);
+    bottom: auto;
+    top: 50%;
+    translate: 0 -40%;
+  }
+  .arow .soontag[data-on="true"] {
+    translate: 0 -50%;
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .arow:is(:hover, :focus-within) .apk {
+      opacity: 1;
+      scale: 1;
+    }
+  }
+
+  /* Phones and tablets: title and year beside a small thumbnail (it
+     stands in for the peek), then role and tools across the full width. */
+  @media (width < 900px) {
+    .arow {
+      grid-template-columns: minmax(0, 1fr) auto;
+      grid-template-areas: "t k" "y k" "m m";
+      grid-template-rows: auto 1fr auto;
+      column-gap: 20px;
+      row-gap: 6px;
+      background: var(--canvas);
+      padding: 24px var(--spacing-inset);
+    }
+    .arow > .cell {
+      padding: 0;
+    }
+    .arow .al {
+      grid-area: t;
+    }
+    .arow .ac {
+      display: contents;
+    }
+    .arow .ay {
+      grid-area: y;
+      align-self: start;
+    }
+    .arow .ap {
+      grid-area: m;
+      justify-content: space-between;
+      margin-top: 10px;
+    }
+    .arow .apk {
+      grid-area: k;
+      position: relative;
+      left: auto;
+      top: auto;
+      translate: none;
+      align-self: center;
+      width: 64px;
+      opacity: 1;
+      scale: 1;
+      border-radius: 12px;
+    }
+    .arow .apk .hov {
+      display: none;
     }
   }
 }

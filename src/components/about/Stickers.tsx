@@ -16,6 +16,7 @@ type Pile = {
   grab: MConstraint | null;
   // Tidy: each sticker springs to its slot, then gravity takes over again.
   tidyTo: { x: number; y: number }[] | null;
+  tidyFrom: { x: number; y: number; a: number }[];
   tidyT: number;
   // Tidied stickers stay locked in their rows until someone touches one.
   locked: boolean;
@@ -27,11 +28,15 @@ const now = () => performance.now();
 const calm = () => getMotion().calm;
 const DT = 1000 / 60;
 
+// Big ones land at the bottom when tidied, the small ones on top.
+const SIZES = ["l", "m", "s"] as const;
+const rank = (s: Sticker) => SIZES.indexOf(s.size ?? "m");
+
 /**
- * Off screen (About v08): hobby stickers with weight. They fall into the
- * board when it scrolls in, pile up and knock into each other. Grab one
- * and throw it; arrow keys push it, Enter makes it hop. "Tidy up" lines
- * them up along the bottom like auto layout; "Mess it up" tosses them.
+ * Off screen: hobby stickers with weight, in three sizes. They fall into
+ * the board when it scrolls in, pile up and knock into each other. Grab
+ * one and throw it; arrow keys push it, Enter makes it hop. "Tidy up"
+ * lines them into rows, biggest at the bottom; "Mess it up" tosses them.
  * Wessel picks one up and drops it.
  * Physics (matter-js) loads only here, when the board is near.
  */
@@ -65,7 +70,10 @@ export function Stickers({ items }: { items: Sticker[] }) {
       }
       const { w, h } = size(i);
       e.style.visibility = "";
-      e.style.transform = `translate(${(b.position.x - w / 2).toFixed(1)}px,${(b.position.y - h / 2).toFixed(1)}px) rotate(${b.angle.toFixed(3)}rad)`;
+      // translate and rotate as their own properties, so the CSS scale on
+      // hover and drag grows the sticker in place instead of shifting it.
+      e.style.translate = `${(b.position.x - w / 2).toFixed(1)}px ${(b.position.y - h / 2).toFixed(1)}px`;
+      e.style.rotate = `${b.angle.toFixed(3)}rad`;
     });
   };
 
@@ -80,6 +88,7 @@ export function Stickers({ items }: { items: Sticker[] }) {
       frictionAir: 0.012,
       density: 0.0016,
     });
+    b.plugin = { w, h };
     P.bodies[i] = b;
     P.M.Composite.add(P.engine.world, b);
     return b;
@@ -111,16 +120,18 @@ export function Stickers({ items }: { items: Sticker[] }) {
     draw();
   };
 
-  // The slots "Tidy up" lines them into: rows along the bottom, left first.
+  // The slots "Tidy up" lines them into: rows along the bottom, left
+  // first, big before small. Each row sits on the one below it.
   const slots = () => {
     const b = board.current!;
     const W = b.clientWidth;
     const H = b.clientHeight;
     const pad = innerWidth < 900 ? 20 : 40;
     const gap = 10;
+    const order = items.map((_, i) => i).sort((x, y) => rank(items[x]) - rank(items[y]));
     const rows: number[][] = [[]];
     let rw = pad;
-    items.forEach((_, i) => {
+    order.forEach((i) => {
       const { w } = size(i);
       if (rw + w > W - pad && rows.at(-1)!.length) {
         rows.push([]);
@@ -129,18 +140,21 @@ export function Stickers({ items }: { items: Sticker[] }) {
       rows.at(-1)!.push(i);
       rw += w + gap;
     });
-    const sh = size(0).h;
     const out: { x: number; y: number }[] = [];
-    rows.forEach((r, ri) => {
+    let base = H - pad;
+    rows.forEach((r) => {
       let x = pad;
-      const y = H - pad - (rows.length - 1 - ri) * (sh + gap) - sh / 2;
       r.forEach((i) => {
-        const { w } = size(i);
-        out[i] = { x: x + w / 2, y };
+        const { w, h } = size(i);
+        out[i] = { x: x + w / 2, y: base - h / 2 };
         x += w + gap;
       });
+      base -= Math.max(...r.map((i) => size(i).h)) + gap;
     });
-    return out;
+    // How tall the board has to be for the top row to clear "Tidy up".
+    const bt = b.querySelector<HTMLElement>(".btop");
+    const need = H - base - gap + (bt ? bt.offsetTop + bt.offsetHeight : 0) + gap * 2;
+    return { out, need };
   };
 
   const release = () => {
@@ -159,11 +173,18 @@ export function Stickers({ items }: { items: Sticker[] }) {
   const neat = () => {
     const P = pile.current;
     if (!P) return;
-    const to = slots();
+    let { out: to, need } = slots();
+    // A narrow board can't hold every row: it grows to fit, then stays.
+    if (need > board.current!.clientHeight) {
+      board.current!.style.minHeight = `${Math.ceil(need)}px`;
+      walls(P);
+      ({ out: to, need } = slots());
+    }
     items.forEach((_, i) => {
       if (!P.bodies[i]) add(i, to[i].x, to[i].y - 400, 0);
     });
     P.bodies.forEach((b) => b && P.M.Body.setStatic(b, true));
+    P.tidyFrom = P.bodies.map((b) => ({ x: b!.position.x, y: b!.position.y, a: b!.angle }));
     P.tidyTo = to;
     P.tidyT = now();
     P.locked = true;
@@ -214,15 +235,20 @@ export function Stickers({ items }: { items: Sticker[] }) {
       const P = pile.current;
       if (!P || !seen || dead) return;
       if (P.tidyTo) {
-        const t = Math.min(1, (performance.now() - P.tidyT) / 520);
-        const e = 1 - Math.pow(1 - t, 3);
+        // Each sticker glides from where it lay to its slot (ease-out
+        // quart), 24ms apart, so the sort reads as a wave.
+        let done = true;
         P.bodies.forEach((bd, i) => {
           if (!bd) return;
+          const t = Math.min(1, Math.max(0, (now() - P.tidyT - i * 24) / 560));
+          if (t < 1) done = false;
+          const e = 1 - Math.pow(1 - t, 4);
+          const f = P.tidyFrom[i];
           const to = P.tidyTo![i];
-          P.M.Body.setPosition(bd, { x: bd.position.x + (to.x - bd.position.x) * e, y: bd.position.y + (to.y - bd.position.y) * e });
-          P.M.Body.setAngle(bd, bd.angle * (1 - e));
+          P.M.Body.setPosition(bd, { x: f.x + (to.x - f.x) * e, y: f.y + (to.y - f.y) * e });
+          P.M.Body.setAngle(bd, f.a * (1 - e));
         });
-        if (t >= 1) P.tidyTo = null;
+        if (done) P.tidyTo = null;
       }
       // Weighted like a roly-poly: a sticker always rights itself, so
       // none ends up upside down and unreadable.
@@ -241,7 +267,7 @@ export function Stickers({ items }: { items: Sticker[] }) {
       const M = await import("matter-js");
       if (dead || pile.current) return;
       const engine = M.Engine.create({ gravity: { x: 0, y: 1.1 } });
-      const P: Pile = { M, engine, bodies: items.map(() => null), walls: [], grab: null, tidyTo: null, tidyT: 0, locked: false };
+      const P: Pile = { M, engine, bodies: items.map(() => null), walls: [], grab: null, tidyTo: null, tidyFrom: [], tidyT: 0, locked: false };
       pile.current = P;
       walls(P);
       const W = b.clientWidth;
@@ -283,9 +309,22 @@ export function Stickers({ items }: { items: Sticker[] }) {
       w = innerWidth;
       const P = pile.current;
       if (!P) return;
+      // A tidy may have grown the board; start from its own height again.
+      b.style.minHeight = "";
       walls(P);
       const W = b.clientWidth;
-      P.bodies.forEach((bd) => bd && bd.position.x > W - 20 && P.M.Body.setPosition(bd, { x: W - 80, y: -40 }));
+      P.bodies.forEach((bd, i) => {
+        if (!bd) return;
+        // Past the phone breakpoint the stickers change size: the bodies follow.
+        const { w: nw, h: nh } = size(i);
+        if (Math.abs(nw - bd.plugin.w) > 1 || Math.abs(nh - bd.plugin.h) > 1) {
+          if (P.grab?.bodyB === bd) letGo();
+          P.M.Composite.remove(P.engine.world, bd);
+          add(i, bd.position.x, bd.position.y, bd.angle);
+        }
+        const nb = P.bodies[i]!;
+        if (nb.position.x > W - 20) P.M.Body.setPosition(nb, { x: W - 80, y: -40 });
+      });
       if (tidyRef.current) neat();
       if (calm()) settle(120);
     };
@@ -452,30 +491,33 @@ export function Stickers({ items }: { items: Sticker[] }) {
       <div className="side" />
       <div ref={board} className="cell board bg-dots">
         <div className="btop">
-          <p className="sr-only">Stickers you can throw around. Arrow keys push the one in focus, Enter makes it hop.</p>
-          <button ref={btn} type="button" className="tidy text-micro-caps" onClick={toggle}>
+          <p id="stk-help" className="sr-only">Stickers you can throw around. Arrow keys push the one in focus, Enter makes it hop.</p>
+          <button ref={btn} type="button" className="tidy text-micro-caps" aria-pressed={tidy} onClick={toggle}>
             {tidy ? "Mess it up" : "Tidy up"}
           </button>
         </div>
-        {items.map((s, i) => (
-          <button
-            key={s.text}
-            ref={(el) => {
-              els.current[i] = el;
-            }}
-            type="button"
-            className="stk text-lead"
-            data-tone={s.tone}
-            data-drag={dragging === i ? "" : undefined}
-            aria-label={`${s.text}, sticker. Arrow keys push it.`}
-            style={{ visibility: "hidden", zIndex: 5 + z.indexOf(i) }}
-            onPointerDown={down(i)}
-            onKeyDown={key(i)}
-            onClick={(e) => e.detail === 0 && hop(i)}
-          >
-            {s.text}
-          </button>
-        ))}
+        {items.map((s, i) => {
+          return (
+            <button
+              key={`${s.text}-${i}`}
+              ref={(el) => {
+                els.current[i] = el;
+              }}
+              type="button"
+              className={`stk ${s.size === "s" ? "text-body" : "text-lead"}`}
+              data-tone={s.tone}
+              data-size={s.size ?? "m"}
+              data-drag={dragging === i ? "" : undefined}
+              aria-describedby="stk-help"
+              style={{ visibility: "hidden", zIndex: 5 + z.indexOf(i) }}
+              onPointerDown={down(i)}
+              onKeyDown={key(i)}
+              onClick={(e) => e.detail === 0 && hop(i)}
+            >
+              {s.text}
+            </button>
+          );
+        })}
       </div>
       <div className="side" />
     </section>

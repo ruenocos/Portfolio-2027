@@ -631,6 +631,7 @@
   }
   .hi-pin {
     z-index: 6;
+    translate: 0 -100%;
     transform-origin: 0 100%;
     animation: pinpop 520ms cubic-bezier(0.3, 1.6, 0.5, 1) backwards;
     transition:
