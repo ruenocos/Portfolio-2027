@@ -1,0 +1,41 @@
+/* The scroll system (components/shell/ScrollSystem, scroll-system-spec
+   v02.1): depth dots, the picture entrance's waiting state and the
+   decode-then-fade for images. The text reveal and the picture drift are
+   inline styles the system writes and clears itself. */
+
+@layer components {
+  /* The side dots live on their own layer so they can trail the page at 70%
+     of scroll on the compositor. Header sides stay put (no --dot-y). */
+  .page-body .frame > .side {
+    position: relative;
+    overflow: hidden;
+    background-image: none;
+  }
+  .page-body .frame > .side::before {
+    content: "";
+    position: absolute;
+    inset: calc(-1 * var(--spacing-dot-step)) 0 0;
+    background-image: radial-gradient(circle, var(--dot) 1.1px, transparent 1.2px);
+    background-size: var(--spacing-dot-step) var(--spacing-dot-step);
+    background-position: 8px 8px;
+    translate: 0 var(--dot-y, 0px);
+    pointer-events: none;
+  }
+  html[data-sx="on"] .page-body .frame > .side::before {
+    will-change: translate;
+  }
+
+  /* A picture frame below the screen waits here for the house entrance. */
+  [data-sx-in="wait"] {
+    opacity: 0;
+    translate: 0 var(--enter-rise);
+  }
+
+  /* An image shows only once decoded; until then its frame shows fill. */
+  img[data-sx-img="wait"] {
+    opacity: 0;
+  }
+  img[data-sx-img="ok"] {
+    transition: opacity 400ms var(--ease-enter-opacity);
+  }
+}

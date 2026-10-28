@@ -68,6 +68,33 @@
       "ms": 120
     }
   },
+  "scrollSystem": {
+    "$description": "Scroll system v02.1 (Wons picked C depth + T1 light, 2026-10-28; spec studio/references/scroll-type/system/scroll-system-spec_v02.md). Everything below the first screen, every page. Off while calm.",
+    "fold": 0.92,
+    "text": {
+      "from": 0.25,
+      "start": 1,
+      "end": 0.8,
+      "easing": "out-cubic",
+      "ratchet": true,
+      "use": "headings and paragraphs light up per line while the line top crosses the bottom fifth of the screen, then stay lit"
+    },
+    "depth": {
+      "scale": 1.1,
+      "shiftPct": 5,
+      "use": "pictures drift inside their frame with the frame distance from screen centre (-1..1 screen)"
+    },
+    "dots": {
+      "speed": 0.7,
+      "use": "side-column dots trail the page at 70% of scroll"
+    },
+    "picture": {
+      "entrance": "house entrance (enter-opacity + enter-rise) at fold",
+      "imageFadeMs": 400,
+      "imageFadeEasing": "enter-opacity",
+      "preloadAhead": "one screen"
+    }
+  },
   "magnetism": {
     "reel": {
       "max": "28px x / 18px y",
