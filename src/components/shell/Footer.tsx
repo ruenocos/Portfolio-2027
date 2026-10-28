@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Arrow } from "@/components/parts/Arrow";
 import { SectionLabel } from "@/components/parts/SectionLabel";
 import { CopyEmail } from "./CopyEmail";
+import { FooterMoment } from "./FooterMoment";
 import { Hop } from "./Hop";
 import { EMAIL, LINKEDIN, NAV } from "./nav";
 import { Row } from "./Row";
@@ -25,10 +26,11 @@ export function Footer() {
         </h2>
         <div className="side" />
         <div className="fcols">
-          <div className="cell">
+          {/* Off home, Wessel does one small job on the email here. */}
+          <FooterMoment>
             <h3 className="text-lead">Email</h3>
             <CopyEmail email={EMAIL} />
-          </div>
+          </FooterMoment>
           <div className="cell">
             <h3 className="text-lead">Elsewhere</h3>
             <a className="l" href={LINKEDIN} target="_blank" rel="noopener">
