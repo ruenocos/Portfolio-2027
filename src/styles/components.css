@@ -434,26 +434,6 @@
     margin: -6px 0 16px;
     overflow-wrap: break-word;
     hyphens: auto;
-    transition: color 240ms var(--ease-ui);
-  }
-  /* Pointing at the media lights the title too: grape, and the arrow slides in. */
-  .pj .pl h3 .ta {
-    width: 0.7em;
-    height: 0.7em;
-    margin-left: 0.25em;
-    vertical-align: 0.02em;
-    opacity: 0;
-    translate: -0.3em 0;
-    transition:
-      opacity 200ms var(--ease-ui),
-      translate 360ms var(--ease-spring);
-  }
-  .pj:has(.media:hover, .media:focus-visible) .pl h3 {
-    color: var(--grape);
-  }
-  .pj:has(.media:hover, .media:focus-visible) .pl h3 .ta {
-    opacity: 1;
-    translate: 0 0;
   }
   .pj .pd {
     color: var(--mute);

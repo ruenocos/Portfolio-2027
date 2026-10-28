@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { Pin } from "@/components/canvas/Pin";
-import { Arrow } from "@/components/parts/Arrow";
 import { useBeat } from "@/components/canvas/useBeat";
 import { useMotion } from "@/components/useMotion";
 import { announce } from "@/lib/motion";
@@ -205,7 +204,6 @@ export function ProjectRow({ project: p, hidden, leaving }: { project: Project; 
         <div>
           <h3 className="text-title" lang={p.lang} data-mock={gap ? "" : undefined}>
             {p.title}
-            {p.href && <Arrow dir="right" className="ta" />}
             {gap && (
               <span aria-hidden="true">
                 <MockTag className="ml-2.5 align-middle" />
