@@ -141,7 +141,7 @@ for (const at of [300, 1200, 1900]) {
 
 // No JS: the CSS failsafe clears the sheet at 4s.
 {
-  const { p, ctx } = await page({}, (p) => p.route(/\/_next\/static\/chunks\/.*\.js/, (r) => r.abort()));
+  const { p, ctx } = await page({}, (p) => p.route(/\/_next\/static\/(immutable\/)?chunks\/.*\.js/, (r) => r.abort()));
   await p.goto(BASE + "/", { waitUntil: "domcontentloaded" });
   await p.waitForTimeout(4200);
   const v = await p.evaluate(() => {
@@ -173,6 +173,8 @@ for (const at of [300, 1200, 1900]) {
   await p.goto(BASE + "/", { waitUntil: "commit" });
   await p.waitForSelector('html[data-boot="playing"]', { timeout: 4000 });
   await p.evaluate(() => document.querySelector('a[href="/work"]')?.dispatchEvent(new MouseEvent("click", { bubbles: true, cancelable: true })));
+  // Time from the route change: over a real network /work takes a beat to fetch.
+  await p.waitForURL(/\/work$/, { timeout: 4000 }).catch(() => {});
   await p.waitForTimeout(600);
   const s = await state(p);
   check("navigating away ends it", p.url().endsWith("/work") && !s.boot && !s.layer, JSON.stringify(s));
@@ -227,13 +229,15 @@ for (const at of [300, 1200, 1900]) {
 // JS 2.5s late: no ready gate, so the sheet is gone well before 2.5 + 1.2 + 2.32s.
 {
   const { p, ctx } = await page({}, (p) =>
-    p.route(/\/_next\/static\/chunks\/.*\.js/, async (r) => {
+    p.route(/\/_next\/static\/(immutable\/)?chunks\/.*\.js/, async (r) => {
       await new Promise((res) => setTimeout(res, 2500));
       r.continue().catch(() => {});
     }),
   );
-  const t0 = Date.now();
   await p.goto(BASE + "/", { waitUntil: "commit" });
+  // Over a real network the <head> lands after "commit": time from the flag.
+  await p.waitForSelector("html[data-boot]", { timeout: 4000 }).catch(() => {});
+  const t0 = Date.now();
   await p.waitForFunction(() => !document.documentElement.dataset.boot, null, { timeout: 9000 }).catch(() => {});
   const ms = Date.now() - t0;
   await p.waitForTimeout(400);
