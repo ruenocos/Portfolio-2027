@@ -3,7 +3,55 @@
 
 @layer components {
   .whero {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 24px;
     padding: var(--spacing-section) var(--spacing-inset) var(--spacing-inset);
+  }
+  /* The hand of posters on the title's row: small, overlapping, a little
+     fanned, like prints laid on the desk. Pointing at one lifts it. */
+  .whand {
+    display: flex;
+    align-items: flex-end;
+    padding-right: 8px;
+  }
+  .whand a {
+    position: relative;
+    width: 72px;
+    aspect-ratio: 3 / 4;
+    margin-left: -18px;
+    border-radius: 10px;
+    overflow: hidden;
+    background: var(--fill);
+    box-shadow: var(--shadow-outline);
+    rotate: calc(var(--i) * 3deg);
+    translate: 0 calc(var(--i) * var(--i) * 2px);
+    transition:
+      translate var(--dur-spring) var(--ease-spring),
+      rotate var(--dur-spring) var(--ease-spring);
+  }
+  .whand a img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .whand a:hover {
+      z-index: 1;
+      rotate: 0deg;
+      translate: 0 -12px;
+      outline: 1.5px solid var(--grape);
+      outline-offset: 3px;
+    }
+  }
+  html[data-motion="calm"] .whand a {
+    transition: none;
+  }
+  @media (width < 900px) {
+    .whand {
+      display: none;
+    }
   }
   .wfbar {
     display: flex;
@@ -88,7 +136,11 @@
     padding: 0;
     cursor: pointer;
   }
-  /* The whole row is the target. */
+  /* The whole row is the target: the title cell stays unpositioned so the
+     link's cover reaches the row (cells are positioned by default). */
+  .arow > .al {
+    position: static;
+  }
   .arow .hit::after {
     content: "";
     position: absolute;
@@ -127,9 +179,23 @@
       filter var(--dur-ui) var(--ease-ui),
       opacity var(--dur-ui) var(--ease-ui);
   }
-  [data-mode="dark"] .arow .tool img {
-    filter: grayscale(1) contrast(0.5) brightness(1.5);
-    opacity: 0.6;
+  /* Dark: grey logos on near-black need more light and contrast to read
+     at rest (Figma's glyph sits on its own dark tile). */
+  html[data-mode="dark"] .arow:not(:hover, :focus-within) .tool img {
+    filter: grayscale(1) contrast(1.8) brightness(1.35);
+    opacity: 0.9;
+  }
+  /* Tools stay above the row's link cover on mouse devices, so their
+     names show on hover. */
+  @media (hover: hover) and (pointer: fine) {
+    .arow .tools {
+      position: relative;
+      z-index: 2;
+    }
+  }
+  /* The thumb at rest is the still poster; the loop plays once it grows. */
+  .arow:not(:hover, :focus-within) .apk video {
+    opacity: 0;
   }
   .arow:is(:hover, :focus-within) .tool img {
     filter: none;
@@ -151,8 +217,9 @@
     z-index: 2;
     width: 176px;
     translate: -50% -50%;
-    opacity: 0;
-    scale: 0.92;
+    /* At rest it's a small thumb (42 × 56), so the list has pictures
+       before you point at it; pointing grows it into the peek. */
+    scale: 0.24;
     pointer-events: none;
     box-shadow: var(--shadow-outline);
     transition:
@@ -166,6 +233,40 @@
   }
   .arow .apk .hsel {
     inset: -6px;
+    /* Follows the picture's corner (radius 24) at its 6px offset. */
+    border-radius: calc(var(--radius-media, 24px) + 6px);
+    opacity: 0;
+  }
+  /* Pointing at a row hides the other rows' thumbs, so the peek never
+     overlaps one. */
+  .ruled:has(.arow:is(:hover, :focus-within)) .arow:not(:hover, :focus-within) .apk {
+    opacity: 0;
+  }
+  /* Dark: a hairline keeps black posters from melting into the canvas. */
+  html[data-mode="dark"] :is(.arow .apk, .whand a:not(:hover)) {
+    outline: 1px solid color-mix(in srgb, var(--mute) 55%, transparent);
+  }
+  /* Your selection is an outline only: handles are Wessel's. */
+  .arow .apk .hsel i {
+    display: none;
+  }
+  .arow:is(:hover, :focus-within) .apk .hsel {
+    opacity: 1;
+  }
+  /* The first row grows down and the last grows up, so the peek stays
+     inside the list. */
+  @media (width >= 900px) {
+    .arow:first-child .apk {
+      top: calc(50% - 28px);
+      translate: -50% 0;
+      transform-origin: 50% 0;
+    }
+    .arow:last-child .apk {
+      top: auto;
+      bottom: calc(50% - 28px);
+      translate: -50% 0;
+      transform-origin: 50% 100%;
+    }
   }
   .arow .soontag {
     left: auto;
@@ -179,7 +280,6 @@
   }
   @media (hover: hover) and (pointer: fine) {
     .arow:is(:hover, :focus-within) .apk {
-      opacity: 1;
       scale: 1;
     }
   }
@@ -229,13 +329,34 @@
     .arow .apk .hov {
       display: none;
     }
+    /* A project still to write is only its title and thumb: the row
+       shrinks to the thumb, title centred beside it (?mocks keeps the slots). */
+    html:not([data-mocks]) .arow[data-gap] {
+      grid-template-areas: "t k";
+      grid-template-rows: auto;
+      align-items: center;
+      padding-block: 16px;
+    }
+    html:not([data-mocks]) .arow[data-gap] :is(.ay, .ap) {
+      display: none;
+    }
   }
 }
 
 /* Phones: no room for him beside the rows, so on Work and the case he
    stays off the page (as in the prototype) instead of sitting on copy. */
 @media (width < 900px) {
-  body:has(main .whero, main .rd) .cur.wes {
+  body:has(main .whero, main .rd, main .copen) .cur.wes {
     display: none;
+  }
+}
+
+/* Desktop: the chips sit flush with the content edge; Show all waits on
+   their left instead of holding an empty slot at the end. */
+@layer components {
+  @media (width >= 900px) {
+    .wfbar .clr {
+      order: -1;
+    }
   }
 }

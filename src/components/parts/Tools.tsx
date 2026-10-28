@@ -6,7 +6,7 @@ export function Tools({ ids, size = 32, label }: { ids: readonly ToolId[]; size?
   return (
     <ul className="tools" data-size={size} aria-label={label}>
       {knownTools(ids).map((id) => (
-        <li key={id} className="tool">
+        <li key={id} className="tool" title={TOOLS[id].name}>
           {/* eslint-disable-next-line @next/next/no-img-element -- brand SVGs, served as they are */}
           <img src={toolSrc(id)} alt={TOOLS[id].name} width={size} height={size} />
         </li>

@@ -1,7 +1,7 @@
 import { SectionLabel } from "./SectionLabel";
 
-// The dotted band between sections: 168px (96 on phones) or 240 tall at
-// every width, with the section label bottom-left. Without a label it's
+// The dotted band between sections: 128px (72 on phones) or 168 tall (96),
+// with the section label bottom-left. Without a label it's
 // just air (the footer's spacer is one).
 export function Divider({
   label,

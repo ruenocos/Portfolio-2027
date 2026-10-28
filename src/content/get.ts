@@ -7,7 +7,7 @@ import { FALLBACK_HOME, type HomeContent, type Track } from "./home";
 import { FALLBACK_ABOUT, type AboutContent, type Sticker } from "./about";
 import { FALLBACK_CASES, type Case, type CaseSection } from "./cases";
 import { FALLBACK_POSTS, type Post } from "./playground";
-import { FALLBACK_ARCHIVE, FALLBACK_PROJECTS } from "./projects";
+import { FALLBACK_PROJECTS } from "./projects";
 
 /** A Sanity image as the queries return it: the asset plus the Studio's crop and focal point. */
 type Pic = { asset?: { _ref: string }; crop?: object; hotspot?: object };
@@ -61,7 +61,8 @@ function toProject(r: Row, i: number): Project {
     role: r.role ?? "",
     tools: knownTools(r.tools ?? []),
     media: { poster: pic(r.poster, 1040, PORTRAIT), video: r.video },
-    href: r.hasCase && r.slug ? `/work/${r.slug}` : undefined,
+    // Every project has a page; without a written case it's the short one.
+    href: r.slug ? `/work/${r.slug}` : undefined,
     label: r.label || `${r.title}, ${r.timeline}.`,
     note: r.note ? { text: r.note, spot: SPOTS[i % SPOTS.length] } : undefined,
   };
@@ -111,22 +112,16 @@ export async function getHome(o: FetchOptions = published): Promise<HomeContent>
   };
 }
 
-/**
- * Work: the selected work and the archive. Each list falls back on its own:
- * the placeholder archive shows only while Sanity has no archive projects.
- */
-export async function getWork(o: FetchOptions = published): Promise<{ selected: Project[]; archive: Project[] }> {
-  let d: { selected: Row[] | null; archive: Row[] | null } = { selected: null, archive: null };
+/** Work: every project, in the Studio's drag order. */
+export async function getWork(o: FetchOptions = published): Promise<Project[]> {
+  let rows: Row[] | null = null;
   try {
     const { data } = await cachedSanity({ query: WORK_QUERY, perspective: o.perspective, stega: o.stega });
-    d = data as unknown as typeof d;
+    rows = data as unknown as Row[] | null;
   } catch (e) {
     console.warn("Work: Sanity unavailable, using the fallback content.", e);
   }
-  return {
-    selected: d.selected?.length ? d.selected.map(toProject) : FALLBACK_PROJECTS,
-    archive: d.archive?.length ? d.archive.map(toProject) : FALLBACK_ARCHIVE,
-  };
+  return rows?.length ? rows.map(toProject) : FALLBACK_PROJECTS;
 }
 
 type CaseDoc = {
@@ -183,7 +178,11 @@ function toCase(slug: string, d: CaseDoc): Case {
   };
 }
 
-/** A case page: Sanity once it has the story, the mock draft until then. */
+/**
+ * A case page: Sanity once it has the story, the mock draft until then. A
+ * project without either gets the short page: its row's title, summary,
+ * video and facts, no read.
+ */
 export async function getCase(slug: string, o: FetchOptions = published): Promise<Case | null> {
   try {
     const { data } = await cachedSanity({ query: CASE_QUERY, params: { slug }, perspective: o.perspective, stega: o.stega });
@@ -192,10 +191,30 @@ export async function getCase(slug: string, o: FetchOptions = published): Promis
   } catch (e) {
     console.warn(`Case ${slug}: Sanity unavailable, using the fallback content.`, e);
   }
-  return FALLBACK_CASES.find((c) => c.slug === slug) ?? null;
+  const fb = FALLBACK_CASES.find((c) => c.slug === slug);
+  if (fb) return fb;
+  const p = (await getWork(o)).find((x) => x.href === `/work/${slug}`);
+  return p ? shortCase(slug, p) : null;
 }
 
-/** Case pages to prebuild: the drafts in code plus every live case in Sanity. */
+function shortCase(slug: string, p: Project): Case {
+  return {
+    slug,
+    title: p.title,
+    lang: p.lang,
+    lead: "",
+    intro: p.summary,
+    facts: [
+      { label: "Role", value: p.role || undefined },
+      { label: "Scope", value: undefined },
+      { label: "Timeline", value: p.timeline || undefined },
+    ],
+    hero: { poster: p.media.poster, video: p.media.video, alt: "", caption: "" },
+    sections: [],
+  };
+}
+
+/** Case pages to prebuild: one per project, plus the drafts in code. */
 export async function caseSlugs(): Promise<string[]> {
   let live: string[] = [];
   try {
@@ -203,7 +222,8 @@ export async function caseSlugs(): Promise<string[]> {
   } catch (e) {
     console.warn("Case slugs: Sanity unavailable, using the fallback list.", e);
   }
-  return [...new Set([...FALLBACK_CASES.map((c) => c.slug), ...live])];
+  const code = FALLBACK_PROJECTS.flatMap((p) => (p.href ? [p.href.replace("/work/", "")] : []));
+  return [...new Set([...FALLBACK_CASES.map((c) => c.slug), ...code, ...live])];
 }
 
 type AboutDoc = {

@@ -2,7 +2,7 @@
 
 import { useRef, useState } from "react";
 import { announce, getMotion } from "@/lib/motion";
-import { select, wessel } from "@/lib/wessel";
+import { isBusy, select, wessel } from "@/lib/wessel";
 
 /**
  * The email is its own copy button: click it and it's on your clipboard.
@@ -18,7 +18,8 @@ export function CopyEmail({ email }: { email: string }) {
   const you = (text: string) => dispatchEvent(new CustomEvent("wsl:you", { detail: text }));
 
   const wes = async (a: HTMLElement) => {
-    if (getMotion().calm) return;
+    // Mid-beat (his footer moment, say) he finishes that job instead.
+    if (getMotion().calm || isBusy()) return;
     await wessel.go(wessel.at(a, 1, 0.55, 14, 0), { k: 320, timeout: 600 });
     select(a, { label: false, ms: 1100 });
     wessel.press(true);

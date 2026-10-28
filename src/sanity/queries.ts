@@ -24,12 +24,8 @@ export const HOME_QUERY = defineQuery(`{
   "projects": *[_type == "project" && featured == true] | order(orderRank) ${projectRow}
 }`);
 
-// Work: every project. Featured ones are the selected work, in the home's
-// order; the rest are the archive.
-export const WORK_QUERY = defineQuery(`{
-  "selected": *[_type == "project" && featured == true] | order(orderRank) ${projectRow},
-  "archive": *[_type == "project" && featured != true] | order(orderRank) ${projectRow}
-}`);
+// Work: every project, in the Studio's drag order.
+export const WORK_QUERY = defineQuery(`*[_type == "project"] | order(orderRank) ${projectRow}`);
 
 export const CASE_QUERY = defineQuery(`*[_type == "project" && hasCase == true && slug.current == $slug][0]{
   title, lang, lead, intro, role, scope, timeline,
@@ -37,7 +33,8 @@ export const CASE_QUERY = defineQuery(`*[_type == "project" && hasCase == true &
   "sections": sections[]{ _key, name, heading, body, note,
     "figure": figure{ "src": asset->url, alt, caption, "width": asset->metadata.dimensions.width, "height": asset->metadata.dimensions.height } }
 }`);
-export const CASE_SLUGS_QUERY = defineQuery(`*[_type == "project" && hasCase == true && defined(slug.current)].slug.current`);
+// Every project has a page (the short one until its case is written).
+export const CASE_SLUGS_QUERY = defineQuery(`*[_type == "project" && defined(slug.current)].slug.current`);
 
 export const ABOUT_QUERY = defineQuery(`*[_id == "about"][0]{
   hello, lead,

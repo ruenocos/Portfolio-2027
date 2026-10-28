@@ -24,7 +24,7 @@ The site is **Wessel's design file**, and Wessel is in it with you. The page is 
 2. **Roomy over clever.** Air is a feature. If a section feels full, remove, don't shrink.
 3. **Wessel is a character, not an effect.** He has his own life: he never follows the visitor's pointer, he parks where he last worked, he plays every beat in full, and he re-enters from the edge he left by.
 4. **Colour tells who acts.** Tangerine = Wessel made or did it. Grape = you can touch it. Never mix the two roles.
-5. **Only Wessel selects.** No hover bounding boxes for the visitor. Selection boxes, size labels, pins and handles belong to Wessel.
+5. **Only Wessel selects.** No hover bounding boxes for the visitor. Selection boxes, size labels, pins and handles belong to Wessel. Exceptions Wons picked: your grape outline (no handles) on Work rows and Playground tiles, 2026-10-28.
 6. **Premium finish only on what Wessel made** (Focus dioramas, work media). The grid, cells and controls stay flat.
 7. **Simple, consistent motion.** Reuse the existing moves (magnetism, selection, paste, pin, spring). No new effect without a reason, and never stack effects. Several were tried and dropped: page-wide colour ends, view-transition circles, row waves.
 8. **Real content only.** Never invent copy, numbers, clients, logos or claims. Mock text must be marked `data-mock` and logged in `copy/home-copy_v01.md`.
@@ -86,10 +86,10 @@ Rules:
 - **Frame:** every row is 3 columns: side `max(96px, (100vw − 1600px)/2)`, content, side. Side columns carry the dot grid. Content max width is 1600px.
 - **Ruled cells:** cells sit on a `line` background with `gap: 1px`, so siblings share single hairlines. No shadows on cells and no card borders. Cells are square-cornered (radius 0).
 - **Dot grid:** 1.1px dots every 16px, in `dot`. It sits on the side columns, the hero, the dividers and the bookend.
-- **Insets and rhythm:** content inset is 40px desktop and 20px mobile. Sections use 96px vertical padding (40 mobile). Section dividers are 168px rows (96 mobile; the tall ones are 240 at every width), with the label at bottom-left (inset 40, 20px from the bottom; mobile inset 20, 16px from the bottom).
+- **Insets and rhythm:** content inset is 40px desktop and 20px mobile. Sections use 96px vertical padding (40 mobile). Section dividers are 128px rows (72 mobile; the tall ones are 168, 96 mobile). Tightened from 168/240 on 2026-10-28: the air read as unfinished, with the label at bottom-left (inset 40, 20px from the bottom; mobile inset 20, 16px from the bottom).
 - **Section labels:** `{ About }` in Label style, ink. Only the braces are tangerine (`tang-ink`). No counter (dropped 2026-10-27).
 - **Round things inside the square frame:** media radius 24 (`--rm`), pills 999, handles round, chips are circles.
-- **Status line** (2026-10-27): "Amsterdam, 14:32", Label style, live Amsterdam time in `mute`. Still: no pill, no lamp.
+- **Status line** (2026-10-27, place + zone 2026-10-28): "Netherlands, 14:32 CET", Label style, live Amsterdam time in `mute`, same time format as the home hero. Still: no pill, no lamp.
 - **Mode values** are variables set on every `[data-mode]` element, never `[data-mode] .x` ancestor selectors.
 - **Tactile objects** (2026-10-27): things you can press (pills, Contact, Copy email, Pause, the switch knob) plus cursor tags, pins and key chips get a lit top edge (no gradient sheen) and a short drop tinted in their own colour, pulled toward black in dark (`tactile.dropDark`); key chips are keycaps with a 2px darker base. Marks stay flat: selections and their size labels, section labels, text links, the status line, tool chips, media. Round + lifted = you can press it; small rectangle + flat = a mark. Strength per mode in tokens.json `tactile`. Pressed: sinks 1px (`easing.press`, 120ms), off while calm.
 - **Breakpoint:** one main switch at 900px (stack to one column, 20px insets), plus 600px for small tweaks. Use `hover:none` for touch behaviour.
@@ -171,7 +171,7 @@ The values are in `motion-tokens.json`. In short:
 
 - **File:** https://www.figma.com/design/g3dqNNta9ysPSBbBMLxUkP · page **"Home · v89 final"** (first page). Older pages are renamed "Archive · …" (ASCII era, v07).
 - **Frames:** Home v89 at 1440 in Light, Dark and Night, and at 390 in Light and Night. Each frame sets its Color mode explicitly, so one build serves all modes. The mobile frames also set Space to Mobile.
-- **Variables:** `Color` collection (Light / Dark / Night) with the 12 colour tokens from section 3, named `color/<token>`. `Space` collection (Desktop / Mobile): `space/pad` (inset 40/20), `space/cell` (section 96/40), `space/section-air` (divider 168/96), `space/divider-tall` (240), `space/header` (90), `space/dot-step` (16), `space/tap` (44), `space/radius/media` (24), `space/radius/pill`, `space/radius/focus`.
+- **Variables:** `Color` collection (Light / Dark / Night) with the 12 colour tokens from section 3, named `color/<token>`. `Space` collection (Desktop / Mobile): `space/pad` (inset 40/20), `space/cell` (section 96/40), `space/section-air` (divider 128/72), `space/divider-tall` (168/96), `space/header` (90), `space/dot-step` (16), `space/tap` (44), `space/radius/media` (24), `space/radius/pill`, `space/radius/focus`.
 - **Text styles:** the 13 styles from section 4 with the same names, plus `Mobile/Display` (51 at 390), `Mobile/Statement` (40), `Mobile/Headline` (34) and `Mobile/Email` (24).
 - **Components** (frame "Components · v89" above the page): Dot field, Smiley, Tool / Figma · Illustrator · After Effects · LottieFiles · Claude, Section label (Name prop), Pill / Outline · Size · Grape, Cursor / Wessel · You.
 - **Rules:** use only variables and text styles. No raw hex. The page sits on a `line` fill with 1px gaps between cells, so corners never show canvas. Dioramas are raster captures per mode. Motion, Wessel's beats and the hello intro live in the preview, not in Figma.
