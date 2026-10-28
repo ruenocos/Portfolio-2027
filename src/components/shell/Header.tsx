@@ -62,14 +62,11 @@ export function Header() {
         button.current!,
         ...panel.current!.querySelectorAll<HTMLElement>("a, button"),
       ];
+      // Every step is ours, so focusing the sticky button never scrolls the page.
+      e.preventDefault();
       const i = items.indexOf(document.activeElement as HTMLElement);
-      if (e.shiftKey && i <= 0) {
-        e.preventDefault();
-        items[items.length - 1].focus();
-      } else if (!e.shiftKey && i === items.length - 1) {
-        e.preventDefault();
-        items[0].focus();
-      }
+      const n = items.length;
+      items[i < 0 ? 0 : (i + (e.shiftKey ? n - 1 : 1)) % n].focus({ preventScroll: true });
     };
     const wide = matchMedia("(width >= 900px)");
     const resize = () => wide.matches && setOpen(false);
@@ -84,7 +81,8 @@ export function Header() {
     };
   }, [open]);
 
-  // A tap anywhere on a settings row presses its control.
+  // A tap anywhere on a settings row presses its control. A pointer
+  // convenience only: the control itself is the keyboard stop.
   const tapRow = (e: React.MouseEvent<HTMLLIElement>) => {
     if (!(e.target as Element).closest("button")) e.currentTarget.querySelector("button")?.click();
   };

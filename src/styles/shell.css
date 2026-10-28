@@ -566,8 +566,6 @@
       gap: 16px;
       min-height: 72px;
       padding: 0 var(--spacing-inset);
-    }
-    .mnav .mset {
       cursor: pointer;
     }
     .mnav .mset .pzb {

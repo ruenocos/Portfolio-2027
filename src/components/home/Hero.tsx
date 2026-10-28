@@ -398,7 +398,9 @@ export function Hero({ hero: c }: { hero: HomeContent["hero"] }) {
         await breath(200);
         wessel.press(true);
         const s = select(r, { label: false, ms: 0, grow: 0.02 });
-        await wessel.drag(wessel.at(r, 0, 0, -2, -2), wessel.at(r, 1, 1), 640, (e) => (s.grow = Math.max(0.02, e)));
+        // Phones: he lets go just inside the corner so his tag stays off the role.
+        const inset = mobile() ? -16 : 0;
+        await wessel.drag(wessel.at(r, 0, 0, -2, -2), wessel.at(r, 1, 1, inset, inset), 640, (e) => (s.grow = Math.max(0.02, e)));
         live(g);
         s.grow = 1;
         s.size();
@@ -407,9 +409,9 @@ export function Hero({ hero: c }: { hero: HomeContent["hero"] }) {
         r.dataset.invite = "";
         try {
           await wait(300);
-          // Phones: the reel is full width, so the pin sits inside its top left,
-          // clear of the name, the size label and the role.
-          await say("Have a look", mobile() ? pp(r, 0, 0, 12, 12) : pp(r, 1, 0, 12, -44));
+          // Phones: the reel is full width, so the pin sits inside it, under its
+          // caption, clear of the name, the size label and the role.
+          await say("Have a look", mobile() ? pp(r, 0, 0, 12, 40) : pp(r, 1, 0, 12, -44));
           await wait(1800);
         } finally {
           s.done();

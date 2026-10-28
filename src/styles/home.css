@@ -751,9 +751,9 @@
       inset: auto;
       margin-top: var(--spacing-section);
     }
-    /* The band under the hero (not the footer's air). */
-    .divider.divider-tall:not(.footer-air) > .cell,
-    .divider.divider-tall:not(.footer-air) > .side {
+    /* The band under the hero. */
+    .divider.divider-tall > .cell,
+    .divider.divider-tall > .side {
       height: calc(var(--spacing-divider) * 1.25);
     }
     .about {
