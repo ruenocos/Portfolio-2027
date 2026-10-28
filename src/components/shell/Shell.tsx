@@ -1,4 +1,5 @@
 import { CursorLayer } from "@/components/CursorLayer";
+import { IS_PRODUCTION } from "@/lib/site";
 import { ContactPill } from "./ContactPill";
 import { Entrance } from "./Entrance";
 import { Footer } from "./Footer";
@@ -7,6 +8,7 @@ import { PageFade } from "./PageFade";
 import { PageSwitch } from "./PageSwitch";
 import { ScrollSystem } from "./ScrollSystem";
 import { SmoothScroll } from "./SmoothScroll";
+import { TryPanel } from "./TryPanel";
 
 // The site shell: the ruled canvas with the header on top and the footer
 // at the bottom. Rows share 1px hairlines through the page's gap.
@@ -34,6 +36,8 @@ export function Shell({ children }: { children: React.ReactNode }) {
       <SmoothScroll />
       {/* After SmoothScroll, so a new page has jumped to the top before it measures. */}
       <ScrollSystem />
+      {/* PREVIEW ONLY (polish pass): never on the live site. */}
+      {!IS_PRODUCTION && <TryPanel />}
     </>
   );
 }

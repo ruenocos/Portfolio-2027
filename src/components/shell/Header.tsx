@@ -11,6 +11,7 @@ import { NAV } from "./nav";
 import { PauseButton } from "./PauseButton";
 import { useMotion } from "@/components/useMotion";
 import { Smiley } from "./Smiley";
+import { useTry } from "./TryPanel";
 
 // The sticky header. The "Wessel" wordmark slides in once a page's hero
 // ([data-hero]) has scrolled away; pages without a hero show it at once.
@@ -80,6 +81,46 @@ export function Header() {
       wide.removeEventListener("change", resize);
     };
   }, [open]);
+
+  // PREVIEW ONLY (polish pass): the thumb sheet follows a drag down and
+  // closes past 80px; anything less springs back.
+  const sheet = useTry("menu") === "sheet";
+  useEffect(() => {
+    const ul = panel.current?.querySelector("ul");
+    if (!open || !sheet || !ul) return;
+    let y0 = -1;
+    let dy = 0;
+    const start = (e: TouchEvent) => {
+      if (ul.scrollTop > 0) return;
+      y0 = e.touches[0].clientY;
+      dy = 0;
+      ul.style.transition = "none";
+    };
+    const move = (e: TouchEvent) => {
+      if (y0 < 0) return;
+      dy = Math.max(0, e.touches[0].clientY - y0);
+      ul.style.translate = `0 ${dy}px`;
+    };
+    const end = () => {
+      if (y0 < 0) return;
+      y0 = -1;
+      ul.style.transition = "";
+      ul.style.translate = "";
+      if (dy > 80) setOpen(false);
+    };
+    ul.addEventListener("touchstart", start, { passive: true });
+    ul.addEventListener("touchmove", move, { passive: true });
+    ul.addEventListener("touchend", end);
+    ul.addEventListener("touchcancel", end);
+    return () => {
+      ul.removeEventListener("touchstart", start);
+      ul.removeEventListener("touchmove", move);
+      ul.removeEventListener("touchend", end);
+      ul.removeEventListener("touchcancel", end);
+      ul.style.translate = "";
+      ul.style.transition = "";
+    };
+  }, [open, sheet]);
 
   // A tap anywhere on a settings row presses its control. A pointer
   // convenience only: the control itself is the keyboard stop.

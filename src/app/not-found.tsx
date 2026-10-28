@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Arrow } from "@/components/parts/Arrow";
 import { Hop } from "@/components/shell/Hop";
+import { LostBeat } from "@/components/shell/LostBeat";
 import { Row } from "@/components/shell/Row";
 import { Shell } from "@/components/shell/Shell";
 
@@ -13,6 +14,7 @@ export default function NotFound() {
   return (
     <Shell>
       <Row as="section" className="p-inset min-h-[40svh] flex flex-col justify-end gap-4" data-mock>
+        <LostBeat />
         <p className="text-label text-mute">
           <span className="text-tang-ink">#</span> 404
         </p>

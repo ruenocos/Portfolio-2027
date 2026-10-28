@@ -8,6 +8,7 @@ import { useBeat } from "@/components/canvas/useBeat";
 import type { HomeContent } from "@/content/home";
 import { holdIntro, playIntro } from "@/lib/intro/iris";
 import { getMotion } from "@/lib/motion";
+import { BACK_LINES, getTry } from "@/lib/try";
 import { isBusy, live, pageBox, put, putPin, select, wait, wessel, type XY } from "@/lib/wessel";
 
 const calm = () => getMotion().calm;
@@ -348,7 +349,9 @@ export function Hero({ hero: c }: { hero: HomeContent["hero"] }) {
         await wessel.go(wessel.at(W, 0.96, 0.04), { k: 120, timeout: 1400 });
         chk();
         await breath(200);
-        await say("Hello!", pp(W, 0.96, 0.04, 10, -6));
+        // PREVIEW ONLY (polish pass): a returning visitor gets another hello.
+        const back = getTry("back") as keyof typeof BACK_LINES | "off";
+        await say(back === "off" ? "Hello!" : BACK_LINES[back], pp(W, 0.96, 0.04, 10, -6));
         await breath(700);
         // Over to the middle of the W, one click: the fill plops in.
         await wessel.go(wessel.at(W, 0.5, 0.55), { k: 150, timeout: 1200 });
