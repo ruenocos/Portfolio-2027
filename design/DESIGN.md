@@ -24,7 +24,7 @@ The site is **Wessel's design file**, and Wessel is in it with you. The page is 
 2. **Roomy over clever.** Air is a feature. If a section feels full, remove, don't shrink.
 3. **Wessel is a character, not an effect.** He has his own life: he never follows the visitor's pointer, he parks where he last worked, he plays every beat in full, and he re-enters from the edge he left by.
 4. **Colour tells who acts.** Tangerine = Wessel made or did it. Grape = you can touch it. Never mix the two roles.
-5. **Only Wessel selects.** No hover bounding boxes for the visitor. Selection boxes, size labels, pins and handles belong to Wessel.
+5. **Only Wessel selects.** No hover bounding boxes for the visitor. Selection boxes, size labels, pins and handles belong to Wessel. Exceptions Wons picked: your grape outline (no handles) on Work rows and Playground tiles, 2026-10-28.
 6. **Premium finish only on what Wessel made** (Focus dioramas, work media). The grid, cells and controls stay flat.
 7. **Simple, consistent motion.** Reuse the existing moves (magnetism, selection, paste, pin, spring). No new effect without a reason, and never stack effects. Several were tried and dropped: page-wide colour ends, view-transition circles, row waves.
 8. **Real content only.** Never invent copy, numbers, clients, logos or claims. Mock text must be marked `data-mock` and logged in `copy/home-copy_v01.md`.
