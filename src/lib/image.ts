@@ -1,11 +1,11 @@
 // Responsive images without next/image: the browser picks a width from a
 // srcset, and the resizing is done by a CDN that already sits in front of
 // the file. Sanity images resize on cdn.sanity.io (?w=). Files in /public
-// resize on Netlify's Image CDN, on Netlify only; elsewhere (local dev)
-// they're served as they are.
+// resize on Next's own optimizer (/_next/image), which Vercel runs at the
+// edge and `next start` runs locally. Its widths must be listed in
+// next.config's images sizes, or it refuses them.
 
 const WIDTHS = [160, 320, 480, 640, 960, 1280, 1600, 2000];
-const NETLIFY = process.env.NEXT_PUBLIC_IMAGE_CDN === "netlify";
 
 function at(src: string, w: number): string | undefined {
   if (src.startsWith("https://cdn.sanity.io/")) {
@@ -14,8 +14,8 @@ function at(src: string, w: number): string | undefined {
     u.searchParams.set("auto", "format");
     return u.toString();
   }
-  if (NETLIFY && src.startsWith("/") && !src.endsWith(".svg")) {
-    return `/.netlify/images?url=${encodeURIComponent(src)}&w=${w}`;
+  if (src.startsWith("/") && !src.endsWith(".svg")) {
+    return `/_next/image?url=${encodeURIComponent(src)}&w=${w}&q=75`;
   }
   return undefined;
 }
