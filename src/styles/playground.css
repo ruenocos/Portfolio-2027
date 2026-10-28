@@ -69,6 +69,10 @@
   .pgcv .post[data-hover] .fl {
     color: var(--grape);
   }
+  /* Prompt cards ("Picture idea: …") say it on the card: no name above. */
+  .pgcv .post[data-prompt] .fl {
+    display: none;
+  }
   /* The tile you're over: a thin grape outline, no handles (those are his). */
   .pgcv .post[data-hover] .pi {
     outline: 1.5px solid var(--grape);

@@ -93,7 +93,18 @@ function useMagnet() {
  * Tablet: text | media. Phone: one column.
  * Wessel drops a pin on the media and selects it.
  */
-export function ProjectRow({ project: p, hidden, leaving }: { project: Project; hidden?: boolean; leaving?: boolean }) {
+export function ProjectRow({
+  project: p,
+  hidden,
+  leaving,
+  arrow = true,
+}: {
+  project: Project;
+  hidden?: boolean;
+  leaving?: boolean;
+  /** The → after the title. The case page's Next row goes without (Wons 2026-10-28: one arrow too many). */
+  arrow?: boolean;
+}) {
   const media = useMagnet();
   const pin = useRef<HTMLSpanElement>(null);
   const size = useRef<HTMLElement>(null);
@@ -236,7 +247,7 @@ export function ProjectRow({ project: p, hidden, leaving }: { project: Project; 
         <div>
           <h3 className="text-title" lang={p.lang} data-mock={gap ? "" : undefined}>
             <span className="tt">{p.title}</span>
-            {p.href && (
+            {p.href && arrow && (
               <span className="ta" aria-hidden="true">
                 <Arrow dir="right" />
               </span>
@@ -301,14 +312,28 @@ export function ProjectRow({ project: p, hidden, leaving }: { project: Project; 
   );
 }
 
-/** The rows sit in one ruled stack inside the frame. */
-export function ProjectRows({ projects, label = "Selected work", id }: { projects: Project[]; label?: string; id?: string }) {
+/**
+ * The rows sit in one ruled stack inside the frame. `next` is the case
+ * page's Next project row: no title arrow, and always the full thirds, so
+ * a project still to write gets the same media size as a written one.
+ */
+export function ProjectRows({
+  projects,
+  label = "Selected work",
+  id,
+  next,
+}: {
+  projects: Project[];
+  label?: string;
+  id?: string;
+  next?: boolean;
+}) {
   return (
     <section className="frame" data-row id={id} aria-label={label}>
       <div className="side" />
-      <div className="ruled min-w-0">
+      <div className="ruled min-w-0" data-next={next ? "" : undefined}>
         {projects.map((p) => (
-          <ProjectRow key={p.title} project={p} />
+          <ProjectRow key={p.title} project={p} arrow={!next} />
         ))}
       </div>
       <div className="side" />

@@ -309,6 +309,17 @@
     flex-direction: column;
     gap: var(--spacing-hairline);
     background: var(--line);
+    /* A short page (Work filtered down to one row) still reaches the
+       bottom of the screen: the spacer above the footer takes the slack,
+       so no bare hairline colour shows under the footer. */
+    flex: 1 0 auto;
+  }
+  .footer-air {
+    flex: 1 0 auto;
+  }
+  .footer-air.divider.divider-tall > :is(.cell, .side) {
+    height: auto;
+    min-height: var(--spacing-divider-tall);
   }
   .fcols {
     display: grid;

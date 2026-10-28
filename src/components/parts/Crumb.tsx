@@ -1,6 +1,6 @@
 import { TextLink } from "./TextLink";
 
-// The bar above (and below) a case: back to all work, where you are, next.
+// The bar above a case: back to all work, where you are, next.
 // A next case without a page yet says "soon" and isn't a link.
 export function Crumb({
   back = { href: "/work", label: "All work" },

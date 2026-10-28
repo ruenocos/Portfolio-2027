@@ -71,6 +71,8 @@ function postEl(p: Post) {
     pi.appendChild(i);
   }
   if (p.mock) {
+    // A prompt card says what it is on the card itself, so it wears no frame name.
+    f.dataset.prompt = "";
     const m = document.createElement("span");
     m.className = "mock text-micro-caps";
     m.dataset.mock = "";

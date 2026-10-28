@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
-import { Arrow } from "@/components/parts/Arrow";
 import { MediaFill } from "@/components/parts/Media";
 import { SIZES } from "@/lib/image";
 import { MockTag, Slot } from "@/components/parts/Pills";
@@ -87,16 +86,9 @@ export function WorkRow({ project: p, hidden, leaving }: { project: Project; hid
     if (m && size.current) size.current.textContent = `${Math.round(m.offsetWidth)} × ${Math.round(m.offsetHeight)}`;
   };
 
-  const title = (
-    <>
-      <span className="tt">{p.title}</span>
-      {p.href && (
-        <span className="ta" aria-hidden="true">
-          <Arrow dir="right" />
-        </span>
-      )}
-    </>
-  );
+  // No arrow after the title: the underline and your "View case" tag say it
+  // (Wons 2026-10-28: the arrows were too many).
+  const title = <span className="tt">{p.title}</span>;
 
   return (
     <article className="arow" hidden={hidden} data-gap={gap || undefined} data-leaving={leaving || undefined} onPointerEnter={sizeUp}>
