@@ -1,4 +1,5 @@
 import { CursorLayer } from "@/components/CursorLayer";
+import { AwayTitle } from "./AwayTitle";
 import { ContactPill } from "./ContactPill";
 import { Entrance } from "./Entrance";
 import { Footer } from "./Footer";
@@ -34,6 +35,7 @@ export function Shell({ children }: { children: React.ReactNode }) {
       <SmoothScroll />
       {/* After SmoothScroll, so a new page has jumped to the top before it measures. */}
       <ScrollSystem />
+      <AwayTitle />
     </>
   );
 }
