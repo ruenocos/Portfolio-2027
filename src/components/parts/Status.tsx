@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 const clock = new Intl.DateTimeFormat("en-GB", { hour: "2-digit", minute: "2-digit", timeZone: "Europe/Amsterdam" });
 
 /**
- * "Amsterdam, 14:32": where Wessel is and his local time, as one
+ * "Netherlands, 14:32": where Wessel is and his local time, as one
  * still line (no pill, no lamp: it's information, not a button). The time
  * appears after hydration, so the server never renders a stale one.
  */
@@ -22,7 +22,7 @@ export function Status({ className = "" }: { className?: string }) {
   }, []);
   return (
     <p className={`status text-label ${className}`}>
-      Amsterdam
+      Netherlands
       {time && (
         <>
           , <time>{time}</time>
