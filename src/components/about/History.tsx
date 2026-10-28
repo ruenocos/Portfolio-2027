@@ -10,7 +10,7 @@ const touch = () => matchMedia("(hover: none)").matches;
 /**
  * Experience as a layers list: one selection box springs to the row you
  * point at (on phones, the row in the middle of the screen), like picking
- * layers in Figma. By day Wessel runs down his own CV once, selecting each
+ * layers in Figma. Wessel runs down his own CV once, selecting each
  * row, and stops on the job he has now.
  */
 export function History({ jobs }: { jobs: Job[] }) {

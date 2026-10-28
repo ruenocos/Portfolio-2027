@@ -128,9 +128,6 @@
   html[data-motion="calm"] .hsel {
     transition: none;
   }
-  [data-mode="night"] .hsel {
-    display: none;
-  }
 
   /* ---------- off screen: the sticker board ---------- */
   .board {

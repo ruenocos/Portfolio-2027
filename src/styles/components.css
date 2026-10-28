@@ -5,24 +5,12 @@
 
 @layer components {
   /* Per-mode part values. Set as variables on every [data-mode] element, so
-     the nearest mode wins: a light panel inside a night page stays light. */
+     the nearest mode wins. */
   :root,
   [data-mode="light"],
   [data-mode="dark"] {
-    --bot-tag-fill: var(--bot);
-    --bot-tag-text: var(--canvas);
-    --bot-tag-edge: transparent;
     --note-fill: color-mix(in srgb, var(--tang) 16%, var(--canvas));
     --note-edge: color-mix(in srgb, var(--tang) 35%, var(--canvas));
-  }
-  /* Night: bots are dashed outlines, and the note tint
-     would go muddy on indigo, so it takes the night fill with an ember edge. */
-  [data-mode="night"] {
-    --bot-tag-fill: transparent;
-    --bot-tag-text: var(--bot);
-    --bot-tag-edge: var(--bot);
-    --note-fill: var(--fill);
-    --note-edge: color-mix(in srgb, var(--tang) 45%, var(--fill));
   }
 
   /* ---------- section label: "{ Selected work }" ---------- */
@@ -55,7 +43,7 @@
      mode comes from --tac-lit / --tac-lit-outline / --tac-drop. */
   .gpill,
   .tz,
-  .cur:not(.bot) .tag,
+  .cur .tag,
   .dn .k {
     --tac-c: var(--grape);
     border: 1px solid transparent; /* an edge in forced colours */
@@ -629,15 +617,6 @@
     --c: var(--tang);
     --on: var(--on-tang);
   }
-  .cur.bot {
-    --c: var(--bot);
-    --on: var(--canvas);
-  }
-  .cur.bot .tag {
-    background: var(--bot-tag-fill);
-    color: var(--bot-tag-text);
-    border: 1px dashed var(--bot-tag-edge);
-  }
   .cur.you {
     --c: var(--grape);
     --on: var(--on-grape);
@@ -650,47 +629,6 @@
   }
   .cur.you[data-on="true"] .ptr {
     transform: rotate(-8deg);
-  }
-  /* Asleep: tilted, breathing, "z z", and his note. He's the wake button. */
-  .cur.wes .note,
-  .cur.wes .zz {
-    display: none;
-  }
-  .cur.wes[data-asleep="true"] {
-    pointer-events: auto;
-    cursor: pointer;
-  }
-  .cur.wes[data-asleep="true"]::before {
-    content: "";
-    position: absolute;
-    inset: -12px -12px -12px -10px;
-  }
-  .cur.wes[data-asleep="true"] .ptr {
-    transform: rotate(-28deg) translateY(2px);
-    opacity: 0.75;
-  }
-  .cur.wes[data-asleep="true"] .tag {
-    animation: breathe 4s ease-in-out infinite;
-  }
-  .cur.wes[data-asleep="true"] .zz {
-    display: block;
-    position: absolute;
-    left: 18px;
-    top: -10px;
-    color: var(--mute);
-    font-style: normal;
-    animation: zz 2.4s ease-in-out infinite;
-  }
-  .cur.wes[data-asleep="true"][data-note="true"] .note {
-    display: block;
-  }
-  .cur.wes[data-dock="true"] .lab {
-    display: none;
-  }
-  @media (width >= 900px) {
-    .cur.wes[data-dock="true"] .lab {
-      display: flex;
-    }
   }
   /* Your own pointer hides only while the You cursor really stands in for
      it: not while calm, not in the reel dialog, not in forced colours. */
@@ -715,21 +653,6 @@
     .pzb[data-paused] {
       background: Highlight;
       color: HighlightText;
-    }
-  }
-  /* Asleep he's a button: the focus ring wraps his name tag, not the arrow. */
-  .cur.wes[data-asleep="true"]:focus-visible {
-    outline: none;
-  }
-  .cur.wes[data-asleep="true"]:focus-visible .tag {
-    outline: 2px solid var(--grape);
-    outline-offset: 3px;
-  }
-  /* Docked on a phone he sits over content, so he stops catching taps there.
-     The day/night switch wakes him too. */
-  @media (width < 900px) {
-    .cur.wes[data-dock="true"] {
-      pointer-events: none;
     }
   }
   /* You sit above everything, the phone menu included. */
@@ -846,56 +769,6 @@
     top: calc(100% + 8px);
     translate: -50% 0;
   }
-  .sel[data-bot="true"],
-  .sel[data-bot="true"] > i {
-    border-style: dashed;
-    border-color: var(--bot);
-  }
-  .sel[data-bot="true"] > .szp {
-    background: var(--bot);
-    color: var(--canvas);
-  }
-  /* Redlines: Handoff's spacing marks, with end ticks. */
-  .red {
-    position: absolute;
-    background: var(--tang);
-  }
-  .red.h {
-    height: 1px;
-  }
-  .red.v {
-    width: 1px;
-  }
-  .red::before,
-  .red::after {
-    content: "";
-    position: absolute;
-    background: var(--tang);
-  }
-  .red.h::before,
-  .red.h::after {
-    width: 1px;
-    height: 9px;
-    top: -4px;
-  }
-  .red.h::before {
-    left: 0;
-  }
-  .red.h::after {
-    right: 0;
-  }
-  .red.v::before,
-  .red.v::after {
-    height: 1px;
-    width: 9px;
-    left: -4px;
-  }
-  .red.v::before {
-    top: 0;
-  }
-  .red.v::after {
-    bottom: 0;
-  }
   .ovl > .szp {
     position: absolute;
     translate: -50% -50%;
@@ -988,22 +861,6 @@
   }
 }
 
-@keyframes breathe {
-  50% {
-    transform: scale(1.03);
-  }
-}
-@keyframes zz {
-  0%,
-  100% {
-    transform: translate(0, 0);
-    opacity: 0.4;
-  }
-  50% {
-    transform: translate(3px, -4px);
-    opacity: 1;
-  }
-}
 @keyframes pop {
   from {
     transform: scale(0.5);

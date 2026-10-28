@@ -165,7 +165,7 @@
     animation-delay: calc(var(--i) * 22ms);
   }
 
-  /* ---------- day/night switch ---------- */
+  /* ---------- light/dark switch ---------- */
   .dn {
     position: relative;
     width: 64px;

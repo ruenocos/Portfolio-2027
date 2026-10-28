@@ -12,7 +12,7 @@ npm run dev
 ```
 
 - http://localhost:3000 — the site
-- http://localhost:3000/system — every token in light, dark and night (not indexed)
+- http://localhost:3000/system — every token in light and dark (not indexed)
 - http://localhost:3000/studio — Sanity Studio
 
 ## Design tokens
@@ -23,7 +23,7 @@ npm run dev
 `npm run tokens` compiles them into `src/styles/tokens.css` (it also runs
 before `dev` and `build`). Don't edit that file by hand. It gives you:
 
-- colour variables per mode on `[data-mode="light|dark|night"]`, as Tailwind
+- colour variables per mode on `[data-mode="light|dark"]`, as Tailwind
   colours (`bg-canvas`, `text-ink`, `text-tang-ink`, `bg-grape`…)
 - fonts, radii, spacing and easings in `@theme` (`font-mono`, `rounded-media`,
   `p-inset`, `ease-spring`, the `stack:` 900px breakpoint)
@@ -35,15 +35,15 @@ run `npm run tokens`.
 
 ## Modes
 
-`src/lib/mode.ts` decides the mode before the first paint: night from sunset
-to sunrise in Amsterdam (computed in the browser), otherwise the system's
-light or dark. `setAsleep()` puts Wessel to bed or wakes him for the rest of
-the visit, until the sun next rises or sets. Mode changes cross-fade over 0.9s.
+`src/lib/mode.ts` decides the mode before the first paint: the visitor's own
+pick from the header switch (`localStorage`), otherwise the system's light or
+dark. `setMode()` sets it; picking what the system says forgets the choice.
+Mode changes cross-fade over 0.9s.
 
 ## The shell
 
 Everything every page leans on lives in `src/app/(site)/layout.tsx` and
-`src/components/shell/`: the sticky header (nav, day/night switch, Pause
+`src/components/shell/`: the sticky header (nav, light/dark switch, Pause
 motion, phone menu below 900px), the footer (`#contact`, where every
 "Contact ↓" lands), the grid frame (`<Row>`: dotted side | cell | dotted
 side, 1px hairlines) and the phone Contact pill. Sanity Studio sits outside
@@ -52,7 +52,7 @@ the `(site)` group, so it gets none of it.
 Motion:
 
 - `src/lib/motion.ts` is the motion store. `useMotion()` gives `mode`,
-  `asleep`, `paused`, `reduced` and `calm` (paused or reduced). Anything that
+  `paused`, `reduced` and `calm` (paused or reduced). Anything that
   moves by itself checks `calm` and shows its end state. `<html>` mirrors it
   before the first paint (`.pz`, `data-motion="calm|full"`).
 - Lenis (lerp .12) runs on desktop mouse only, never while calm.
@@ -67,7 +67,7 @@ Motion:
 
 ## Components
 
-Every component is on `/system` in light, dark and night, and the live ones
+Every component is on `/system` in light and dark, and the live ones
 (project rows, tool filter, media) run on the page itself. The prototype drew
 some parts several times; they're merged into one component each (list in
 `studio/web/build/phase-3/component-inventory_v01.md`).
@@ -79,14 +79,13 @@ some parts several times; they're merged into one component each (list in
 - `Media` plays its loop only while on screen, at 0.75×, and shows the
   poster while calm. The source loads only when it comes near the screen.
 - `src/lib/wessel.ts` is Wessel's engine: his travel, beats, selections,
-  pins, redlines and the night bots. Springs and thresholds come from
+  and pins. Springs and thresholds come from
   `motion-tokens.json` (`wessel`). A section gets a beat with `useBeat()`
-  (`src/components/canvas/`): `day` for Wessel, `night` for a bot. Beats run
-  one at a time, once per mode, and check in with `live(g)` so a mode or page
-  change stops them.
+  (`src/components/canvas/`): `day` is his job there. Beats run one at a
+  time, once each, and check in with `live(g)` so a page change stops them.
 - The visitor's grape "You" cursor (mouse only) reads its label from the
   nearest `[data-you]`: project media say "View case" or "Case study soon".
-- Selections, redlines and bots go on `#ovl`, a page-coordinate layer in the
+- Selections and pins go on `#ovl`, a page-coordinate layer in the
   shell, so they scroll with the page.
 
 ## Site basics

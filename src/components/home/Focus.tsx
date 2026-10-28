@@ -6,15 +6,15 @@ import { useMotion } from "@/components/useMotion";
 import type { HomeContent, Track } from "@/content/home";
 import { getMotion } from "@/lib/motion";
 import { TOOLS, toolSrc, type ToolId } from "@/lib/tools";
-import { Bot, live, pageBox, wait, wessel, type XY } from "@/lib/wessel";
+import { live, wait, wessel, type XY } from "@/lib/wessel";
 import { createDio, type Dio, type DioKind } from "./dioramas";
 
 const KIT: ToolId[] = ["figma", "illustrator", "after-effects", "lottiefiles", "claude"];
-// Frame names the Rename layers bot tidies at night, and what each scene shows.
-const FRAME: Record<DioKind, { n: number; layer: string; alt: string }> = {
-  ux: { n: 12, layer: "UX / Component", alt: "A page layout built from blocks, with one tangerine button" },
-  motion: { n: 13, layer: "Motion / Morph", alt: "A block travelling along a curved path, with ghost frames" },
-  ai: { n: 14, layer: "AI / Duplicate", alt: "One block goes into a machine and comes out as a batch" },
+// Frame numbers, and what each scene shows.
+const FRAME: Record<DioKind, { n: number; alt: string }> = {
+  ux: { n: 12, alt: "A page layout built from blocks, with one tangerine button" },
+  motion: { n: 13, alt: "A block travelling along a curved path, with ghost frames" },
+  ai: { n: 14, alt: "One block goes into a machine and comes out as a batch" },
 };
 const NEED = 0.6;
 const touch = () => matchMedia("(hover: none)").matches;
@@ -70,7 +70,6 @@ function Card({
 }) {
   const k = track.key;
   const svg = useRef<SVGSVGElement>(null);
-  const lyr = useRef<HTMLSpanElement>(null);
   const f = FRAME[k];
 
   useEffect(() => {
@@ -83,8 +82,8 @@ function Card({
   }, [k, dios]);
   const dio = () => dios.get(k);
 
-  // By day Wessel uses the scene once (with the card's full hover, so you
-  // see what hovering does); by night Rename layers names its frame.
+  // Wessel uses the scene once (with the card's full hover, so you
+  // see what hovering does).
   const card = useBeat<HTMLElement>({
     need: NEED,
     async day(g) {
@@ -137,29 +136,6 @@ function Card({
         dio()?.scrub(null);
       }
     },
-    async night(g) {
-      const l = lyr.current!;
-      const R = new Bot("Rename layers");
-      const r = pageBox(l);
-      await R.to(r.x + r.w + 10, r.y + r.h / 2);
-      live(g);
-      R.press(true);
-      await wait(120);
-      l.textContent = f.layer;
-      l.classList.remove("pop");
-      void l.offsetWidth;
-      l.classList.add("pop");
-      R.press(false);
-      await wait(220);
-      live(g);
-      await R.leave();
-    },
-    still(mode) {
-      if (mode === "night" && lyr.current) lyr.current.textContent = f.layer;
-    },
-    reset() {
-      if (lyr.current) lyr.current.textContent = `Frame ${f.n}`;
-    },
   });
 
   // Keyboard: Enter or Space plays the scene (D duplicates on the AI card,
@@ -193,9 +169,6 @@ function Card({
       onFocus={() => light(k)}
       onBlur={() => light(null)}
     >
-      <span ref={lyr} className="lyr text-micro-caps" aria-hidden="true">
-        Frame {f.n}
-      </span>
       <div
         className="obj"
         data-enter

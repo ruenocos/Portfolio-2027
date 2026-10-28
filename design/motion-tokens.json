@@ -43,7 +43,7 @@
         1
       ],
       "ms": 900,
-      "use": "light/dark/night token cross-fade"
+      "use": "light/dark token cross-fade"
     },
     "press": {
       "bezier": [
@@ -115,14 +115,6 @@
         "k": 72,
         "z": 0.92
       },
-      "asleep": {
-        "k": 28,
-        "z": 0.92
-      },
-      "bot": {
-        "k": 170,
-        "z": 0.78
-      },
       "yScale": 1.25,
       "maxBoost": 2.6,
       "boostPerPxSec": 1200
@@ -174,7 +166,7 @@
         "easing": "ui"
       },
       "veil": "canvas",
-      "hold": "header, day/night switch, Pause and Wessel's cursor stay still (Wessel holds his screen spot until the new page gives him a job)",
+      "hold": "header, light/dark switch, Pause and Wessel's cursor stay still (Wessel holds his screen spot until the new page gives him a job)",
       "scroll": "Lenis stop + jump to top under the veil, start after veil in",
       "technique": "DOM veil (PageSwitch): canvas cover over the content column out, route, jump to top under cover, veil lifts while the rows rise. Picked by Wons 2026-10-27 21:43 over Fade/Lift. No view-transition snapshot (grey frame + snap)."
     },
@@ -193,12 +185,11 @@
     "source": "motion flow research 2026-10-27, studio/references/motion-flow/"
   },
   "pause": {
-    "control": "Pause motion button beside the day/night switch",
+    "control": "Pause motion button beside the light/dark switch",
     "stops": [
       "videos + reel loop",
       "playground drift",
       "Wessel travel + beats",
-      "bots",
       "hello intro",
       "entrances"
     ],

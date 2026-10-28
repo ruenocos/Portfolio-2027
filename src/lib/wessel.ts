@@ -1,6 +1,5 @@
 // Wessel's engine: one cursor that travels down the page and does one small,
-// real design job per section (a "beat"), and the night bots that do the
-// chores while he sleeps. DESIGN.md §7, motion-tokens.json `wessel`.
+// real design job per section (a "beat"). DESIGN.md §7, motion-tokens.json `wessel`.
 //
 // Not React: it runs on requestAnimationFrame and touches the DOM directly,
 // so his travel never re-renders anything. <CursorLayer> attaches his
@@ -8,7 +7,7 @@
 //
 // Rules it keeps:
 // - one Wessel, never following your pointer; one beat at a time
-// - beats play in full, once per mode, when ~40% of a section is in view;
+// - beats play in full, once, when ~40% of a section is in view;
 //   on a fast scroll he waits a breath, on a flick past he skips and the
 //   beat replays when you come back
 // - between beats he parks where he worked, then drifts after you a beat
@@ -106,9 +105,8 @@ function fitSels() {
   }
   selRaf = sels.size ? requestAnimationFrame(fitSels) : 0;
 }
-export function select(el: HTMLElement, { label = true, ms = 1500, bot = false, grow = 1 } = {}) {
+export function select(el: HTMLElement, { label = true, ms = 1500, grow = 1 } = {}) {
   const box = put("sel");
-  box.dataset.bot = String(bot);
   box.innerHTML = "<i></i><i></i><i></i><i></i>";
   const sizePill = (pop = false) => {
     const z = document.createElement("span");
@@ -164,85 +162,6 @@ export const POINTER =
   "M3.4 2.6c-.5-.3-1.1.2-.9.8l4.6 13.9c.2.6 1 .7 1.3.1l2.4-4.7c.1-.3.4-.5.7-.5l5.2-.7c.6-.1.8-.9.3-1.3z";
 export const POINTER_BOX = "0 0 20 20";
 export const TIP: XY = [3, 3];
-function cursorEl(kind: "bot", name: string) {
-  const el = document.createElement("div");
-  el.className = `cur ${kind}`;
-  el.setAttribute("aria-hidden", "true");
-  el.innerHTML = `<svg class="ptr" viewBox="${POINTER_BOX}"><path d="${POINTER}"/></svg><span class="lab"><span class="tag text-cursor-tag"></span></span>`;
-  el.querySelector(".tag")!.textContent = name;
-  return el;
-}
-
-// ---------- bots: they live on the page, do one job and leave ----------
-export class Bot {
-  el: HTMLElement;
-  x = -400;
-  y = -400;
-  private vx = 0;
-  private vy = 0;
-  private raf = 0;
-  constructor(name: string) {
-    this.el = cursorEl("bot", name);
-    ovl()?.appendChild(this.el);
-    this.draw();
-  }
-  private fitX(x: number) {
-    const w = page()?.clientWidth ?? innerWidth;
-    return Math.max(4, Math.min(x, w - (this.el.offsetWidth || 110) - 6));
-  }
-  private draw() {
-    this.el.style.transform = `translate(${(this.x - TIP[0]).toFixed(1)}px,${(this.y - TIP[1]).toFixed(1)}px)`;
-  }
-  place(x: number, y: number) {
-    cancelAnimationFrame(this.raf);
-    this.x = this.fitX(x);
-    this.y = y;
-    this.vx = this.vy = 0;
-    this.draw();
-  }
-  private inView() {
-    const top = page()?.getBoundingClientRect().top ?? 0;
-    const vy = this.y + top;
-    return vy > -60 && vy < innerHeight + 60;
-  }
-  /** Travels to a page point; enters from the side if it was off screen. */
-  async to(x: number, y: number, { k = S.bot.k, max = 1200 } = {}) {
-    if (!this.inView()) this.place(x - innerWidth * 0.3, y + 60);
-    x = this.fitX(x);
-    if (calm()) return this.place(x, y);
-    cancelAnimationFrame(this.raf);
-    return new Promise<void>((res) => {
-      const t0 = performance.now();
-      let last = t0;
-      const z = S.bot.z;
-      const ky = k * S.yScale;
-      const f = (n: number) => {
-        const dt = Math.min(0.032, (n - last) / 1000);
-        last = n;
-        this.vx += (-k * (this.x - x) - 2 * z * Math.sqrt(k) * this.vx) * dt;
-        this.vy += (-ky * (this.y - y) - 2 * z * Math.sqrt(ky) * this.vy) * dt;
-        this.x += this.vx * dt;
-        this.y += this.vy * dt;
-        this.draw();
-        const near = Math.hypot(this.x - x, this.y - y) < 0.6 && Math.hypot(this.vx, this.vy) < 8;
-        if (near || n - t0 > max) {
-          this.place(x, y);
-          res();
-        } else this.raf = requestAnimationFrame(f);
-      };
-      this.raf = requestAnimationFrame(f);
-    });
-  }
-  press(on: boolean) {
-    this.el.dataset.press = String(on);
-  }
-  async leave() {
-    this.el.dataset.hide = "true";
-    await wait(220);
-    this.el.remove();
-  }
-}
-
 // ---------- Wessel ----------
 const W = {
   el: null as HTMLElement | null,
@@ -258,7 +177,6 @@ const W = {
   /** After a page change: the screen spot he holds until his next job. */
   hold: null as XY | null,
   parked: false,
-  asleep: false,
   shown: false,
   dist: 0,
   sp: 0,
@@ -271,25 +189,9 @@ let lastSY = 0;
 let SV = 0;
 let SP = 0;
 let raf = 0;
-let hero: HTMLElement | null = null;
-
-const inView = (el: Element) => {
-  const r = el.getBoundingClientRect();
-  return r.bottom > 60 && r.top < innerHeight - 60;
-};
 
 // Where he goes when he has no job.
 function home(): XY {
-  if (W.asleep) {
-    if (hero && inView(hero)) {
-      const r = hero.getBoundingClientRect();
-      // Phones: just under the hero, never on the name.
-      return mobile()
-        ? [r.left + 20, Math.max(100, Math.min(r.bottom + 28, innerHeight - 150))]
-        : [r.left + r.width * 0.8, r.top + r.height * 0.17];
-    }
-    return [innerWidth - (mobile() ? 70 : 110), innerHeight - (mobile() ? 150 : 110)];
-  }
   if (W.hold) {
     W.parked = true;
     return W.hold;
@@ -323,9 +225,9 @@ function tick(n: number) {
   const driving = !!t;
   // A job that scrolls away: he reaches for it from the edge instead of leaving.
   // Never on the sticky header: his target stays below it.
-  if (t && !W.asleep) t = [t[0], cl(t[1], header() + 24, innerHeight - 40)];
+  if (t) t = [t[0], cl(t[1], header() + 24, innerHeight - 40)];
   if (!t) t = home();
-  const parked = !driving && W.parked && !W.asleep;
+  const parked = !driving && W.parked;
 
   // The page drags him a little; he resists and catches up. Not when his
   // job holds still on screen while you scroll (a sticky panel): then he
@@ -338,7 +240,7 @@ function tick(n: number) {
     W.y = t[1];
     W.vx = W.vy = 0;
   } else {
-    const sp = driving ? W.spring : W.asleep ? S.asleep : S.free;
+    const sp = driving ? W.spring : S.free;
     const k = sp.k * Math.min(S.maxBoost, 1 + SV / S.boostPerPxSec);
     const ky = k * S.yScale;
     // Small steps: a stiff spring (a drag, a fast scroll) on a slow frame
@@ -357,9 +259,6 @@ function tick(n: number) {
 
   const lab = el.querySelector<HTMLElement>(".lab");
   el.dataset.flip = String(W.lean || W.x + (lab?.offsetWidth ?? 0) + 20 > innerWidth);
-  const heroIn = !!hero && inView(hero);
-  el.dataset.note = String(W.asleep && heroIn);
-  el.dataset.dock = String(W.asleep && !heroIn);
   el.style.transform = `translate(${(W.x - TIP[0]).toFixed(1)}px,${(W.y - TIP[1]).toFixed(1)}px)`;
   raf = requestAnimationFrame(tick);
 }
@@ -444,7 +343,7 @@ export const wessel = {
   /** A short note after his name in the tag ("Wessel · 42%"); null clears it. */
   note(text: string | null) {
     W.note = text;
-    if (W.tag && !W.asleep) W.tag.textContent = text ? `Wessel · ${text}` : "Wessel";
+    if (W.tag) W.tag.textContent = text ? `Wessel · ${text}` : "Wessel";
   },
 
   show() {
@@ -472,7 +371,7 @@ export function attachWessel(el: HTMLElement) {
     if (!wasCalm) return;
     newGeneration();
     beats.forEach((b) => {
-      b.done = {};
+      b.done = false;
       b.q = false;
       trigger(b);
     });
@@ -482,33 +381,6 @@ export function attachWessel(el: HTMLElement) {
     cancelAnimationFrame(raf);
     W.el = null;
   };
-}
-
-/** Night puts him to bed (bots take over); day wakes him. */
-export function setWesselAsleep(asleep: boolean) {
-  if (W.asleep === asleep && W.el?.dataset.asleep === String(asleep)) return;
-  W.asleep = asleep;
-  newGeneration();
-  W.lean = false;
-  if (!W.el) return;
-  W.el.dataset.asleep = String(asleep);
-  if (W.tag) W.tag.textContent = asleep ? "Wessel · asleep" : W.note ? `Wessel · ${W.note}` : "Wessel";
-  // Asleep he's a real button (wake him); awake he's decoration.
-  W.el.tabIndex = asleep ? 0 : -1;
-  if (asleep) {
-    W.el.removeAttribute("aria-hidden");
-    W.el.setAttribute("role", "button");
-    W.el.setAttribute("aria-label", "Wake Wessel (switches to day mode)");
-    W.el.inert = false;
-    wessel.show();
-  } else {
-    W.el.setAttribute("aria-hidden", "true");
-    W.el.removeAttribute("role");
-    W.el.removeAttribute("aria-label");
-    W.el.inert = true;
-  }
-  // Let each beat replay in the new mode once its section is seen.
-  requestAnimationFrame(() => beats.forEach(trigger));
 }
 
 /** A page is about to change: he stays where he is on screen. Taken before
@@ -525,7 +397,6 @@ export function newPage() {
   W.anchor = null;
   if (!W.hold) holdWessel();
   W.drive = null;
-  hero = document.querySelector<HTMLElement>("[data-hero]");
 }
 
 function newGeneration() {
@@ -543,25 +414,22 @@ function newGeneration() {
 export type BeatFn = (g: number) => Promise<void>;
 export type BeatSpec = {
   day: BeatFn;
-  night?: BeatFn;
   /** How much of the section must be in view (0–1). */
   need?: number;
   /** Keep holding the pose after the beat (he doesn't let go). */
   keep?: boolean;
-  /** Back to the start state (mode or page change). */
+  /** Back to the start state (page change). */
   reset?: () => void;
   /** Paused or reduced motion: no beat runs (DESIGN.md §8). This puts the
    *  section straight into the state the beat would have left it in. */
-  still?: (mode: "day" | "night") => void;
+  still?: () => void;
 };
-type Beat = BeatSpec & { el: HTMLElement; done: { day?: boolean; night?: boolean }; q?: boolean };
+type Beat = BeatSpec & { el: HTMLElement; done?: boolean; q?: boolean };
 
 const beats = new Set<Beat>();
 let chain = Promise.resolve();
 let busy = false;
-/** True at night, once the engine has put him to bed. */
-export const isAsleep = () => W.asleep;
-/** True while Wessel or a bot is mid-job (entrances can wait a moment). */
+/** True while Wessel is mid-job (entrances can wait a moment). */
 export const isBusy = () => busy;
 
 function seen(el: Element, f: number) {
@@ -571,17 +439,15 @@ function seen(el: Element, f: number) {
 }
 
 function trigger(b: Beat) {
-  const mode = W.asleep ? "night" : "day";
   const need = b.need ?? T.need.default;
-  if (b.done[mode] || b.q || !W.el) return;
-  if (W.asleep && !b.night) return;
+  if (b.done || b.q || !W.el) return;
   b.q = true;
   chain = chain.then(async () => {
     b.q = false;
     // Calm: no beat, just its end state, whether or not it's on screen yet.
-    if (b.done[mode] || !beats.has(b) || (!calm() && !seen(b.el, need))) return;
-    b.done[mode] = true;
-    if (calm()) return b.still?.(mode);
+    if (b.done || !beats.has(b) || (!calm() && !seen(b.el, need))) return;
+    b.done = true;
+    if (calm()) return b.still?.();
     const g = gen;
     // He always plays his full beat. If you're moving fast he waits a
     // breath; a flick past skips it, and it plays when you come back.
@@ -589,21 +455,21 @@ function trigger(b: Beat) {
       await wait(60);
     if (g !== gen || !beats.has(b) || !b.el.isConnected) return;
     if (!calm() && (SP > T.fastScroll.skipAbovePxPerSec || !seen(b.el, need))) {
-      b.done[mode] = false;
+      b.done = false;
       // Flicked past: it plays when you come back, or once you stop here.
       setTimeout(() => trigger(b), 500);
       return;
     }
     busy = true;
-    if (!W.asleep) wessel.show();
+    wessel.show();
     try {
-      await (W.asleep ? b.night! : b.day)(g);
+      await b.day(g);
     } catch (e) {
       // A section that left mid-beat (page change) just stops.
       if (e !== STALE && b.el.isConnected) console.error(e);
     }
     busy = false;
-    if (g === gen && !W.asleep && !b.keep) wessel.free();
+    if (g === gen && !b.keep) wessel.free();
   });
 }
 
@@ -622,7 +488,7 @@ export function registerBeat(el: HTMLElement, spec: BeatSpec) {
     },
     { threshold: thresholds },
   );
-  const b: Beat = { ...spec, el, done: {} };
+  const b: Beat = { ...spec, el };
   beats.add(b);
   byEl.set(el, b);
   io.observe(el);

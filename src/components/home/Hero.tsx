@@ -7,7 +7,7 @@ import { useMotion } from "@/components/useMotion";
 import { useBeat } from "@/components/canvas/useBeat";
 import type { HomeContent } from "@/content/home";
 import { BOOT_KEY, getMotion } from "@/lib/motion";
-import { Bot, isAsleep, isBusy, live, pageBox, put, putPin, select, wait, wessel, type XY } from "@/lib/wessel";
+import { isBusy, live, pageBox, put, putPin, select, wait, wessel, type XY } from "@/lib/wessel";
 
 const calm = () => getMotion().calm;
 const mobile = () => innerWidth < 900;
@@ -77,7 +77,7 @@ function letters(n: HTMLElement) {
 }
 // Before he arrives (day, not calm): the W is only an outline and the u of Oud sits crooked.
 function prepName(n: HTMLElement) {
-  if (calm() || isAsleep()) return;
+  if (calm()) return;
   const { W, U } = letters(n);
   W.classList.add("ol");
   U.classList.add("off");
@@ -119,8 +119,8 @@ function Letters({ word, group }: { word: string; group?: [number, number] }) {
 
 /**
  * Hero (DESIGN.md §6, §7): mono meta, the name row WESSEL [reel] OUD on
- * glyph height, the role in Wessel's voice. By day his hello intro plays
- * once per mode; by night Rename layers names every letter.
+ * glyph height, the role in Wessel's voice. His hello intro plays
+ * once.
  */
 export function Hero({ hero: c }: { hero: HomeContent["hero"] }) {
   const { calm: still } = useMotion();
@@ -174,8 +174,8 @@ export function Hero({ hero: c }: { hero: HomeContent["hero"] }) {
     };
   }, []);
 
-  // The reel's loop plays once Wessel has invited you to it (or at once at
-  // night), only on screen, never while calm. A grape bar tracks its time.
+  // The reel's loop plays once Wessel has invited you to it, only on
+  // screen, never while calm. A grape bar tracks its time.
   const syncReel = useRef(() => {});
   useEffect(() => {
     const v = loop.current;
@@ -480,33 +480,6 @@ export function Hero({ hero: c }: { hero: HomeContent["hero"] }) {
         }
       }
     },
-    async night(g) {
-      const h = hero.current!;
-      await boot(h, bootParts());
-      live(g);
-      unprep();
-      // A bot names every letter as a layer, then leaves.
-      const B = new Bot("Rename layers");
-      const ls = [...nm.current!.querySelectorAll<HTMLElement>(".lt")];
-      const labels: HTMLElement[] = [];
-      for (const [i, l] of ls.entries()) {
-        const [x, y] = pp(l, 0.5, 0, 0, -8);
-        if (i === 0 || i === ls.length - 1 || i === 6) await B.to(x, y - 10);
-        live(g);
-        const t = put("lt-lab text-micro", l.textContent ?? "", [x, y]);
-        t.style.animationDelay = `${i * 60}ms`;
-        labels.push(t);
-      }
-      playReel();
-      await wait(1400);
-      live(g);
-      for (const t of labels) {
-        t.style.transition = "opacity .3s";
-        t.style.opacity = "0";
-        setTimeout(() => t.remove(), 320);
-      }
-      await B.leave();
-    },
     // Calm: the finished hero, reel on its poster.
     still() {
       unprep();
@@ -522,7 +495,7 @@ export function Hero({ hero: c }: { hero: HomeContent["hero"] }) {
     },
   });
 
-  // Night, or calm, or a reload halfway down: the hero is simply finished.
+  // Calm, or a reload halfway down: the hero is simply finished.
   useEffect(() => {
     if (still && nm.current) {
       unprepName(nm.current);
@@ -540,7 +513,7 @@ export function Hero({ hero: c }: { hero: HomeContent["hero"] }) {
     evs.forEach((e) => addEventListener(e, moved, { passive: true }));
     const id = setInterval(async () => {
       const h = hero.current;
-      if (!h || !n.on || n.nodding || isBusy() || calm() || isAsleep() || document.hidden || n.nods >= 3) return;
+      if (!h || !n.on || n.nodding || isBusy() || calm() || document.hidden || n.nods >= 3) return;
       if (performance.now() - n.still < 7000 + n.nods * 5000 || scrollY > h.offsetHeight * 0.3) return;
       n.nodding = true;
       n.nods++;

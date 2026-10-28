@@ -47,7 +47,7 @@ export function WorkList({ selected, archive }: { selected: Project[]; archive: 
     }, LEAVE_MS);
   };
 
-  // By day he runs over his kit first: a few chips, each selected and named.
+  // He runs over his kit first: a few chips, each selected and named.
   const bar = useBeat<HTMLDivElement>({
     need: 0.6,
     async day(g) {

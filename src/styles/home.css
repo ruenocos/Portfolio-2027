@@ -19,13 +19,6 @@
     --d-s: #4c463e;
     --d-h: #3a352f;
   }
-  [data-mode="night"] {
-    --d-t: #232039;
-    --d-l: #141228;
-    --d-r: #1b1930;
-    --d-s: #3e3a63;
-    --d-h: #322e52;
-  }
 
   /* ---------- hero ---------- */
   .hero {
@@ -247,7 +240,7 @@
     object-fit: cover;
     background: #000;
   }
-  /* Under the frame's left edge (the corner is the night switch's). */
+  /* Under the frame's left edge (the corner is the Close button's). */
   .reelbox .rbc {
     position: absolute;
     left: calc(50% - var(--rw) / 2);
@@ -501,23 +494,6 @@
     margin: 0;
     max-width: 340px;
   }
-  /* Frame names: only at night, when Rename layers tidies them. */
-  .lyr {
-    position: absolute;
-    left: 28px;
-    top: 14px;
-    display: none;
-    align-items: center;
-    gap: 6px;
-    color: var(--mute);
-  }
-  .lyr::before {
-    content: "#";
-    color: var(--tang-ink);
-  }
-  [data-mode="night"] .lyr {
-    display: inline-flex;
-  }
 
   /* ---------- archive: a hand of cards ---------- */
   .arch {
@@ -571,13 +547,6 @@
     border-radius: inherit;
     box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--ink) 8%, transparent);
     pointer-events: none;
-  }
-  .arch[data-tidy="true"]:not([data-open="true"]) .fcard {
-    transform-origin: 50% 50%;
-    --tx: calc(var(--k) * var(--step, 0px));
-    --ty: -70px;
-    --r2: 0deg;
-    --s: var(--ts, 0.4);
   }
   .arch[data-open="true"] .fcard {
     --tx: 0px;
@@ -686,9 +655,6 @@
     height: 100%;
     display: block;
   }
-  [data-mode="night"] .bkn .smi {
-    cursor: pointer;
-  }
   /* Each piece lands slightly off, like a fresh paste, then snaps home. */
   html:not([data-motion="calm"]) .bkn > * {
     opacity: 0;
@@ -700,14 +666,6 @@
   html:not([data-motion="calm"]) .bkn > [data-in] {
     opacity: 1;
     transform: none;
-  }
-  .crew {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    align-items: center;
-    gap: 10px 18px;
-    min-height: 32px;
   }
 
   /* ---------- Wessel's marks on the page layer ---------- */
@@ -753,17 +711,6 @@
     z-index: 6;
     background: var(--tang);
     animation: hig 700ms var(--ease-ui) both;
-  }
-  .lt-lab {
-    position: absolute;
-    z-index: 6;
-    translate: -50% -100%;
-    padding: 3px 6px;
-    border: 1px solid var(--line);
-    border-radius: var(--radius-tag);
-    background: var(--canvas);
-    color: var(--mute);
-    animation: ltl 260ms var(--ease-spring) both;
   }
   .ovl > .hi-chip {
     position: absolute;
@@ -862,9 +809,6 @@
     .arch[data-open="true"] .fcard[data-hot="true"] {
       --ty: calc(var(--lift) - 20px);
     }
-    .arch[data-tidy="true"]:not([data-open="true"]) .fcard {
-      --ty: -40px;
-    }
     .fcap {
       top: calc(56% + 20px);
     }
@@ -946,12 +890,6 @@
   from {
     transform: scale(0.4) rotate(-8deg);
     opacity: 0;
-  }
-}
-@keyframes ltl {
-  from {
-    opacity: 0;
-    transform: translateY(4px);
   }
 }
 @keyframes kin {

@@ -4,7 +4,7 @@ import { useBeat } from "@/components/canvas/useBeat";
 import { live, select, wait, wessel } from "@/lib/wessel";
 
 /**
- * The case's opening job: by day Wessel clicks the project video and
+ * The case's opening job: Wessel clicks the project video and
  * selects it, size pill and all, like opening the frame in Figma.
  */
 export function HeroBeat({ children }: { children: React.ReactNode }) {

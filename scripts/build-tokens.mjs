@@ -1,6 +1,6 @@
 // Compiles design/tokens.json + design/motion-tokens.json into
 // src/styles/tokens.css: one block of CSS variables per mode
-// ([data-mode="light|dark|night"]), the shared scale, Tailwind @theme
+// ([data-mode="light|dark"]), the shared scale, Tailwind @theme
 // mappings and one @utility per text style.
 //
 // Run with `npm run tokens` (also runs before dev and build).
@@ -15,8 +15,8 @@ const tokens = JSON.parse(readFileSync(resolve(root, "design/tokens.json"), "utf
 const motion = JSON.parse(readFileSync(resolve(root, "design/motion-tokens.json"), "utf8"));
 const out = resolve(root, "src/styles/tokens.css");
 
-const MODES = ["light", "dark", "night"];
-const SCHEME = { light: "light", dark: "dark", night: "dark" };
+const MODES = ["light", "dark"];
+const SCHEME = { light: "light", dark: "dark" };
 
 // Mobile steps from DESIGN.md §4 and §5 (below the 900px stack breakpoint).
 // They live only in the token descriptions, so they're listed here once.

@@ -91,19 +91,6 @@
   .lsel[data-on="true"] {
     opacity: 1;
   }
-  .lcur {
-    position: absolute;
-    left: 0;
-    top: 0;
-    z-index: 5;
-    transition: transform var(--dur-spring) var(--ease-spring);
-  }
-  .lcur .ptr {
-    transition: transform 120ms var(--ease-ui);
-  }
-  .lcur[data-press="true"] .ptr {
-    transform: scale(0.82);
-  }
 
   .secs {
     display: grid;
@@ -158,10 +145,6 @@
     opacity: 1;
     scale: 1;
   }
-  /* His notes, so not while he sleeps. */
-  html[data-mode="night"] .sc .fpin {
-    display: none;
-  }
   .sc .fpin .bub {
     white-space: normal;
     max-width: 220px;
@@ -179,7 +162,7 @@
       align-self: flex-start;
     }
   }
-  html[data-motion="calm"] :is(.lsel, .lcur, .sc .fpin) {
+  html[data-motion="calm"] :is(.lsel, .sc .fpin) {
     transition: none;
   }
 }

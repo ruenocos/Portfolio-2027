@@ -22,7 +22,7 @@ export function Shell({ children }: { children: React.ReactNode }) {
           <main id="main" tabIndex={-1}>{children}</main>
           <Footer />
         </PageFade>
-        {/* Wessel's marks and the night bots: page coordinates, so they scroll with it. */}
+        {/* Wessel's marks: page coordinates, so they scroll with it. */}
         <div id="ovl" className="ovl" aria-hidden="true" />
       </div>
       <ContactPill />

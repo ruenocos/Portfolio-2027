@@ -5,14 +5,12 @@ import { TextLink } from "@/components/parts/TextLink";
 import { useBeat } from "@/components/canvas/useBeat";
 import type { HomeContent } from "@/content/home";
 import { getMotion } from "@/lib/motion";
-import { Bot, live, pageBox, put, wait, wessel } from "@/lib/wessel";
-
-const clock = new Intl.DateTimeFormat("en-GB", { hour: "2-digit", minute: "2-digit", timeZone: "Europe/Amsterdam" });
+import { live, wait, wessel } from "@/lib/wessel";
 
 /**
  * About (DESIGN.md §6): the story left, a deck of three photos right. A
- * click (or Wessel, once by day) slides the top photo out and tucks it
- * behind. At night the Content update bot refreshes the top photo.
+ * click (or Wessel, once) slides the top photo out and tucks it
+ * behind.
  */
 export function About({ about: c }: { about: HomeContent["about"] }) {
   const n = c.photos.length;
@@ -47,28 +45,6 @@ export function About({ about: c }: { about: HomeContent["about"] }) {
       await wait(500);
       live(g);
       await wessel.go(wessel.at(d, 0.5, 1, 40, -20), { k: 150 });
-    },
-    async night(g) {
-      const top = deck.current?.querySelector('.dk[data-p="0"]');
-      if (!top) return;
-      const U = new Bot("Content update");
-      const r = pageBox(top);
-      await U.to(r.x + r.w * 0.86, r.y + r.h * 0.86);
-      live(g);
-      U.press(true);
-      const sweep = put("sweep", "", [r.x + 12, r.y + 10, r.w - 24]);
-      requestAnimationFrame(() => requestAnimationFrame(() => (sweep.style.transform = `translateY(${r.h - 20}px)`)));
-      await wait(720);
-      sweep.style.opacity = "0";
-      setTimeout(() => sweep.remove(), 300);
-      live(g);
-      U.press(false);
-      const pill = put("opill hi-chip pop text-micro-caps", "Local time ", [r.x + 14, r.y + r.h - 44]);
-      const b = document.createElement("b");
-      b.textContent = clock.format(new Date());
-      pill.appendChild(b);
-      await wait(200);
-      await U.leave();
     },
   });
 
