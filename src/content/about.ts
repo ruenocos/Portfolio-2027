@@ -2,11 +2,7 @@ import type { Fact } from "@/components/parts/Facts";
 import { FALLBACK_HOME, type Photo } from "./home";
 
 export type Job = { when: string; place: string; role: string };
-/** One shape per kind of thing, and it sets the fill: card and board
- * games are cards, making is a hexagon, moving is a ball, people and play
- * are pills. */
-export type StickerKind = "card" | "hex" | "round" | "pill";
-export type Sticker = { text: string; kind: StickerKind };
+export type Sticker = { text: string; tone: "tang" | "grape" | "ink" | "outline"; size?: "s" | "m" | "l" };
 export type AboutContent = {
   hello: string;
   lead: string;
@@ -42,24 +38,24 @@ export const FALLBACK_ABOUT: AboutContent = {
     { when: "2017 – 2020", place: "ROC Horizon College", role: "Applicatie & Media ontwikkeling" },
   ],
   stickers: [
-    // Off screen v11 (2026-10-28). Wons's list as playful single words
-    // (game titles stay as they are); MoveEeE dropped at Wons's ask.
-    // Codenames, Ticket to Ride and Exploding Kittens are suggestions
-    // Wons invited ("add some more board game names").
-    { text: "Catan", kind: "card" },
-    { text: "Flip 7", kind: "card" },
-    { text: "Dalmuti", kind: "card" },
-    { text: "Monopoly", kind: "card" },
-    { text: "Codenames", kind: "card" },
-    { text: "Ticket to Ride", kind: "card" },
-    { text: "Exploding Kittens", kind: "card" },
-    { text: "Tinkering", kind: "hex" },
-    { text: "Rabbitholes", kind: "hex" },
-    { text: "Tutorials", kind: "hex" },
-    { text: "Sweating", kind: "round" },
-    { text: "Gymming", kind: "round" },
-    { text: "Mates", kind: "pill" },
-    { text: "Rematch", kind: "pill" },
-    { text: "Button-mashing", kind: "pill" },
+    // Off screen v12 (2026-10-28): the original board in three sizes, the
+    // big themes large and the single games small. MoveEeE dropped at
+    // Wons's ask; Codenames, Ticket to Ride and Exploding Kittens are
+    // suggestions Wons invited ("add some more board game names").
+    { text: "Sports", tone: "tang", size: "l" },
+    { text: "Board games", tone: "grape", size: "l" },
+    { text: "Friends", tone: "ink", size: "l" },
+    { text: "A bit of gaming", tone: "outline" },
+    { text: "Learning new things", tone: "tang" },
+    { text: "Catan", tone: "grape", size: "s" },
+    { text: "Flip 7", tone: "tang", size: "s" },
+    { text: "Dalmuti", tone: "outline", size: "s" },
+    { text: "Monopoly", tone: "ink", size: "s" },
+    { text: "Codenames", tone: "outline", size: "s" },
+    { text: "Ticket to Ride", tone: "grape", size: "s" },
+    { text: "Exploding Kittens", tone: "tang", size: "s" },
+    { text: "Gym", tone: "tang" },
+    { text: "Tinkering", tone: "grape" },
+    { text: "YouTube", tone: "outline" },
   ],
 };

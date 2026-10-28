@@ -157,41 +157,33 @@
     background: var(--grape);
     color: var(--on-grape);
   }
-  /* Four kinds, four shapes, one fill each. The hexagon is an SVG
-     behind the words (so it keeps a real shadow); the others are boxes.
-     Words sit top-left on the card and centred on the rest. */
+  /* Pills in three sizes: same words, same colours, a little more or
+     less pill around them. */
   .stk {
-    --fill: var(--canvas);
-    --on: var(--ink);
-    --shadow: 0 1px 0 rgb(0 0 0 / 0.06), 0 12px 24px -14px rgb(0 0 0 / 0.4);
-    --shadow-up: 0 1px 0 rgb(0 0 0 / 0.06), 0 26px 40px -18px rgb(0 0 0 / 0.5);
+    --shadow: 0 2px 0 rgb(0 0 0 / 0.08), 0 14px 26px -16px rgb(0 0 0 / 0.45);
+    --shadow-up: 0 2px 0 rgb(0 0 0 / 0.08), 0 24px 36px -16px rgb(0 0 0 / 0.5);
     position: absolute;
     left: 0;
     top: 0;
-    isolation: isolate;
-    display: flex;
+    display: inline-flex;
     align-items: center;
-    justify-content: center;
-    padding: 12px;
-    font-family: var(--font-display);
-    font-weight: 500;
-    font-size: var(--type-lead-size);
-    line-height: 1.1;
-    letter-spacing: -0.01em;
-    text-align: center;
-    color: var(--on);
-    background: var(--fill);
-    box-shadow: var(--shadow);
+    padding: 14px 22px;
+    border-radius: var(--radius-pill);
+    white-space: nowrap;
     touch-action: none;
     cursor: grab;
     user-select: none;
+    box-shadow: var(--shadow);
     will-change: translate, rotate;
     transition:
       scale var(--dur-ui) var(--ease-ui),
       box-shadow var(--dur-ui) var(--ease-ui);
   }
-  .stk > span {
-    position: relative;
+  .stk[data-size="l"] {
+    padding: 20px 30px;
+  }
+  .stk[data-size="s"] {
+    padding: 10px 16px;
   }
   @media (hover: hover) and (pointer: fine) {
     .stk:hover {
@@ -207,74 +199,22 @@
     outline: 2px solid var(--grape);
     outline-offset: 3px;
   }
-  .stk[data-kind="card"] {
-    --fill: var(--grape);
-    --on: var(--on-grape);
-    align-items: flex-start;
-    justify-content: flex-start;
-    width: 128px;
-    height: 180px;
-    padding: 14px 12px;
-    border-radius: 10px;
-    text-align: left;
+  .stk[data-tone="tang"] {
+    background: var(--tang);
+    color: var(--on-tang);
   }
-  /* The one card detail: an index like a rank, turned, in the far corner. */
-  .stk[data-kind="card"]::after {
-    content: attr(data-label);
-    position: absolute;
-    right: 12px;
-    bottom: 10px;
-    font-family: var(--font-mono);
-    font-size: var(--type-micro-size);
-    font-weight: 500;
-    letter-spacing: 0.06em;
-    rotate: 180deg;
-    opacity: 0.6;
+  .stk[data-tone="grape"] {
+    background: var(--grape);
+    color: var(--on-grape);
   }
-  .stk[data-kind="hex"] {
-    --fill: var(--ink);
-    --on: var(--canvas);
-    width: 136px;
-    height: 156px;
-    background: none;
-    box-shadow: none;
+  .stk[data-tone="ink"] {
+    background: var(--ink);
+    color: var(--canvas);
   }
-  .shp {
-    position: absolute;
-    inset: 0;
-    z-index: -1;
-    width: 100%;
-    height: 100%;
-    overflow: visible;
-    fill: var(--fill);
-    stroke: var(--fill);
-    filter: drop-shadow(0 1px 0 rgb(0 0 0 / 0.06)) drop-shadow(0 10px 12px rgb(0 0 0 / 0.2));
-    transition: filter var(--dur-ui) var(--ease-ui);
-  }
-  .stk[data-drag] .shp {
-    filter: drop-shadow(0 1px 0 rgb(0 0 0 / 0.06)) drop-shadow(0 22px 20px rgb(0 0 0 / 0.26));
-  }
-  /* Focus hugs the hexagon instead of drawing a box around it. */
-  .stk[data-kind="hex"]:focus-visible {
-    outline: none;
-  }
-  .stk[data-kind="hex"]:focus-visible .shp {
-    stroke: var(--grape);
-  }
-  .stk[data-kind="round"] {
-    --fill: var(--tang);
-    --on: var(--on-tang);
-    width: 120px;
-    height: 120px;
-    padding: 0 10px;
-    border-radius: 50%;
-  }
-  .stk[data-kind="pill"] {
-    --shadow: inset 0 0 0 1.5px var(--ink), 0 12px 24px -14px rgb(0 0 0 / 0.4);
-    --shadow-up: inset 0 0 0 1.5px var(--ink), 0 26px 40px -18px rgb(0 0 0 / 0.5);
-    padding: 16px 24px;
-    border-radius: var(--radius-pill);
-    white-space: nowrap;
+  .stk[data-tone="outline"] {
+    background: var(--canvas);
+    color: var(--ink);
+    border: 1.5px solid var(--ink);
   }
 
   @media (width < 900px) {
@@ -294,35 +234,16 @@
       padding: 18px var(--spacing-inset);
     }
     .board {
-      min-height: 720px;
+      min-height: 600px;
     }
     .stk {
-      font-size: var(--type-body-size);
-    }
-    .stk[data-kind="card"] {
-      width: 96px;
-      height: 135px;
-      padding: 10px;
-      font-size: var(--type-small-size);
-    }
-    .stk[data-kind="card"]::after {
-      right: 9px;
-      bottom: 8px;
-    }
-    .stk[data-kind="hex"] {
-      width: 98px;
-      height: 112px;
-      padding: 8px;
-      font-size: var(--type-small-size);
-    }
-    .stk[data-kind="round"] {
-      width: 92px;
-      height: 92px;
-      padding: 0 8px;
-      font-size: var(--type-small-size);
-    }
-    .stk[data-kind="pill"] {
       padding: 12px 18px;
+    }
+    .stk[data-size="l"] {
+      padding: 16px 24px;
+    }
+    .stk[data-size="s"] {
+      padding: 8px 14px;
     }
   }
   html[data-motion="calm"] :is(.pcard, .stk) {

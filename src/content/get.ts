@@ -193,7 +193,7 @@ type AboutDoc = {
   photos?: { src?: string; alt?: string }[];
   facts?: { label?: string; value?: string; sub?: string }[];
   experience?: { when?: string; place?: string; role?: string; slug?: string; hasCase?: boolean }[];
-  stickers?: { text?: string; kind?: Sticker["kind"] }[];
+  stickers?: { text?: string; tone?: Sticker["tone"]; size?: Sticker["size"] }[];
 };
 
 /** About: Sanity first, the approved v07 copy for whatever is still empty. */
@@ -209,7 +209,7 @@ export async function getAbout(o: FetchOptions = published): Promise<AboutConten
   const photos = (d.photos ?? []).filter((p): p is { src: string; alt: string } => !!p.src && !!p.alt);
   const facts = (d.facts ?? []).filter((x) => x.label && x.value);
   const jobs = (d.experience ?? []).filter((j) => j.when && j.place && j.role);
-  const stickers = (d.stickers ?? []).filter((s): s is Sticker => !!s.text && !!s.kind);
+  const stickers = (d.stickers ?? []).filter((s): s is Sticker => !!s.text);
   return {
     hello: d.hello || f.hello,
     lead: d.lead || f.lead,
@@ -222,7 +222,14 @@ export async function getAbout(o: FetchOptions = published): Promise<AboutConten
           role: j.role!,
         }))
       : f.experience,
-    stickers: stickers.length ? stickers.map((s) => ({ text: s.text, kind: s.kind })) : f.stickers,
+    stickers: stickers.length
+      ? stickers.map((s) => ({
+          text: s.text,
+          tone: s.tone ?? "tang",
+          // Stickers saved before sizes existed take the size of the same word here.
+          size: s.size ?? f.stickers.find((x) => x.text === s.text)?.size,
+        }))
+      : f.stickers,
   };
 }
 

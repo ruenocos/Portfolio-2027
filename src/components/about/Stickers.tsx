@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import type { Body as MBody, Constraint as MConstraint, Engine as MEngine } from "matter-js";
 import { useBeat } from "@/components/canvas/useBeat";
-import type { Sticker, StickerKind } from "@/content/about";
+import type { Sticker } from "@/content/about";
 import { announce, getMotion } from "@/lib/motion";
 import { live, wait, wessel, type XY } from "@/lib/wessel";
 
@@ -28,39 +28,15 @@ const now = () => performance.now();
 const calm = () => getMotion().calm;
 const DT = 1000 / 60;
 
-// A card's corner index, like a rank: the initials, or the first two
-// letters of a one-word name (so Catan and Codenames don't share a "C").
-const index = (t: string) => {
-  const w = t.split(/\s+/);
-  return (w.length > 1 ? w.map((x) => x[0]).join("") : t.slice(0, 2)).slice(0, 3).toUpperCase();
-};
-
-// The hexagon, pointy-top, at its desktop size (the phone scales it
-// evenly). The physics body uses the same points; r rounds the corners.
-const HEX = { w: 136, h: 156, r: 12, pts: [[68, 0], [136, 39], [136, 117], [68, 156], [0, 117], [0, 39]] };
-// Inset by r and stroked r wide with round joins: the same outline with
-// soft corners.
-const HEX_SOFT = HEX.pts
-  .map(([x, y]) => `${(HEX.w / 2 + (x - HEX.w / 2) * (1 - (2 * HEX.r) / HEX.w)).toFixed(1)},${(HEX.h / 2 + (y - HEX.h / 2) * (1 - (2 * HEX.r) / HEX.h)).toFixed(1)}`)
-  .join(" ");
-
-// One shape per kind of thing, and each keeps its own feel when it
-// lands: cards are light and flat, hexagons are heavy, balls bounce.
-const ORDER: StickerKind[] = ["card", "hex", "round", "pill"];
-const FEEL: Record<StickerKind, { restitution: number; frictionAir: number; density: number }> = {
-  card: { restitution: 0.1, frictionAir: 0.022, density: 0.0011 },
-  hex: { restitution: 0.12, frictionAir: 0.012, density: 0.0022 },
-  round: { restitution: 0.5, frictionAir: 0.008, density: 0.0014 },
-  pill: { restitution: 0.25, frictionAir: 0.012, density: 0.0016 },
-};
+// Big ones land at the bottom when tidied, the small ones on top.
+const SIZES = ["l", "m", "s"] as const;
+const rank = (s: Sticker) => SIZES.indexOf(s.size ?? "m");
 
 /**
- * Off screen (About v11): hobby stickers with weight, four shapes for four
- * kinds of thing: cards (card and board games), hexagons (making), balls
- * (moving), pills (people and play). They fall into the
- * board when it scrolls in, pile up and knock into each other. Grab one
- * and throw it; arrow keys push it, Enter makes it hop. "Tidy up" sorts
- * them into a row per kind like auto layout; "Mess it up" tosses them.
+ * Off screen: hobby stickers with weight, in three sizes. They fall into
+ * the board when it scrolls in, pile up and knock into each other. Grab
+ * one and throw it; arrow keys push it, Enter makes it hop. "Tidy up"
+ * lines them into rows, biggest at the bottom; "Mess it up" tosses them.
  * Wessel picks one up and drops it.
  * Physics (matter-js) loads only here, when the board is near.
  */
@@ -94,16 +70,9 @@ export function Stickers({ items }: { items: Sticker[] }) {
       }
       const { w, h } = size(i);
       e.style.visibility = "";
-      // A body sits on its centre of mass; the element turns about its box
-      // centre. off is the gap between the two, turned with the body.
-      const o = b.plugin.off ?? { x: 0, y: 0 };
-      const c = Math.cos(b.angle);
-      const sn = Math.sin(b.angle);
-      const x = b.position.x - (o.x * c - o.y * sn);
-      const y = b.position.y - (o.x * sn + o.y * c);
       // translate and rotate as their own properties, so the CSS scale on
       // hover and drag grows the sticker in place instead of shifting it.
-      e.style.translate = `${(x - w / 2).toFixed(1)}px ${(y - h / 2).toFixed(1)}px`;
+      e.style.translate = `${(b.position.x - w / 2).toFixed(1)}px ${(b.position.y - h / 2).toFixed(1)}px`;
       e.style.rotate = `${b.angle.toFixed(3)}rad`;
     });
   };
@@ -111,20 +80,15 @@ export function Stickers({ items }: { items: Sticker[] }) {
   const add = (i: number, x: number, y: number, a = rnd(-0.25, 0.25)) => {
     const P = pile.current!;
     const { w, h } = size(i);
-    const k = items[i].kind;
-    const opts = { angle: a, friction: 0.5, ...FEEL[k] };
-    // The body matches what you see: balls roll, cards and pills keep
-    // their corners, the hexagon is its own six points.
-    let off = { x: 0, y: 0 };
-    let b: MBody;
-    if (k === "round") b = P.M.Bodies.circle(x, y, w / 2, opts);
-    else if (k === "hex") {
-      const v = HEX.pts.map(([px, py]) => ({ x: ((px - HEX.w / 2) * w) / HEX.w, y: ((py - HEX.h / 2) * h) / HEX.h }));
-      off = P.M.Vertices.centre(v);
-      b = P.M.Bodies.fromVertices(x + off.x, y + off.y, [v], { ...opts, angle: 0 });
-      P.M.Body.setAngle(b, a);
-    } else b = P.M.Bodies.rectangle(x, y, w, h, { ...opts, chamfer: { radius: k === "card" ? 10 : h / 2 - 1 } });
-    b.plugin = { w, h, off };
+    const b = P.M.Bodies.rectangle(x, y, w, h, {
+      chamfer: { radius: h / 2 - 1 },
+      angle: a,
+      restitution: 0.25,
+      friction: 0.5,
+      frictionAir: 0.012,
+      density: 0.0016,
+    });
+    b.plugin = { w, h };
     P.bodies[i] = b;
     P.M.Composite.add(P.engine.world, b);
     return b;
@@ -156,51 +120,34 @@ export function Stickers({ items }: { items: Sticker[] }) {
     draw();
   };
 
-  // The slots "Tidy up" sorts them into: kind by kind, cards at the
-  // bottom. Kinds share a row when they fit (a wider gap apart); a kind
-  // that has to wrap gets its own rows, balanced so none is left alone.
-  // Each row is centred and sits bottom-aligned on the one below.
+  // The slots "Tidy up" lines them into: rows along the bottom, left
+  // first, big before small. Each row sits on the one below it.
   const slots = () => {
     const b = board.current!;
     const W = b.clientWidth;
     const H = b.clientHeight;
-    const phone = innerWidth < 900;
-    const pad = phone ? 20 : 40;
-    const gap = phone ? 8 : 12;
-    const apart = phone ? 16 : 32;
-    const room = W - 2 * pad;
-    const span = (r: number[]) => r.reduce((t, i, n) => t + size(i).w + (n ? (items[r[n - 1]].kind === items[i].kind ? gap : apart) : 0), 0);
-    const rows: number[][] = [];
-    ORDER.forEach((k) => {
-      const kind = items.map((it, i) => (it.kind === k ? i : -1)).filter((i) => i >= 0);
-      if (!kind.length) return;
-      const last = rows.at(-1);
-      if (last && span([...last, ...kind]) <= room) {
-        last.push(...kind);
-        return;
+    const pad = innerWidth < 900 ? 20 : 40;
+    const gap = 10;
+    const order = items.map((_, i) => i).sort((x, y) => rank(items[x]) - rank(items[y]));
+    const rows: number[][] = [[]];
+    let rw = pad;
+    order.forEach((i) => {
+      const { w } = size(i);
+      if (rw + w > W - pad && rows.at(-1)!.length) {
+        rows.push([]);
+        rw = pad;
       }
-      if (span(kind) <= room) {
-        rows.push(kind);
-        return;
-      }
-      // Wrap: as many per row as fit, then spread them evenly over the rows.
-      let fit = 1;
-      while (fit < kind.length && span(kind.slice(0, fit + 1)) <= room) fit++;
-      const n = Math.ceil(kind.length / fit);
-      for (let j = 0, at = 0; j < n; j++) {
-        const take = Math.floor(kind.length / n) + (j < kind.length % n ? 1 : 0);
-        rows.push(kind.slice(at, (at += take)));
-      }
+      rows.at(-1)!.push(i);
+      rw += w + gap;
     });
     const out: { x: number; y: number }[] = [];
     let base = H - pad;
     rows.forEach((r) => {
-      let x = (W - span(r)) / 2;
-      r.forEach((i, n) => {
+      let x = pad;
+      r.forEach((i) => {
         const { w, h } = size(i);
-        if (n) x += items[r[n - 1]].kind === items[i].kind ? gap : apart;
         out[i] = { x: x + w / 2, y: base - h / 2 };
-        x += w;
+        x += w + gap;
       });
       base -= Math.max(...r.map((i) => size(i).h)) + gap;
     });
@@ -289,11 +236,11 @@ export function Stickers({ items }: { items: Sticker[] }) {
       if (!P || !seen || dead) return;
       if (P.tidyTo) {
         // Each sticker glides from where it lay to its slot (ease-out
-        // quart), kind by kind, 24ms apart, so the sort reads as a wave.
+        // quart), 24ms apart, so the sort reads as a wave.
         let done = true;
         P.bodies.forEach((bd, i) => {
           if (!bd) return;
-          const t = Math.min(1, Math.max(0, (now() - P.tidyT - ORDER.indexOf(items[i].kind) * 60 - i * 24) / 560));
+          const t = Math.min(1, Math.max(0, (now() - P.tidyT - i * 24) / 560));
           if (t < 1) done = false;
           const e = 1 - Math.pow(1 - t, 4);
           const f = P.tidyFrom[i];
@@ -551,14 +498,14 @@ export function Stickers({ items }: { items: Sticker[] }) {
         {items.map((s, i) => {
           return (
             <button
-              key={`${s.kind}-${i}`}
+              key={`${s.text}-${i}`}
               ref={(el) => {
                 els.current[i] = el;
               }}
               type="button"
-              className="stk"
-              data-kind={s.kind}
-              data-label={s.kind === "card" ? index(s.text) : undefined}
+              className={`stk ${s.size === "s" ? "text-body" : "text-lead"}`}
+              data-tone={s.tone}
+              data-size={s.size ?? "m"}
               data-drag={dragging === i ? "" : undefined}
               aria-describedby="stk-help"
               style={{ visibility: "hidden", zIndex: 5 + z.indexOf(i) }}
@@ -566,12 +513,7 @@ export function Stickers({ items }: { items: Sticker[] }) {
               onKeyDown={key(i)}
               onClick={(e) => e.detail === 0 && hop(i)}
             >
-              {s.kind === "hex" && (
-                <svg className="shp" viewBox={`0 0 ${HEX.w} ${HEX.h}`} aria-hidden="true">
-                  <polygon points={HEX_SOFT} strokeWidth={HEX.r * 2} strokeLinejoin="round" />
-                </svg>
-              )}
-              <span>{s.text}</span>
+              {s.text}
             </button>
           );
         })}
