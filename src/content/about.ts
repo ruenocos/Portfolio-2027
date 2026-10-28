@@ -2,7 +2,10 @@ import type { Fact } from "@/components/parts/Facts";
 import { FALLBACK_HOME, type Photo } from "./home";
 
 export type Job = { when: string; place: string; role: string };
-export type Sticker = { text: string; tone: "tang" | "grape" | "ink" | "outline" };
+export type StickerShape = "pill" | "round" | "card" | "tile";
+export type StickerSize = "s" | "m" | "l";
+/** shape and size are optional: a plain sticker is a medium pill. */
+export type Sticker = { text: string; tone: "tang" | "grape" | "ink" | "outline"; shape?: StickerShape; size?: StickerSize };
 export type AboutContent = {
   hello: string;
   lead: string;
@@ -38,19 +41,21 @@ export const FALLBACK_ABOUT: AboutContent = {
     { when: "2017 – 2020", place: "ROC Horizon College", role: "Applicatie & Media ontwikkeling" },
   ],
   stickers: [
-    { text: "Sports", tone: "tang" },
-    { text: "Board games", tone: "grape" },
-    { text: "Friends", tone: "ink" },
+    // Shapes follow what the thing is (2026-10-28): the card games are
+    // playing cards, short words are round, the big ones are tiles.
+    { text: "Sports", tone: "tang", shape: "round", size: "l" },
+    { text: "Board games", tone: "grape", shape: "tile", size: "l" },
+    { text: "Friends", tone: "ink", size: "l" },
     { text: "A bit of gaming", tone: "outline" },
-    { text: "Learning new things", tone: "tang" },
+    { text: "Learning new things", tone: "tang", shape: "tile", size: "m" },
     // Added by Wons 2026-10-27 ("more items … react to each other").
-    { text: "Catan", tone: "grape" },
-    { text: "Flip 7", tone: "tang" },
-    { text: "Dalmuti", tone: "outline" },
-    { text: "Monopoly", tone: "ink" },
-    { text: "Gym", tone: "tang" },
-    { text: "Tinkering", tone: "grape" },
-    { text: "YouTube", tone: "outline" },
-    { text: "MoveEeE", tone: "ink" },
+    { text: "Catan", tone: "grape", shape: "card" },
+    { text: "Flip 7", tone: "tang", shape: "card" },
+    { text: "Dalmuti", tone: "outline", shape: "card" },
+    { text: "Monopoly", tone: "ink", shape: "card" },
+    { text: "Gym", tone: "tang", shape: "round", size: "s" },
+    { text: "Tinkering", tone: "grape", size: "s" },
+    { text: "YouTube", tone: "outline", size: "s" },
+    { text: "MoveEeE", tone: "ink", shape: "round" },
   ],
 };

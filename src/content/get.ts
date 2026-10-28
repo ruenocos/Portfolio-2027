@@ -193,7 +193,7 @@ type AboutDoc = {
   photos?: { src?: string; alt?: string }[];
   facts?: { label?: string; value?: string; sub?: string }[];
   experience?: { when?: string; place?: string; role?: string; slug?: string; hasCase?: boolean }[];
-  stickers?: { text?: string; tone?: Sticker["tone"] }[];
+  stickers?: { text?: string; tone?: Sticker["tone"]; shape?: Sticker["shape"]; size?: Sticker["size"] }[];
 };
 
 /** About: Sanity first, the approved v07 copy for whatever is still empty. */
@@ -222,7 +222,13 @@ export async function getAbout(o: FetchOptions = published): Promise<AboutConten
           role: j.role!,
         }))
       : f.experience,
-    stickers: stickers.length ? stickers.map((s) => ({ text: s.text, tone: s.tone ?? "tang" })) : f.stickers,
+    stickers: stickers.length
+      ? stickers.map((s) => {
+          // A sticker without a shape yet takes the approved one for its words.
+          const was = f.stickers.find((x) => x.text === s.text);
+          return { text: s.text, tone: s.tone ?? "tang", shape: s.shape ?? was?.shape, size: s.size ?? was?.size };
+        })
+      : f.stickers,
   };
 }
 

@@ -40,7 +40,7 @@ export const ABOUT_QUERY = defineQuery(`*[_id == "about"][0]{
   "photos": photos[]{ "src": asset->url, alt },
   facts[]{ label, value, sub },
   experience[]{ when, place, role, "slug": case->slug.current, "hasCase": case->hasCase },
-  stickers[]{ text, tone }
+  stickers[]{ text, tone, shape, size }
 }`);
 
 export const PLAYGROUND_QUERY = defineQuery(`*[_type == "playgroundPiece" && defined(image.asset)] | order(order asc){

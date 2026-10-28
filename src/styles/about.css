@@ -199,6 +199,118 @@
     border: 1.5px solid var(--ink);
   }
 
+  /* Shapes and sizes (2026-10-28). Pill is the default above; s and l
+     only change the padding, the type step comes from the class. */
+  .stk[data-size="s"] {
+    padding: 10px 16px;
+  }
+  .stk[data-size="l"] {
+    padding: 18px 30px;
+  }
+  .stk:is([data-shape="round"], [data-shape="card"], [data-shape="tile"]) {
+    --fs: var(--type-lead-size);
+    font-family: var(--font-display);
+    font-size: var(--fs);
+    line-height: 1.15;
+    white-space: normal;
+  }
+  .stk[data-size="s"]:not([data-shape="pill"]) {
+    --fs: var(--type-body-size);
+  }
+  .stk[data-size="l"]:not([data-shape="pill"]) {
+    --fs: var(--type-title-size);
+  }
+  .stk[data-shape="round"] {
+    justify-content: center;
+    width: var(--d, 104px);
+    height: var(--d, 104px);
+    padding: 0 12px;
+    border-radius: 50%;
+    text-align: center;
+  }
+  .stk[data-shape="round"][data-size="s"] {
+    --d: 76px;
+  }
+  .stk[data-shape="round"][data-size="l"] {
+    --d: 132px;
+  }
+  /* A playing card: name in the top corner, turned again in the bottom one. */
+  .stk[data-shape="card"] {
+    align-items: flex-start;
+    width: 120px;
+    height: 168px;
+    padding: 12px 14px;
+    border-radius: 12px;
+  }
+  .stk[data-shape="card"]::after {
+    content: attr(data-label);
+    position: absolute;
+    right: 14px;
+    bottom: 12px;
+    font-family: var(--font-mono);
+    font-size: var(--type-micro-size);
+    line-height: 14px;
+    letter-spacing: 0.04em;
+    rotate: 180deg;
+    opacity: 0.7;
+  }
+  .stk[data-shape="tile"] {
+    align-items: flex-end;
+    width: 176px;
+    height: 176px;
+    padding: 18px 20px;
+    border-radius: 20px;
+  }
+  .stk[data-shape="tile"][data-size="l"] {
+    width: 216px;
+    height: 216px;
+  }
+  .stk[data-shape="die"] {
+    width: 64px;
+    height: 64px;
+    padding: 10px;
+    border-radius: 14px;
+  }
+  .pips {
+    display: grid;
+    grid-template: repeat(3, 1fr) / repeat(3, 1fr);
+    place-items: center;
+    width: 100%;
+    height: 100%;
+  }
+  .pips > i {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+  }
+  .pips > i[data-on] {
+    background: currentColor;
+  }
+  .stk[data-shape="smiley"] {
+    justify-content: center;
+    width: 112px;
+    height: 112px;
+    padding: 0;
+    border-radius: 50%;
+  }
+  .stk[data-shape="smiley"] svg {
+    width: 76%;
+    height: 76%;
+  }
+  .stk[data-shape="photo"] {
+    flex-direction: column;
+    width: 136px;
+    padding: 8px 8px 30px;
+    border-radius: 4px;
+  }
+  .stk[data-shape="photo"] img {
+    width: 120px;
+    height: 120px;
+    object-fit: cover;
+    border-radius: 2px;
+    pointer-events: none;
+  }
+
   @media (width < 900px) {
     .abhero {
       grid-template-columns: minmax(0, 1fr);
@@ -216,10 +328,70 @@
       padding: 18px var(--spacing-inset);
     }
     .board {
-      min-height: 600px;
+      min-height: 820px;
     }
     .stk {
       padding: 12px 18px;
+    }
+    .stk[data-size="s"] {
+      padding: 8px 14px;
+    }
+    .stk:is([data-shape="round"], [data-shape="card"], [data-shape="tile"]) {
+      --fs: var(--type-body-size);
+    }
+    .stk[data-size="s"]:not([data-shape="pill"]) {
+      --fs: var(--type-small-size);
+    }
+    .stk[data-size="l"]:not([data-shape="pill"]) {
+      --fs: var(--type-title-size);
+    }
+    .stk[data-shape="round"] {
+      --d: 84px;
+    }
+    .stk[data-shape="round"][data-size="s"] {
+      --d: 64px;
+    }
+    .stk[data-shape="round"][data-size="l"] {
+      --d: 104px;
+    }
+    .stk[data-shape="card"] {
+      width: 92px;
+      height: 128px;
+      padding: 10px 12px;
+    }
+    .stk[data-shape="card"]::after {
+      right: 12px;
+      bottom: 10px;
+    }
+    .stk[data-shape="tile"] {
+      width: 120px;
+      height: 120px;
+      padding: 14px 16px;
+    }
+    .stk[data-shape="tile"][data-size="l"] {
+      width: 140px;
+      height: 140px;
+    }
+    .stk[data-shape="die"] {
+      width: 52px;
+      height: 52px;
+      padding: 8px;
+    }
+    .pips > i {
+      width: 7px;
+      height: 7px;
+    }
+    .stk[data-shape="smiley"] {
+      width: 84px;
+      height: 84px;
+    }
+    .stk[data-shape="photo"] {
+      width: 100px;
+      padding: 6px 6px 22px;
+    }
+    .stk[data-shape="photo"] img {
+      width: 88px;
+      height: 88px;
     }
   }
   html[data-motion="calm"] :is(.pcard, .stk) {

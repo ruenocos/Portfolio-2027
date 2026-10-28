@@ -5,6 +5,7 @@ import type { Body as MBody, Constraint as MConstraint, Engine as MEngine } from
 import { useBeat } from "@/components/canvas/useBeat";
 import type { Sticker } from "@/content/about";
 import { announce, getMotion } from "@/lib/motion";
+import { FACE, FEATURES } from "@/lib/smiley";
 import { live, wait, wessel, type XY } from "@/lib/wessel";
 
 type Matter = typeof import("matter-js");
@@ -27,6 +28,21 @@ const now = () => performance.now();
 const calm = () => getMotion().calm;
 const DT = 1000 / 60;
 
+// Things on the board that aren't words, so they carry no copy: two dice
+// for the board games, his smiley, and one of his own cat photos.
+type Thing = { thing: "die" | "smiley" | "photo"; tone: Sticker["tone"]; label: string; src?: string };
+const THINGS: Thing[] = [
+  { thing: "die", tone: "outline", label: "A die" },
+  { thing: "smiley", tone: "tang", label: "Wessel’s smiley" },
+  { thing: "photo", tone: "outline", label: "Photo of a ginger cat with a crocheted coaster on its head", src: "/media/about-cat-cushion.jpg" },
+  { thing: "die", tone: "ink", label: "A die" },
+];
+type Item = Sticker | Thing;
+const isThing = (it: Item): it is Thing => "thing" in it;
+const isRound = (it: Item) => (isThing(it) ? it.thing === "smiley" : it.shape === "round");
+// Which of the nine pip spots are filled for each face of a die.
+const PIPS = [[], [4], [0, 8], [0, 4, 8], [0, 2, 6, 8], [0, 2, 4, 6, 8], [0, 2, 3, 5, 6, 8]];
+
 /**
  * Off screen (About v08): hobby stickers with weight. They fall into the
  * board when it scrolls in, pile up and knock into each other. Grab one
@@ -35,7 +51,8 @@ const DT = 1000 / 60;
  * Wessel picks one up and drops it.
  * Physics (matter-js) loads only here, when the board is near.
  */
-export function Stickers({ items }: { items: Sticker[] }) {
+export function Stickers({ items: words }: { items: Sticker[] }) {
+  const items: Item[] = [...words, ...THINGS];
   const board = useRef<HTMLDivElement>(null);
   const btn = useRef<HTMLButtonElement>(null);
   const els = useRef<(HTMLButtonElement | null)[]>([]);
@@ -43,6 +60,8 @@ export function Stickers({ items }: { items: Sticker[] }) {
   const [tidy, setTidy] = useState(false);
   const [z, setZ] = useState<number[]>(() => items.map((_, i) => i));
   const [dragging, setDragging] = useState<number | null>(null);
+  // Dice start on fixed faces (same on server and client) and reroll on a hop.
+  const [faces, setFaces] = useState<number[]>(() => items.map((_, i) => (i % 2 ? 3 : 5)));
   const tidyRef = useRef(false);
   useEffect(() => {
     tidyRef.current = tidy;
@@ -72,14 +91,16 @@ export function Stickers({ items }: { items: Sticker[] }) {
   const add = (i: number, x: number, y: number, a = rnd(-0.25, 0.25)) => {
     const P = pile.current!;
     const { w, h } = size(i);
-    const b = P.M.Bodies.rectangle(x, y, w, h, {
-      chamfer: { radius: h / 2 - 1 },
-      angle: a,
-      restitution: 0.25,
-      friction: 0.5,
-      frictionAir: 0.012,
-      density: 0.0016,
-    });
+    const it = items[i];
+    const opts = { angle: a, restitution: 0.25, friction: 0.5, frictionAir: 0.012, density: 0.0016 };
+    // The body matches what you see: circles roll, cards and tiles have
+    // their own corners, pills are fully round at the ends.
+    const corner = isThing(it)
+      ? { die: 14, photo: 4, smiley: 0 }[it.thing]
+      : { pill: h / 2 - 1, card: 12, tile: 20, round: 0 }[it.shape ?? "pill"];
+    const b = isRound(it)
+      ? P.M.Bodies.circle(x, y, w / 2, opts)
+      : P.M.Bodies.rectangle(x, y, w, h, { ...opts, chamfer: { radius: Math.min(corner, Math.min(w, h) / 2 - 1) } });
     P.bodies[i] = b;
     P.M.Composite.add(P.engine.world, b);
     return b;
@@ -111,16 +132,19 @@ export function Stickers({ items }: { items: Sticker[] }) {
     draw();
   };
 
-  // The slots "Tidy up" lines them into: rows along the bottom, left first.
+  // The slots "Tidy up" lines them into: rows along the bottom like auto
+  // layout, tallest first so each row is close to even, each row
+  // bottom-aligned on the one below.
   const slots = () => {
     const b = board.current!;
     const W = b.clientWidth;
     const H = b.clientHeight;
     const pad = innerWidth < 900 ? 20 : 40;
     const gap = 10;
+    const order = items.map((_, i) => i).sort((p, q) => size(q).h - size(p).h);
     const rows: number[][] = [[]];
     let rw = pad;
-    items.forEach((_, i) => {
+    order.forEach((i) => {
       const { w } = size(i);
       if (rw + w > W - pad && rows.at(-1)!.length) {
         rows.push([]);
@@ -129,16 +153,16 @@ export function Stickers({ items }: { items: Sticker[] }) {
       rows.at(-1)!.push(i);
       rw += w + gap;
     });
-    const sh = size(0).h;
     const out: { x: number; y: number }[] = [];
-    rows.forEach((r, ri) => {
+    let base = H - pad;
+    rows.forEach((r) => {
       let x = pad;
-      const y = H - pad - (rows.length - 1 - ri) * (sh + gap) - sh / 2;
       r.forEach((i) => {
-        const { w } = size(i);
-        out[i] = { x: x + w / 2, y };
+        const { w, h } = size(i);
+        out[i] = { x: x + w / 2, y: base - h / 2 };
         x += w + gap;
       });
+      base -= Math.max(...r.map((i) => size(i).h)) + gap;
     });
     return out;
   };
@@ -340,6 +364,12 @@ export function Stickers({ items }: { items: Sticker[] }) {
     setTidy(false);
     P.M.Body.setVelocity(bd, { x: rnd(-1.5, 1.5), y: -11 });
     P.M.Body.setAngularVelocity(bd, rnd(-0.12, 0.12));
+    const it = items[i];
+    if (isThing(it) && it.thing === "die") {
+      const n = 1 + pick(6);
+      setFaces((f) => f.map((v, k) => (k === i ? n : v)));
+      announce(`Rolled a ${n}`);
+    }
     if (calm()) settle(120);
   };
 
@@ -456,25 +486,52 @@ export function Stickers({ items }: { items: Sticker[] }) {
             {tidy ? "Mess it up" : "Tidy up"}
           </button>
         </div>
-        {items.map((s, i) => (
-          <button
-            key={s.text}
-            ref={(el) => {
-              els.current[i] = el;
-            }}
-            type="button"
-            className="stk text-lead"
-            data-tone={s.tone}
-            data-drag={dragging === i ? "" : undefined}
-            aria-label={`${s.text}, sticker. Arrow keys push it.`}
-            style={{ visibility: "hidden", zIndex: 5 + z.indexOf(i) }}
-            onPointerDown={down(i)}
-            onKeyDown={key(i)}
-            onClick={(e) => e.detail === 0 && hop(i)}
-          >
-            {s.text}
-          </button>
-        ))}
+        {items.map((s, i) => {
+          const t = isThing(s) ? s : null;
+          const w = isThing(s) ? null : s;
+          const name = t ? (t.thing === "die" ? `${t.label} showing ${faces[i]}` : t.label) : w!.text;
+          return (
+            <button
+              key={w ? w.text : `${t!.thing}-${i}`}
+              ref={(el) => {
+                els.current[i] = el;
+              }}
+              type="button"
+              // Pills take the type steps; the other shapes size their own words
+              // (about.css) so they can step down on a phone.
+              className={w && (w.shape ?? "pill") === "pill" ? `stk ${{ s: "text-body", m: "text-lead", l: "text-title" }[w.size ?? "m"]}` : "stk"}
+              data-tone={s.tone}
+              data-shape={w ? (w.shape ?? "pill") : t!.thing}
+              data-size={w ? (w.size ?? "m") : undefined}
+              data-label={w?.text}
+              data-drag={dragging === i ? "" : undefined}
+              aria-label={`${name}, sticker. Arrow keys push it.`}
+              style={{ visibility: "hidden", zIndex: 5 + z.indexOf(i) }}
+              onPointerDown={down(i)}
+              onKeyDown={key(i)}
+              onClick={(e) => e.detail === 0 && hop(i)}
+            >
+              {w?.text}
+              {t?.thing === "die" && (
+                <span className="pips" aria-hidden="true">
+                  {Array.from({ length: 9 }, (_, k) => (
+                    <i key={k} data-on={PIPS[faces[i]].includes(k) ? "" : undefined} />
+                  ))}
+                </span>
+              )}
+              {t?.thing === "smiley" && (
+                <svg viewBox="0 0 212 212" aria-hidden="true">
+                  <path fill="currentColor" fillRule="evenodd" d={FACE} />
+                  <path fill="currentColor" d={FEATURES} />
+                </svg>
+              )}
+              {t?.thing === "photo" && (
+                // eslint-disable-next-line @next/next/no-img-element -- a small sticker, it never needs next/image
+                <img src={t.src} alt="" draggable={false} />
+              )}
+            </button>
+          );
+        })}
       </div>
       <div className="side" />
     </section>
