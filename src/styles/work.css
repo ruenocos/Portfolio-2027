@@ -186,17 +186,6 @@
       opacity var(--dur-ui) var(--ease-ui),
       scale var(--dur-spring) var(--ease-spring);
   }
-  /* No size pill and no tools ring here: the peek, underline and arrow are
-     enough, and every tool in a row is used for that project anyway. */
-  .arow .apk .hsz {
-    display: none;
-  }
-  .arow .apk .hsel {
-    inset: -6px;
-    /* Follows the picture's corner (radius 24) at its 6px offset. */
-    border-radius: calc(var(--radius-media, 24px) + 6px);
-    opacity: 0;
-  }
   /* Pointing at a row hides the other rows' thumbs, so the peek never
      overlaps one. */
   .ruled:has(.arow:is(:hover, :focus-within)) .arow:not(:hover, :focus-within) .apk {
@@ -205,10 +194,6 @@
   /* Dark: a hairline keeps black posters from melting into the canvas. */
   html[data-mode="dark"] .arow .apk {
     outline: 1px solid color-mix(in srgb, var(--mute) 55%, transparent);
-  }
-  /* Your selection is an outline only: handles are Wessel's. */
-  .arow .apk .hsel i {
-    display: none;
   }
   .arow:is(:hover, :focus-within) .apk .hsel {
     opacity: 1;

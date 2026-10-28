@@ -104,7 +104,6 @@ export function ProjectRow({
 }) {
   const media = useMagnet();
   const pin = useRef<HTMLSpanElement>(null);
-  const size = useRef<HTMLElement>(null);
   const [soon, setSoon] = useState(false);
   const mock = (f: "summary" | "role" | "note" | "media") => (p.mock?.includes(f) ? "" : undefined);
   const gap = p.placeholder;
@@ -196,13 +195,7 @@ export function ProjectRow({
     <>
       {/* Your selection: it snaps round the card when you come to the row. */}
       <span className="hov" aria-hidden="true">
-        <span className="hsel">
-          <i />
-          <i />
-          <i />
-          <i />
-          <b className="hsz" ref={size} />
-        </span>
+          <span className="hsel" />
       </span>
       <MediaFill poster={p.media.poster} video={p.media.video} />
       {p.note && (
@@ -224,11 +217,6 @@ export function ProjectRow({
     if ((e.target as Element).closest("a, button") || getSelection()?.toString()) return;
     media.current?.click();
   };
-  // Your selection's size pill reads the media's real size.
-  const sizeUp = () => {
-    const m = media.current;
-    if (m && size.current) size.current.textContent = `${Math.round(m.offsetWidth)} × ${Math.round(m.offsetHeight)}`;
-  };
 
   return (
     <article
@@ -239,7 +227,7 @@ export function ProjectRow({
       data-leaving={leaving || undefined}
       data-hop-host
       data-you={p.href ? "View case" : "Case study soon"}
-      onPointerEnter={sizeUp}
+     
       onClick={rowClick}
     >
       <div className="cell pl">

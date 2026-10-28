@@ -928,7 +928,7 @@
    The whole row is the target and one clickable text: pointing anywhere on
    it hops and colours the title like a header link (Hop's [data-hop-host]),
    the tools lift like Daily kit chips, and your grape selection snaps round
-   the card with its real size. Pictures never move here (the scroll depth does). */
+   the card. Pictures never move here (the scroll depth does). */
 @layer components {
   :is(.pj, .arow) .media .hov {
     position: absolute;
@@ -937,40 +937,19 @@
     border-radius: inherit;
     pointer-events: none;
   }
+  /* Your selection: a grape outline that follows the picture's corner at
+     its 6px offset, the same on home, Work and the case's Next row. No
+     handles (those are Wessel's) and no size pill. */
   :is(.pj, .arow) .media .hsel {
     position: absolute;
-    inset: -7px;
+    inset: -6px;
     border: 1.5px solid var(--grape);
-    border-radius: 4px;
+    border-radius: calc(var(--radius-media, 24px) + 6px);
     opacity: 0;
     scale: 1.04;
     transition:
       opacity var(--dur-ui) var(--ease-ui),
       scale var(--dur-spring) var(--ease-spring);
-  }
-  :is(.pj, .arow) .media .hsel > i {
-    position: absolute;
-    width: 9px;
-    height: 9px;
-    border-radius: 50%;
-    background: var(--canvas);
-    border: 1.5px solid var(--grape);
-  }
-  :is(.pj, .arow) .media .hsel > i:nth-child(1) { left: -5px; top: -5px; }
-  :is(.pj, .arow) .media .hsel > i:nth-child(2) { right: -5px; top: -5px; }
-  :is(.pj, .arow) .media .hsel > i:nth-child(3) { right: -5px; bottom: -5px; }
-  :is(.pj, .arow) .media .hsel > i:nth-child(4) { left: -5px; bottom: -5px; }
-  :is(.pj, .arow) .media .hsz {
-    position: absolute;
-    left: 50%;
-    top: calc(100% + 10px);
-    translate: -50% 0;
-    padding: 3px 7px;
-    border-radius: 4px;
-    background: var(--grape);
-    color: var(--canvas);
-    font: 500 11px/1.2 var(--font-mono);
-    white-space: nowrap;
   }
   .pj .tools .tool:nth-child(2) { transition-delay: 0ms, 40ms, 0ms, 0ms, 40ms; }
   .pj .tools .tool:nth-child(3) { transition-delay: 0ms, 80ms, 0ms, 0ms, 80ms; }
