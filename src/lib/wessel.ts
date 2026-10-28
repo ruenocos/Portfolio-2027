@@ -12,6 +12,8 @@
 //   beat replays when you come back
 // - between beats he parks where he worked, then drifts after you a beat
 //   behind (the page drags him at 55%) and re-enters from the edge he left
+// - on the way back up he looks over what he made in each section you pass
+//   (a dashed box, no size pill), then parks where he left it; once per trip
 // - calm (Pause motion or reduced motion): no travel, end states only
 
 import motionTokens from "../../design/motion-tokens.json";
@@ -105,9 +107,12 @@ function fitSels() {
   }
   selRaf = sels.size ? requestAnimationFrame(fitSels) : 0;
 }
-export function select(el: HTMLElement, { label = true, ms = 1500, grow = 1 } = {}) {
+export function select(el: HTMLElement, { label = true, ms = 1500, grow = 1, look = false } = {}) {
   const box = put("sel");
   box.innerHTML = "<i></i><i></i><i></i><i></i>";
+  if (look) box.dataset.look = "";
+  // What he selects during a beat is what he looks over on the way back up.
+  if (playing) playing.made = el;
   const sizePill = (pop = false) => {
     const z = document.createElement("span");
     z.className = `szp text-micro${pop ? " pop" : ""}`;
@@ -184,10 +189,12 @@ const W = {
   lean: false,
 };
 
-// Scroll speed: SV now, SP the recent peak (decays fast).
+// Scroll speed: SV now, SP the recent peak (decays fast). DIR: which way
+// you last scrolled (1 down, -1 up).
 let lastSY = 0;
 let SV = 0;
 let SP = 0;
+let DIR = 1;
 let raf = 0;
 
 // Where he goes when he has no job.
@@ -217,6 +224,7 @@ function tick(n: number) {
   tick.last = n;
   const d = scrollY - lastSY;
   lastSY = scrollY;
+  if (Math.abs(d) > 0.5) DIR = Math.sign(d);
   SV += (Math.abs(d) / dt - SV) * 0.2;
   SP = Math.max(SV, SP * Math.pow(0.2, dt));
   const still = calm();
@@ -432,12 +440,26 @@ export type BeatSpec = {
   /** Paused or reduced motion: no beat runs (DESIGN.md §8). This puts the
    *  section straight into the state the beat would have left it in. */
   still?: () => void;
+  /** What he looks over on the way back up. Defaults to the last thing he
+   *  selected in the beat. */
+  look?: () => HTMLElement | null;
 };
-type Beat = BeatSpec & { el: HTMLElement; done?: boolean; q?: boolean };
+type Beat = BeatSpec & {
+  el: HTMLElement;
+  done?: boolean;
+  q?: boolean;
+  /** Looked over on this trip up (the beat itself counts). */
+  looked?: boolean;
+  made?: HTMLElement;
+  /** Where he let go after the beat, in page coordinates, and his tag side. */
+  spot?: XY;
+  lean?: boolean;
+};
 
 const beats = new Set<Beat>();
 let chain = Promise.resolve();
 let busy = false;
+let playing: Beat | null = null;
 /** True while Wessel is mid-job (entrances can wait a moment). */
 export const isBusy = () => busy;
 
@@ -449,6 +471,7 @@ function seen(el: Element, f: number) {
 
 function trigger(b: Beat) {
   const need = b.need ?? T.need.default;
+  if (b.done && !b.looked && !b.q && DIR < 0 && !calm()) return lookAgain(b, need);
   if (b.done || b.q || !W.el) return;
   b.q = true;
   chain = chain.then(async () => {
@@ -470,6 +493,8 @@ function trigger(b: Beat) {
       return;
     }
     busy = true;
+    playing = b;
+    b.looked = true;
     wessel.show();
     try {
       await b.day(g);
@@ -477,8 +502,52 @@ function trigger(b: Beat) {
       // A section that left mid-beat (page change) just stops.
       if (e !== STALE && b.el.isConnected) console.error(e);
     }
+    playing = null;
     busy = false;
-    if (g === gen && !b.keep) wessel.free();
+    if (g === gen && !b.keep) {
+      b.lean = W.lean;
+      wessel.free();
+      b.spot = W.anchor ?? undefined;
+    }
+  });
+}
+
+// On the way back up the beats have all played, so he'd only drift after
+// you. Instead he checks his work: glides along the top of what he made in
+// the section, a dashed box shows what he's looking at, and he parks where
+// he let go after the beat. Same fast-scroll rules as a beat.
+function lookAgain(b: Beat, need: number) {
+  b.q = true;
+  chain = chain.then(async () => {
+    b.q = false;
+    if (b.looked || !beats.has(b) || DIR > 0 || calm() || !seen(b.el, need)) return;
+    const g = gen;
+    for (let i = 0; i < T.fastScroll.waitMs / 60 && SP > T.fastScroll.waitAbovePxPerSec; i++) await wait(60);
+    if (g !== gen || !beats.has(b) || !b.el.isConnected) return;
+    if (SP > T.fastScroll.skipAbovePxPerSec || !seen(b.el, need)) {
+      setTimeout(() => trigger(b), 500);
+      return;
+    }
+    b.looked = true;
+    const el = b.look?.() ?? b.made;
+    const spot = b.spot;
+    busy = true;
+    try {
+      if (el?.isConnected && el.offsetWidth) {
+        await wessel.go(wessel.at(el, 0.1, 0.14), { k: T.look.k });
+        live(g);
+        select(el, { label: false, look: true, ms: T.look.selectMs });
+        await wessel.go(wessel.at(el, 0.9, 0.14), { k: T.look.glideK, timeout: T.look.glideMs });
+        live(g);
+        await wait(T.look.holdMs);
+        live(g);
+      }
+      if (spot) await wessel.go(() => [spot[0] - scrollX, spot[1] - scrollY], { k: T.look.k, lean: b.lean });
+    } catch (e) {
+      if (e !== STALE) console.error(e);
+    }
+    busy = false;
+    if (g === gen) wessel.free();
   });
 }
 
@@ -493,6 +562,8 @@ export function registerBeat(el: HTMLElement, spec: BeatSpec) {
       for (const e of entries) {
         const b = byEl.get(e.target);
         if (b && e.isIntersecting) trigger(b);
+        // Scrolled down past it: it gets a look-over on your next trip up.
+        else if (b?.done && DIR > 0 && e.boundingClientRect.bottom <= 0) b.looked = false;
       }
     },
     { threshold: thresholds },

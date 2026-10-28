@@ -34,6 +34,7 @@ export function About({ about: c }: { about: HomeContent["about"] }) {
   };
 
   const cell = useBeat<HTMLDivElement>({
+    look: () => deck.current,
     async day(g) {
       const d = deck.current!;
       await wessel.go(wessel.at(d, 0.5, 0.5, 40, 40));

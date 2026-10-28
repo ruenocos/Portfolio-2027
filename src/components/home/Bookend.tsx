@@ -63,6 +63,7 @@ export function Bookend() {
   }, [calm]);
 
   const cell = useBeat<HTMLDivElement>({
+    look: () => bkn.current,
     async day(g) {
       show(false);
       const src = document.querySelector<HTMLElement>(".hd .wm");

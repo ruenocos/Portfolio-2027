@@ -401,6 +401,7 @@ export function Stickers({ items }: { items: Sticker[] }) {
   };
 
   const beat = useBeat<HTMLElement>({
+    look: () => board.current,
     need: 0.5,
     // He picks one up, carries it over and lets it drop on the pile.
     async day(g) {

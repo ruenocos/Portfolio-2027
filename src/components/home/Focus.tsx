@@ -85,6 +85,7 @@ function Card({
   // Wessel uses the scene once (with the card's full hover, so you
   // see what hovering does).
   const card = useBeat<HTMLElement>({
+    look: () => svg.current?.parentElement ?? null,
     need: NEED,
     async day(g) {
       const s = svg.current!;
