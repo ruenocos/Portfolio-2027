@@ -79,7 +79,7 @@ async function Case({ params }: Pick<PageProps<"/work/[slug]">, "params">) {
               </p>
             )}
             {c.mock?.length ? (
-              <span data-enter>
+              <span data-enter data-mock-only>
                 <MockTag>Mock copy from desaak.com · to rewrite</MockTag>
               </span>
             ) : null}

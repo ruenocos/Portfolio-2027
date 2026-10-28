@@ -163,9 +163,15 @@
     border-radius: var(--radius-tag);
     color: var(--mute);
   }
-  /* Build marker only: deploy previews and dev show it, the live site never does. */
-  html[data-live] .mock {
-    display: none;
+  /* Marks are hidden so the site reads as finished. Open any page with
+     ?mocks to show them (and ?mocks=off to hide them again): the setting
+     sticks for the visit (lib/site.ts). The data-mock attributes stay in the
+     markup either way. */
+  html:not([data-mocks]) :is(.mock, [data-mock-only]) {
+    display: none !important;
+  }
+  html:not([data-mocks]) :is(.slot, .tool.empty) {
+    visibility: hidden;
   }
   /* Slot: an inline gap where a real value is still missing. */
   .slot {
