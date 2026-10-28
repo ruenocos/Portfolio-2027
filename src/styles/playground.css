@@ -64,6 +64,12 @@
       opacity 500ms var(--ease-ui);
     transition-delay: var(--d, 0ms);
   }
+  /* A tile waiting for its picture: page colour and a hairline (prompt
+     cards keep their fill, they have no picture to wait for). */
+  .pgcv .pi:has(img, video):not([data-tint]) {
+    background: var(--canvas);
+    box-shadow: inset 0 0 0 1px var(--frame-edge);
+  }
   .pgcv .post.in .pi {
     opacity: 1;
     scale: 1;

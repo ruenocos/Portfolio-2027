@@ -5,6 +5,10 @@
 @layer components {
   :root {
     --stagger: 60ms; /* motion-tokens entrance.stagger */
+    /* An empty media frame (picture still loading) is the page colour with
+       this hairline in its shape; the picture covers it once it's in
+       (Wons picked B, 2026-10-28: no grey slab in dark). */
+    --frame-edge: color-mix(in srgb, var(--mute) 35%, transparent);
   }
 
   /* ---------- canvas ---------- */

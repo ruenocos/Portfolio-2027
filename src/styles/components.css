@@ -344,7 +344,8 @@
     position: relative;
     display: block;
     border-radius: var(--radius-media);
-    background: var(--fill);
+    background: var(--canvas);
+    box-shadow: inset 0 0 0 1px var(--frame-edge);
     isolation: isolate;
   }
   .media[data-ratio="portrait"] {

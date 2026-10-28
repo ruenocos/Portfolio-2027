@@ -181,7 +181,7 @@
        before you point at it; pointing grows it into the peek. */
     scale: 0.24;
     pointer-events: none;
-    box-shadow: var(--shadow-outline);
+    box-shadow: inset 0 0 0 1px var(--frame-edge), var(--shadow-outline);
     transition:
       opacity var(--dur-ui) var(--ease-ui),
       scale var(--dur-spring) var(--ease-spring);

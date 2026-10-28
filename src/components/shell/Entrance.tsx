@@ -9,7 +9,7 @@ import { cssBezier } from "@/lib/math";
 const { easing, transition } = motionTokens;
 
 // The house entrance on load: the first screen's rows rise 16px and fade in,
-// top to bottom, 80ms apart, 8 steps at most. Rows are main's [data-row]s;
+// top to bottom, 120ms apart, 8 steps at most. Rows are main's [data-row]s;
 // a row can name its own blocks with [data-enter], otherwise its content
 // cell moves. Skipped while calm, and on home's first visit
 // (<html data-boot>), which has its own intro; later visits to home enter
