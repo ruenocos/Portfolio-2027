@@ -7,11 +7,13 @@ export type Fact = { label: string; value?: string; sub?: string; mock?: boolean
 
 export function Facts({ items, label = "Facts" }: { items: Fact[]; label?: string }) {
   return (
-    <section className="frame" data-row aria-label={label}>
+    // A fact without a value (and the row, when none has one) hides like a
+    // mock tag: shown again with ?mocks.
+    <section className="frame" data-row aria-label={label} data-mock-only={items.every((f) => !f.value) ? "" : undefined}>
       <div className="side" />
       <dl className="facts">
         {items.map((f) => (
-          <div key={f.label} className="cell">
+          <div key={f.label} className="cell" data-mock-only={f.value ? undefined : ""}>
             <dt className="text-label">
               {f.label}
               {f.mock && <MockTag>mock</MockTag>}

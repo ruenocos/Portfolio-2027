@@ -521,7 +521,9 @@
   /* ---------- facts row ---------- */
   .facts {
     display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    /* One column per fact shown, so a hidden one leaves no empty cell. */
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(0, 1fr);
     gap: var(--spacing-hairline);
     background: var(--line);
     margin: 0;
@@ -864,6 +866,7 @@
       gap: 0 16px;
     }
     .facts {
+      grid-auto-flow: row;
       grid-template-columns: minmax(0, 1fr);
     }
     .facts > .cell {

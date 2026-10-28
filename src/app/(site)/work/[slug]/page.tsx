@@ -57,7 +57,8 @@ async function Case({ params }: Pick<PageProps<"/work/[slug]">, "params">) {
       <Crumb {...crumb} />
       <section className="frame" data-row aria-labelledby="ttl">
         <div className="side" />
-        <div className="copen">
+        {/* Nothing written yet beside the title: it takes the full row. */}
+        <div className="copen" data-solo={!c.lead && !c.intro ? "" : undefined}>
           <div className="cell ot">
             <span data-enter>
               <SectionLabel as="p" name={`Case · ${c.title}`} />

@@ -250,7 +250,8 @@ export function ProjectRow({ project: p, hidden, leaving }: { project: Project; 
             {gap ? <Slot>Summary</Slot> : p.summary}
           </p>
         </div>
-        <dl className="meta">
+        {/* A project still to write shows no empty labels (they come back with ?mocks). */}
+        <dl className="meta" data-mock-only={gap ? "" : undefined}>
           <dt className="text-label">Timeline</dt>
           <dd className="text-body">{gap ? <Slot>Year</Slot> : p.timeline}</dd>
         </dl>
@@ -284,13 +285,13 @@ export function ProjectRow({ project: p, hidden, leaving }: { project: Project; 
         )}
       </div>
       <div className="cell pr">
-        <dl className="meta">
+        <dl className="meta" data-mock-only={gap ? "" : undefined}>
           <dt className="text-label">Role</dt>
           <dd className="text-body" data-mock={mock("role")}>
             {gap ? <Slot>Role</Slot> : p.role}
           </dd>
         </dl>
-        <dl className="meta">
+        <dl className="meta" data-mock-only={gap ? "" : undefined}>
           <dt className="text-label">Tools</dt>
           <dd>{gap ? <EmptyTool /> : <Tools ids={p.tools} />}</dd>
         </dl>

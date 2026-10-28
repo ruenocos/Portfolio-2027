@@ -23,6 +23,12 @@
     overflow-wrap: break-word;
     hyphens: manual;
   }
+  .copen[data-solo] {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .copen[data-solo] > .ol {
+    display: none;
+  }
   .copen .ol > p {
     max-width: 520px;
   }

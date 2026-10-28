@@ -136,7 +136,11 @@
     padding: 0;
     cursor: pointer;
   }
-  /* The whole row is the target. */
+  /* The whole row is the target: the title cell stays unpositioned so the
+     link's cover reaches the row (cells are positioned by default). */
+  .arow > .al {
+    position: static;
+  }
   .arow .hit::after {
     content: "";
     position: absolute;
@@ -174,7 +178,20 @@
   }
   /* Dark: grey logos on near-black need more light to read at rest. */
   html[data-mode="dark"] .arow:not(:hover, :focus-within) .tool img {
-    opacity: 0.8;
+    filter: grayscale(1) brightness(1.5);
+    opacity: 0.9;
+  }
+  /* Tools stay above the row's link cover on mouse devices, so their
+     names show on hover. */
+  @media (hover: hover) and (pointer: fine) {
+    .arow .tools {
+      position: relative;
+      z-index: 2;
+    }
+  }
+  /* The thumb at rest is the still poster; the loop plays once it grows. */
+  .arow:not(:hover, :focus-within) .apk video {
+    opacity: 0;
   }
   .arow:is(:hover, :focus-within) .tool img {
     filter: none;

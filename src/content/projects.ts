@@ -65,7 +65,7 @@ export const FALLBACK_PROJECTS: Project[] = [
     tools: [],
     media: { poster: `/media/archive-tile${tile}.jpg` },
     href: `/work/${slug}`,
-    label: `${title}, to write.`,
+    label: title,
     placeholder: true,
   })),
 ];
