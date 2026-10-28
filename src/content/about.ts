@@ -18,8 +18,8 @@ export const FALLBACK_ABOUT: AboutContent = {
   hello: "Hi, I’m Wessel.",
   lead: FALLBACK_HOME.about.opener,
   photos: [
-    ...FALLBACK_HOME.about.photos,
-    // Wons's own photos (2026-10-27). Alt text describes, it doesn't caption.
+    // Wons's own photos (2026-10-27). Not the Home deck's: no image appears on
+    // two pages (Wons, 2026-10-28). Alt text describes, it doesn't caption.
     { src: "/media/about-cat-bed.jpg", alt: "Wessel on the bed, a ginger cat beside him" },
     { src: "/media/about-cat-cushion.jpg", alt: "A ginger cat on the sofa with a crocheted coaster on its head" },
     { src: "/media/about-cat-paw.jpg", alt: "A ginger cat stretching one paw out on a striped blanket" },

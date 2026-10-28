@@ -15,10 +15,10 @@ const M = "/media";
 const P = `${M}/play`;
 
 // Playground v08 (studio/web/hifi/playground, approved): a big looping
-// masonry. The De Saak loop, the game reel and five Study renders are real; the rest are placeholders until
-// Wons adds his experiments in Sanity (Playground posts).
+// masonry. The game reel and five Study renders are real; the rest are placeholders until
+// Wons adds his experiments in Sanity (Playground posts). Nothing here repeats
+// an image from another page (Wons, 2026-10-28).
 export const FALLBACK_POSTS: Post[] = [
-  { title: "De Saak header loop", video: `${M}/de-saak/desaak-hero.mp4`, src: `${M}/de-saak/desaak-hero.jpg`, ar: 16 / 9 },
   { title: "Match Monsters and Hold’em, game screens", video: `${M}/game-reel.mp4`, src: `${M}/game-reel.jpg`, ar: 720 / 1548 },
   // From Wons's Study folder (After Effects renders, 2026-10-27). Titles are
   // working names from the file names until Wons names them.
@@ -28,9 +28,7 @@ export const FALLBACK_POSTS: Post[] = [
   { title: "Letters, timed", video: `${P}/text-anim.mp4`, src: `${P}/text-anim.jpg`, ar: 16 / 9 },
   { title: "Gravity, roughly", video: `${P}/shape-fall.mp4`, src: `${P}/shape-fall.jpg`, ar: 1 },
   { title: "PNG post", ar: 1, tint: "tang", mock: true },
-  { title: "Cal.com loop", video: `${M}/calcom-portrait.mp4`, src: `${M}/calcom-portrait.jpg`, ar: 9 / 16, mock: true },
   { title: "Video post", ar: 16 / 10, tint: "grape", mock: true },
-  { title: "Pixelup loop", video: `${M}/pixelup-portrait.mp4`, src: `${M}/pixelup-portrait.jpg`, ar: 9 / 16, mock: true },
   { title: "PNG post", ar: 4 / 3, tint: "plain", mock: true },
   { title: "Video post", ar: 3 / 4, tint: "tang", mock: true },
   { title: "PNG post", ar: 1, tint: "grape", mock: true },
