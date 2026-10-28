@@ -72,6 +72,12 @@ export const about = defineType({
               options: { list: ["tang", "grape", "ink", "outline"], layout: "radio" },
               initialValue: "tang",
             }),
+            defineField({
+              name: "size",
+              type: "string",
+              options: { list: ["s", "m", "l"], layout: "radio" },
+              initialValue: "m",
+            }),
           ],
         }),
       ],
