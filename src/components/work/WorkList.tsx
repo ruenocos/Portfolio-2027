@@ -32,6 +32,11 @@ export function WorkList({ selected, archive }: { selected: Project[]; archive: 
   const used = knownTools(Object.keys(TOOLS)).filter((id) => [...selected, ...archive].some((p) => p.tools.includes(id)));
 
   useEffect(() => () => clearTimeout(t.current), []);
+  // Preview only (row clean-up pick): ?row=a|b|c switches the row style.
+  useEffect(() => {
+    const v = new URLSearchParams(location.search).get("row");
+    if (v) document.documentElement.dataset.wrow = v;
+  }, []);
 
   const pick = (next: ToolId[]) => {
     clearTimeout(t.current);

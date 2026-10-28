@@ -127,6 +127,11 @@
       opacity var(--dur-ui) var(--ease-ui),
       scale var(--dur-spring) var(--ease-spring);
   }
+  /* No size pill and no tools ring here: the peek, underline and arrow are
+     enough, and every tool in a row is used for that project anyway. */
+  .arow .apk .hsz {
+    display: none;
+  }
   .arow .apk .hsel {
     inset: -6px;
   }
@@ -189,6 +194,64 @@
     }
     .arow .apk .hov {
       display: none;
+    }
+  }
+}
+
+/* Preview only: three calmer rows to pick from (?row=a|b|c).
+   a Type: smaller title, values in Small, smaller tools.
+   b Colour: one ink line per row, the rest mute, tools grey until hover,
+     no rules between the columns.
+   c Both. Unlayered (not in a layer), so it beats the type utilities. */
+@media all {
+  html[data-wrow="a"] .arow h3,
+  html[data-wrow="c"] .arow h3 {
+    font-size: var(--type-lead-size);
+    line-height: 28px;
+    letter-spacing: 0;
+  }
+  html[data-wrow="a"] .arow :is(.ay, .ap > span),
+  html[data-wrow="c"] .arow :is(.ay, .ap > span) {
+    font-size: var(--type-small-size);
+    line-height: 20px;
+  }
+  html[data-wrow="a"] .arow .tool,
+  html[data-wrow="c"] .arow .tool {
+    --s: 24px;
+  }
+  html[data-wrow="a"] .arow > .cell,
+  html[data-wrow="c"] .arow > .cell {
+    padding-block: 22px;
+  }
+  html[data-wrow="b"] .arow .ap > span,
+  html[data-wrow="c"] .arow .ap > span {
+    color: var(--mute);
+  }
+  html[data-wrow="c"] .arow .ay {
+    font-family: var(--font-mono);
+    font-size: var(--type-label-size);
+    letter-spacing: 0.04em;
+    font-variant-numeric: tabular-nums;
+  }
+  html[data-wrow="b"] .arow .tool img,
+  html[data-wrow="c"] .arow .tool img {
+    filter: grayscale(1);
+    opacity: 0.55;
+    transition:
+      filter var(--dur-ui) var(--ease-ui),
+      opacity var(--dur-ui) var(--ease-ui);
+  }
+  html[data-wrow="b"] .arow:is(:hover, :focus-within) .tool img,
+  html[data-wrow="c"] .arow:is(:hover, :focus-within) .tool img {
+    filter: none;
+    opacity: 1;
+  }
+  /* No column rules: one hairline per row. */
+  @media (width >= 900px) {
+    html[data-wrow="b"] .arow,
+    html[data-wrow="c"] .arow {
+      gap: 0;
+      background: var(--canvas);
     }
   }
 }
