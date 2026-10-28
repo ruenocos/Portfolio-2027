@@ -176,9 +176,10 @@
       filter var(--dur-ui) var(--ease-ui),
       opacity var(--dur-ui) var(--ease-ui);
   }
-  /* Dark: grey logos on near-black need more light to read at rest. */
+  /* Dark: grey logos on near-black need more light and contrast to read
+     at rest (Figma's glyph sits on its own dark tile). */
   html[data-mode="dark"] .arow:not(:hover, :focus-within) .tool img {
-    filter: grayscale(1) brightness(1.5);
+    filter: grayscale(1) contrast(1.8) brightness(1.35);
     opacity: 0.9;
   }
   /* Tools stay above the row's link cover on mouse devices, so their
@@ -239,7 +240,7 @@
   }
   /* Dark: a hairline keeps black posters from melting into the canvas. */
   html[data-mode="dark"] :is(.arow .apk, .whand a:not(:hover)) {
-    outline: 1px solid var(--line);
+    outline: 1px solid color-mix(in srgb, var(--mute) 55%, transparent);
   }
   /* Your selection is an outline only: handles are Wessel's. */
   .arow .apk .hsel i {
@@ -322,6 +323,17 @@
       border-radius: 12px;
     }
     .arow .apk .hov {
+      display: none;
+    }
+    /* A project still to write is only its title and thumb: the row
+       shrinks to the thumb, title centred beside it (?mocks keeps the slots). */
+    html:not([data-mocks]) .arow[data-gap] {
+      grid-template-areas: "t k";
+      grid-template-rows: auto;
+      align-items: center;
+      padding-block: 16px;
+    }
+    html:not([data-mocks]) .arow[data-gap] :is(.ay, .ap) {
       display: none;
     }
   }

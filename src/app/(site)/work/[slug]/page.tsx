@@ -61,7 +61,7 @@ async function Case({ params }: Pick<PageProps<"/work/[slug]">, "params">) {
         <div className="copen" data-solo={!c.lead && !c.intro ? "" : undefined}>
           <div className="cell ot">
             <span data-enter>
-              <SectionLabel as="p" name={`Case · ${c.title}`} />
+              <SectionLabel as="p" name={`${c.sections.length ? "Case" : "Project"} · ${c.title}`} />
             </span>
             <h1 id="ttl" className="text-statement" lang={c.lang} data-enter>
               {c.title}

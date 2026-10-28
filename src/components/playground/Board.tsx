@@ -84,7 +84,7 @@ function postEl(p: Post) {
  * Playground (v08, approved): one big masonry on a pannable board that loops
  * back to where it started, sideways and down. Drag (with a throw), wheel or
  * trackpad, arrow keys; tap a post (or Enter for the middle one) to lift it
- * open. Idle, it drifts down. Wessel drives it: he grabs a post that's
+ * open. At rest it settles on whole columns. Wessel drives it: he grabs a post that's
  * half out of view, drags it in, and selects it. He never opens one; that's
  * yours. Touch anything and he lets go and waits. Pause: still.
  * Like a Figma canvas: every tile wears its frame name, the one you're over
@@ -151,7 +151,6 @@ export function Board({ posts }: { posts: Post[] }) {
     let vx = 0;
     let vy = 0;
     let last = performance.now();
-    let idle = last;
     let dragging = false;
     let movingTill = 0;
     let mptr: XY | null = null;
@@ -174,6 +173,8 @@ export function Board({ posts }: { posts: Post[] }) {
     // match, and no tile is cut at the sides.
     let GY = 24;
     let OX = 24;
+    // The nearest pan where the columns sit on that gutter grid.
+    const grid = (x: number) => OX + Math.round((x - OX) / (CW + G)) * (CW + G);
     const build = () => {
       world.textContent = "";
       cols = [];
@@ -380,7 +381,8 @@ export function Board({ posts }: { posts: Post[] }) {
         const it = c[Math.floor(Math.random() * c.length)];
         const dx = cl(W * (0.25 + Math.random() * 0.4) - CW / 2, 80, W - CW - 80);
         const dy = cl(H * (0.3 + Math.random() * 0.3) - it.h / 2, 80, H - it.h - 80);
-        Object.assign(S, { it, D: [dx - it.x, dy - it.yy], g: [CW * (0.35 + Math.random() * 0.3), it.h * (0.35 + Math.random() * 0.3)], s: "reach", t0: now });
+        // He drops it in a whole column, so the board still rests on the grid.
+        Object.assign(S, { it, D: [grid(px + dx - it.x) - px, dy - it.yy], g: [CW * (0.35 + Math.random() * 0.3), it.h * (0.35 + Math.random() * 0.3)], s: "reach", t0: now });
         steer(it.x + S.g[0], it.yy + S.g[1], 160);
         return;
       }
@@ -455,11 +457,11 @@ export function Board({ posts }: { posts: Post[] }) {
           vy *= Math.pow(0.92, dt / 16);
           tx = px;
           ty = py;
-        } else if (!quiet && !wesOn() && t - idle > 2600 && !document.hidden) {
-          // Idle: a slow drift down (when Wessel isn't driving).
-          py -= (0.35 * dt) / 16;
-          tx = px;
-          ty = py;
+        } else {
+          // At rest the columns settle back on the gutter grid, so no tile is
+          // cut at the sides. No idle drift: the board holds its composition.
+          const sx = grid(px);
+          if (Math.abs(sx - px) > 0.3) tx = sx;
         }
       }
       // A touch of squash while it moves fast; it springs back as it settles.
@@ -479,6 +481,8 @@ export function Board({ posts }: { posts: Post[] }) {
           it.x = x;
           it.yy = y;
           it.el.style.transform = `translate(${x}px,${y}px)`;
+          // A column only a few px in reads as a sliver on the frame line.
+          it.el.style.visibility = x + CW < 3 || x > W - 3 ? "hidden" : "";
           const vis = x > -CW && x < W && y > -it.h && y < H;
           if (it.v && vis !== it.vis) {
             if (vis && !quiet) it.v.play().catch(() => {});
@@ -618,7 +622,6 @@ export function Board({ posts }: { posts: Post[] }) {
           o.it.pi.style.visibility = "";
           o.lb.remove();
           opened = null;
-          idle = performance.now();
           cv.focus({ preventScroll: true });
         },
         calm() ? 0 : 560,
@@ -627,7 +630,6 @@ export function Board({ posts }: { posts: Post[] }) {
 
     // ---------- input ----------
     const poke = () => {
-      idle = performance.now();
       pause();
     };
     const down = (e: PointerEvent) => {
@@ -658,7 +660,7 @@ export function Board({ posts }: { posts: Post[] }) {
         vy = dy * k;
         lx = ev.clientX;
         ly = ev.clientY;
-        lt = idle = now;
+        lt = now;
       };
       const up = (ev: PointerEvent) => {
         dragging = false;
@@ -801,9 +803,6 @@ export function Board({ posts }: { posts: Post[] }) {
     });
     raf = requestAnimationFrame((t) => {
       last = t;
-      // The first screen holds still a while longer before it drifts, so
-      // you see the board whole (top row and its first posts) on arrival.
-      idle = t + 3400;
       frame(t);
     });
     return () => {

@@ -135,7 +135,7 @@
     overflow: hidden;
     /* Sized to the pile (it rests in the bottom half), so the board
        doesn't open on an empty field. */
-    min-height: 360px;
+    min-height: 320px;
     padding: 40px var(--spacing-inset);
   }
   .btop {
