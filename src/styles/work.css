@@ -44,6 +44,154 @@
   }
 }
 
+/* Archive (compact): one ruled line per project on the project rows'
+   thirds. The media only peeks up in the middle column while you point at
+   the row; it scales in as a whole, the picture inside stays put. */
+@layer components {
+  .arow {
+    position: relative;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--spacing-hairline);
+    background: var(--line);
+    min-width: 0;
+  }
+  .arow > .cell {
+    display: flex;
+    align-items: center;
+    padding: 28px var(--spacing-inset);
+  }
+  .arow[hidden] {
+    display: none;
+  }
+  .arow[data-leaving] {
+    opacity: 0;
+    transition: opacity var(--dur-ui) var(--ease-ui);
+  }
+  .arow:hover {
+    z-index: 5;
+  }
+  .arow h3 {
+    margin: 0;
+    min-width: 0;
+    overflow-wrap: break-word;
+    hyphens: auto;
+  }
+  .arow .hit {
+    font: inherit;
+    color: inherit;
+    text-align: start;
+    background: none;
+    border: 0;
+    padding: 0;
+    cursor: pointer;
+  }
+  /* The whole row is the target. */
+  .arow .hit::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+  }
+  .arow .hit:focus-visible {
+    outline: none;
+  }
+  .arow .hit:focus-visible::after {
+    outline: 2px solid var(--grape);
+    outline-offset: -4px;
+    border-radius: var(--radius-focus);
+  }
+  .arow .ay {
+    color: var(--mute);
+  }
+  .arow .ac {
+    position: relative;
+  }
+  .arow .ap {
+    justify-content: space-between;
+    gap: 16px;
+  }
+  .arow .apk {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    z-index: 2;
+    width: 176px;
+    translate: -50% -50%;
+    opacity: 0;
+    scale: 0.92;
+    pointer-events: none;
+    box-shadow: var(--shadow-outline);
+    transition:
+      opacity var(--dur-ui) var(--ease-ui),
+      scale var(--dur-spring) var(--ease-spring);
+  }
+  .arow .apk .hsel {
+    inset: -6px;
+  }
+  .arow .soontag {
+    left: auto;
+    right: var(--spacing-inset);
+    bottom: auto;
+    top: 50%;
+    translate: 0 -40%;
+  }
+  .arow .soontag[data-on="true"] {
+    translate: 0 -50%;
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .arow:is(:hover, :focus-within) .apk {
+      opacity: 1;
+      scale: 1;
+    }
+  }
+
+  /* Phones and tablets: title, then year and role, tools; a small
+     thumbnail on the right stands in for the peek. */
+  @media (width < 900px) {
+    .arow {
+      grid-template-columns: minmax(0, 1fr) auto;
+      grid-template-areas: "t k" "y k" "m k";
+      column-gap: 20px;
+      row-gap: 6px;
+      background: var(--canvas);
+      padding: 24px var(--spacing-inset);
+    }
+    .arow > .cell {
+      padding: 0;
+    }
+    .arow .al {
+      grid-area: t;
+    }
+    .arow .ac {
+      display: contents;
+    }
+    .arow .ay {
+      grid-area: y;
+    }
+    .arow .ap {
+      grid-area: m;
+      justify-content: flex-start;
+      margin-top: 6px;
+    }
+    .arow .apk {
+      grid-area: k;
+      position: relative;
+      left: auto;
+      top: auto;
+      translate: none;
+      align-self: center;
+      width: 64px;
+      opacity: 1;
+      scale: 1;
+      border-radius: 12px;
+    }
+    .arow .apk .hov {
+      display: none;
+    }
+  }
+}
+
 /* Phones: no room for him beside the rows, so on Work and the case he
    stays off the page (as in the prototype) instead of sitting on copy. */
 @media (width < 900px) {

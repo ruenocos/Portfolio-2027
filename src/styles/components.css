@@ -909,12 +909,14 @@
    ring up like Daily kit chips, and your grape selection snaps round the
    card with its real size. Pictures never move here (the scroll depth does). */
 @layer components {
-  .pj .pl h3 .tt {
+  .pj .pl h3 .tt,
+  .arow h3 .tt {
     background: linear-gradient(var(--grape), var(--grape)) 0 100% / 0% 2px no-repeat;
     padding-bottom: 4px;
     transition: background-size var(--dur-spring) var(--ease-ui);
   }
-  .pj .pl h3 .ta {
+  .pj .pl h3 .ta,
+  .arow h3 .ta {
     display: inline-flex;
     width: 0.62em;
     margin-left: 0.22em;
@@ -923,18 +925,19 @@
       transform var(--dur-spring) var(--ease-spring),
       color var(--dur-ui) var(--ease-ui);
   }
-  .pj .pl h3 .ta svg {
+  .pj .pl h3 .ta svg,
+  .arow h3 .ta svg {
     width: 100%;
     height: auto;
   }
-  .pj .media .hov {
+  :is(.pj, .arow) .media .hov {
     position: absolute;
     inset: 0;
     z-index: -1;
     border-radius: inherit;
     pointer-events: none;
   }
-  .pj .media .hsel {
+  :is(.pj, .arow) .media .hsel {
     position: absolute;
     inset: -7px;
     border: 1.5px solid var(--grape);
@@ -945,7 +948,7 @@
       opacity var(--dur-ui) var(--ease-ui),
       scale var(--dur-spring) var(--ease-spring);
   }
-  .pj .media .hsel > i {
+  :is(.pj, .arow) .media .hsel > i {
     position: absolute;
     width: 9px;
     height: 9px;
@@ -953,11 +956,11 @@
     background: var(--canvas);
     border: 1.5px solid var(--grape);
   }
-  .pj .media .hsel > i:nth-child(1) { left: -5px; top: -5px; }
-  .pj .media .hsel > i:nth-child(2) { right: -5px; top: -5px; }
-  .pj .media .hsel > i:nth-child(3) { right: -5px; bottom: -5px; }
-  .pj .media .hsel > i:nth-child(4) { left: -5px; bottom: -5px; }
-  .pj .media .hsz {
+  :is(.pj, .arow) .media .hsel > i:nth-child(1) { left: -5px; top: -5px; }
+  :is(.pj, .arow) .media .hsel > i:nth-child(2) { right: -5px; top: -5px; }
+  :is(.pj, .arow) .media .hsel > i:nth-child(3) { right: -5px; bottom: -5px; }
+  :is(.pj, .arow) .media .hsel > i:nth-child(4) { left: -5px; bottom: -5px; }
+  :is(.pj, .arow) .media .hsz {
     position: absolute;
     left: 50%;
     top: calc(100% + 10px);
@@ -969,25 +972,25 @@
     font: 500 11px/1.2 var(--font-mono);
     white-space: nowrap;
   }
-  .pj .tools .tool:nth-child(2) { transition-delay: 0ms, 40ms, 0ms, 0ms, 40ms; }
-  .pj .tools .tool:nth-child(3) { transition-delay: 0ms, 80ms, 0ms, 0ms, 80ms; }
+  :is(.pj, .arow) .tools .tool:nth-child(2) { transition-delay: 0ms, 40ms, 0ms, 0ms, 40ms; }
+  :is(.pj, .arow) .tools .tool:nth-child(3) { transition-delay: 0ms, 80ms, 0ms, 0ms, 80ms; }
 
   @media (hover: hover) and (pointer: fine) {
     .pj:has(.media[href]) { cursor: pointer; }
-    .pj:is(:hover, :focus-within) .pl h3 .tt { background-size: 100% 2px; }
-    .pj:is(:hover, :focus-within) .pl h3 .ta { transform: translateX(8px); color: var(--grape); }
-    .pj:is(:hover, :focus-within) .tools .tool {
+    :is(.pj, .arow):is(:hover, :focus-within) h3 .tt { background-size: 100% 2px; }
+    :is(.pj, .arow):is(:hover, :focus-within) h3 .ta { transform: translateX(8px); color: var(--grape); }
+    :is(.pj, .arow):is(:hover, :focus-within) .tools .tool {
       box-shadow:
         0 0 0 3px var(--canvas),
         0 0 0 4.5px var(--grape);
       transform: translateY(-3px);
     }
-    .pj:is(:hover, :focus-within) .media .hsel {
+    :is(.pj, .arow):is(:hover, :focus-within) .media .hsel {
       opacity: 1;
       scale: 1;
     }
   }
-  html[data-motion="calm"] .pj :is(.tt, .ta, .hsel, .tool) {
+  html[data-motion="calm"] :is(.pj, .arow) :is(.tt, .ta, .hsel, .tool, .apk) {
     transition: none;
   }
 }
