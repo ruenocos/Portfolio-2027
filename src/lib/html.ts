@@ -4,9 +4,9 @@ import { BOOT_KEY } from "./motion";
 // The <head> scripts write the visit's state onto <html> before the first
 // paint: data-mode, data-motion, .pz, data-boot. React owns <html>, and if
 // hydration fails anywhere it renders the whole page again on the client
-// and resets <html> to its server attributes, wiping all of that. Netlify
-// sets this off on every page: it adds a comment and line breaks to <head>
-// that React doesn't expect. So the head scripts keep a copy here, and
+// and resets <html> to its server attributes, wiping all of that. A host or
+// browser extension that touches <head> (Netlify added a comment and line
+// breaks to every page) sets this off. So the head scripts keep a copy here, and
 // restoreHtml() puts back anything that went missing.
 
 declare global {

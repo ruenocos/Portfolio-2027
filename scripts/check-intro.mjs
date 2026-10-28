@@ -47,9 +47,9 @@ async function page(opts = {}, setup) {
   await ctx.close();
 }
 
-// Netlify adds a comment and line breaks to <head>, React's hydration fails
-// on them and resets <html>: the intro, the mode and the motion state must
-// come back (lib/html).
+// A host that adds a comment and line breaks to <head> (Netlify did) makes
+// React's hydration fail and reset <html>: the intro, the mode and the
+// motion state must come back (lib/html).
 {
   const { p, ctx } = await page({ colorScheme: "dark" }, (p) =>
     p.route(BASE + "/", async (r) => {
