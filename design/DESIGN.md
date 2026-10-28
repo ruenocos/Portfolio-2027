@@ -14,7 +14,7 @@ How to use this file:
 
 ## 1. The idea in one paragraph
 
-The site is **Wessel's design file**, and Wessel is in it with you. The page is a square, ruled Figma-like canvas with round objects on it. Wessel's tangerine cursor travels down the page and does one small, real design job per section as it scrolls in: select, drag, paste, leave a comment pin. By night (sunset to sunrise, Amsterdam) he's asleep and named bots do the chores. The visitor is a plain grape "You" cursor that only points. The page is precise, calm and roomy; the fun comes from Wessel's behaviour, not from decoration.
+The site is **Wessel's design file**, and Wessel is in it with you. The page is a square, ruled Figma-like canvas with round objects on it. Wessel's tangerine cursor travels down the page and does one small, real design job per section as it scrolls in: select, drag, paste, leave a comment pin. The visitor is a plain grape "You" cursor that only points. The page is precise, calm and roomy; the fun comes from Wessel's behaviour, not from decoration.
 
 **Three words:** precise · playful · calm.
 
@@ -24,33 +24,31 @@ The site is **Wessel's design file**, and Wessel is in it with you. The page is 
 2. **Roomy over clever.** Air is a feature. If a section feels full, remove, don't shrink.
 3. **Wessel is a character, not an effect.** He has his own life: he never follows the visitor's pointer, he parks where he last worked, he plays every beat in full, and he re-enters from the edge he left by.
 4. **Colour tells who acts.** Tangerine = Wessel made or did it. Grape = you can touch it. Never mix the two roles.
-5. **Only Wessel selects.** No hover bounding boxes for the visitor. Selection boxes, size labels, pins and handles belong to Wessel and the bots.
+5. **Only Wessel selects.** No hover bounding boxes for the visitor. Selection boxes, size labels, pins and handles belong to Wessel.
 6. **Premium finish only on what Wessel made** (Focus dioramas, work media). The grid, cells and controls stay flat.
 7. **Simple, consistent motion.** Reuse the existing moves (magnetism, selection, paste, pin, spring). No new effect without a reason, and never stack effects. Several were tried and dropped: page-wide colour ends, view-transition circles, row waves.
 8. **Real content only.** Never invent copy, numbers, clients, logos or claims. Mock text must be marked `data-mock` and logged in `copy/home-copy_v01.md`.
 
 ## 3. Colour
 
-Three modes. Light and dark follow the system by day. **Night ("purple hour") always wins** from sunset to sunrise in Amsterdam (52.37N 4.90E, computed in the browser, no API), whatever the system theme. The header switch lets the visitor put Wessel to bed or wake him.
+Two modes, light and dark. They follow the system theme; the header switch picks one instead, and that choice is remembered on the device. (Night mode, the "purple hour" with sleeping Wessel and bots, was dropped by Wons 2026-10-28: few people visit after office hours, and three schemes were hard to keep right.)
 
-| Token | Light | Dark | Night | Role |
-|---|---|---|---|---|
-| `canvas` | #FAF8F4 | #12100E | #0E0D1A | cell background |
-| `ink` | #161412 | #F4F1EC | #ECEAF6 | text |
-| `mute` | #736B61 | #9C958A | #8D89A8 | secondary text (≥4.5:1 on canvas) |
-| `line` | #E6E0D7 | #26231F | #24223A | hairlines; the 1px gaps between cells |
-| `fill` | #EFEBE4 | #1C1A17 | #17152B | media placeholders, quiet fills |
-| `dot` | #D9D2C7 | #2E2A25 | #2B2947 | dot grid |
-| `tang` | #F0611F | #FF7A3D | #BC6443 (ember; was #B05E3E, raised to pass AA on small tags 2026-10-27) | **Wessel's ink**: his cursor, name, logo, selections, pins, everything he draws |
-| `tang-ink` | #C2410C | #FF7A3D | #C27052 | tangerine for small text (AA) |
-| `on-tang` | #161412 | #12100E | #0E0D1A | text on tangerine pills |
-| `grape` | #6A3DF0 | #B39BFF | #B39BFF | **yours to touch**: links, focus rings, "You" cursor, text selection, active states |
-| `on-grape` | #FFFFFF | #12100E | #0E0D1A | text on grape |
-| `bot` | #161412 | #F4F1EC | #C9C6DC | night bots (dashed outline tags at night) |
+| Token | Light | Dark | Role |
+|---|---|---|---|
+| `canvas` | #FAF8F4 | #12100E | cell background |
+| `ink` | #161412 | #F4F1EC | text |
+| `mute` | #736B61 | #9C958A | secondary text (≥4.5:1 on canvas) |
+| `line` | #E6E0D7 | #26231F | hairlines; the 1px gaps between cells |
+| `fill` | #EFEBE4 | #1C1A17 | media placeholders, quiet fills |
+| `dot` | #D9D2C7 | #2E2A25 | dot grid |
+| `tang` | #F0611F | #FF7A3D | **Wessel's ink**: his cursor, name, logo, selections, pins, everything he draws |
+| `tang-ink` | #C2410C | #FF7A3D | tangerine for small text (AA) |
+| `on-tang` | #161412 | #12100E | text on tangerine pills |
+| `grape` | #6A3DF0 | #B39BFF | **yours to touch**: links, focus rings, "You" cursor, text selection, active states |
+| `on-grape` | #FFFFFF | #12100E | text on grape |
 
 Rules:
 - Tangerine on canvas is about 3.1:1 in light. It is fine for the giant name and graphics. **Small tangerine text uses `tang-ink`.** Tangerine pills carry dark text (`on-tang`), never white.
-- At night Wessel is asleep, so his tangerine dims to ember. It returns to full when you wake him.
 - Neutrals are warm, never pure grey. Don't add new colours. Figure colours (`--d-*`, clay `--k*`) are scoped to the Focus dioramas only.
 - Mode changes cross-fade all tokens over 0.9s (`.lights`).
 
@@ -91,9 +89,9 @@ Rules:
 - **Insets and rhythm:** content inset is 40px desktop and 20px mobile. Sections use 96px vertical padding (40 mobile). Section dividers are 168px rows (96 mobile; the tall ones are 240 at every width), with the label at bottom-left (inset 40, 20px from the bottom; mobile inset 20, 16px from the bottom).
 - **Section labels:** `{ About }` in Label style, ink. Only the braces are tangerine (`tang-ink`). No counter (dropped 2026-10-27).
 - **Round things inside the square frame:** media radius 24 (`--rm`), pills 999, handles round, chips are circles.
-- **Status line** (2026-10-27): "Awake in Amsterdam, 14:32" / "Asleep in Amsterdam, 23:10", Label style, live Amsterdam time in `mute`. Still: no pill, no lamp.
-- **Mode values** are variables set on every `[data-mode]` element, never `[data-mode] .x` ancestor selectors, so a light panel inside a night page stays light.
-- **Tactile objects** (2026-10-27): things you can press (pills, Contact, Copy email, Pause, the switch knob) plus cursor tags, pins and key chips get a lit top edge (no gradient sheen) and a short drop tinted in their own colour, pulled toward black in dark and night (`tactile.dropDark`); key chips are keycaps with a 2px darker base. Marks stay flat: selections and their size labels, redlines, bot tags, section labels, text links, the status line, tool chips, media. Round + lifted = you can press it; small rectangle + flat = a mark. Strength per mode in tokens.json `tactile` (night is about a fifth). Pressed: sinks 1px (`easing.press`, 120ms), off while calm.
+- **Status line** (2026-10-27): "Amsterdam, 14:32", Label style, live Amsterdam time in `mute`. Still: no pill, no lamp.
+- **Mode values** are variables set on every `[data-mode]` element, never `[data-mode] .x` ancestor selectors.
+- **Tactile objects** (2026-10-27): things you can press (pills, Contact, Copy email, Pause, the switch knob) plus cursor tags, pins and key chips get a lit top edge (no gradient sheen) and a short drop tinted in their own colour, pulled toward black in dark (`tactile.dropDark`); key chips are keycaps with a 2px darker base. Marks stay flat: selections and their size labels, section labels, text links, the status line, tool chips, media. Round + lifted = you can press it; small rectangle + flat = a mark. Strength per mode in tokens.json `tactile`. Pressed: sinks 1px (`easing.press`, 120ms), off while calm.
 - **Breakpoint:** one main switch at 900px (stack to one column, 20px insets), plus 600px for small tweaks. Use `hover:none` for touch behaviour.
 - **Tap targets:** at least 44px. Grow the hit box, not the visible thing (`::before` inset, padding with negative margin, or a JS hit-slop when Wessel measures the element, like the reel).
 - **Tablet (600–900):** project rows go text | media (two columns); Focus stays one card per row.
@@ -115,7 +113,7 @@ Header (sticky, 90px) → Hero → `{ About }` → About (story + photo deck) �
 
 | Component | Spec |
 |---|---|
-| **Header** | Logo smiley (eyes follow the pointer) + "Wessel" wordmark that slides in once the hero name scrolls away · sentence-case nav Work/About/Playground (Link style) · day/night switch (grape) · Pause motion button · "Contact ↓". Sticky. **Below 900px:** logo · switch · pause · 44px menu button (two lines that turn into ×). |
+| **Header** | Logo smiley (eyes follow the pointer) + "Wessel" wordmark that slides in once the hero name scrolls away · sentence-case nav Work/About/Playground (Link style) · light/dark switch (grape) · Pause motion button · "Contact ↓". Sticky. **Below 900px:** logo · switch · pause · 44px menu button (two lines that turn into ×). |
 | **Phone menu** | Wons 2026-10-27. A ruled panel under the header on the dot canvas: Work, About, Contact ↓ as 88px rows in Mobile/Headline (34), arrow in grape. Rows enter with the house entrance (60ms stagger). Closes on a link, Esc, the button or the empty canvas; locks page scroll; focus moves in and back. Built from the header's own links. |
 | **Contact pill** | Phones and tablets: grape "Contact ↓" pill docks bottom-right once the hero has gone (stage spring), hides at the footer, in the reel and while the menu is open. |
 | **Hero** | Height `clamp(480px, 80svh − 91px, 720px)`, or `clamp(420px, 72svh − 70px, 620px)` on mobile. Mono meta top-left (Based in / Local time). Name row WESSEL [reel] OUD. Role bottom-right in Accent. Letters are split into spans for the intro. |
@@ -126,24 +124,23 @@ Header (sticky, 90px) → Hero → `{ About }` → About (story + photo deck) �
 | **Archive** | A fanned hand of cards resting at .82 scale, with "All work →" in Statement. |
 | **Bookend** | The name again in Display with the smiley in the middle. It starts empty and Wessel copy-pastes it in (⌘C from the header wordmark, then ⌘V three times). Hidden until pasted, with a 3s fallback. |
 | **Contact** | Email style with a grape underline (`mailto`) + "Copy email" pill (copy feedback in Wessel's voice) · LinkedIn · More links. |
-| **Cursor tag** | Figma-style pointer (rounded arrowhead, 23px, 1.75 outline in canvas colour) + pill tag with a square corner toward the tip, about 6px clear of the arrow's notch. Wessel = tangerine, You = grape, bots = ink (dashed outline at night). |
+| **Cursor tag** | Figma-style pointer (rounded arrowhead, 23px, 1.75 outline in canvas colour) + pill tag with a square corner toward the tip, about 6px clear of the arrow's notch. Wessel = tangerine, You = grape. |
 | **Comment pin** | Round avatar (smiley) + bubble, radius 4/16/16/16, Small style, canvas fill + line border + soft shadow. Pops in on a spring, text types at 85ms per character, shrinks to a dot when done. **One pin visible at a time.** |
-| **Selection** | 1.5px tangerine box + 4 round handles + Micro size pill below ("203 × 116"). Only Wessel and the bots make them. |
+| **Selection** | 1.5px tangerine box + 4 round handles + Micro size pill below ("203 × 116"). Only Wessel makes them. |
 | **Chips** | ⌘C / ⌘V key chips: Micro, `ink` fill with `canvas` text, radius 6. Size labels: Micro, `tang` fill, `on-tang` text, radius 3 (`radius.mark`, how Figma draws them), flat. Mock tag: dashed, radius 2 (`radius.tag`). |
 | **Tool chips** | Brand logos as circles: 56px in Daily kit, 32px in project rows. Logos are the only non-system colours outside the dioramas. |
 | **Media** | Project media: portrait 3:4 MP4 (muted, looping, plays in view at 0.75×) + JPG poster. About: 3 portrait photos. Radius 24 (`--rm`). |
 | **Arrows** | One drawn arrow icon (Wons 2026-10-27, replaces the text glyphs): 16px grid, 1.5px stroke at every size, round ends, current colour, 1.15em next to labels. Rotated per meaning: → inside the site, ↗ leaves the site (in `mute`), ↓ scrolls down, ← back, ↑ to the top. Build: `<Arrow dir>`. No other icons. |
-| **Pause motion** | Wons 2026-10-27 (WCAG 2.2.2). Round button right of the day/night switch on every page: 34px desktop (40 on touch, 44 on phones), 10px after the switch (6px on phones), hit area 44. Rest: `fill` + `line` outline, two-bar glyph in `mute`. Hover: grape outline, ink glyph, Micro caps tip "Pause motion" below (ink pill, canvas text). Paused: grape fill, ▶ glyph in `on-grape`, tip "Play motion". the name swaps with the visible tip ("Pause motion" / "Play motion", WCAG 2.5.3) and there is no `aria-pressed`, so name and state never contradict; status to the live region ("Motion paused" / "Motion back on", proposed copy). Figma: Control / Pause motion. |
+| **Pause motion** | Wons 2026-10-27 (WCAG 2.2.2). Round button right of the light/dark switch on every page: 34px desktop (40 on touch, 44 on phones), 10px after the switch (6px on phones), hit area 44. Rest: `fill` + `line` outline, two-bar glyph in `mute`. Hover: grape outline, ink glyph, Micro caps tip "Pause motion" below (ink pill, canvas text). Paused: grape fill, ▶ glyph in `on-grape`, tip "Play motion". the name swaps with the visible tip ("Pause motion" / "Play motion", WCAG 2.5.3) and there is no `aria-pressed`, so name and state never contradict; status to the live region ("Motion paused" / "Motion back on", proposed copy). Figma: Control / Pause motion. |
 | **Focus ring** | 2px grape outline, 3px offset, radius 4. |
 
 ## 7. Wessel's cursor (behaviour rules)
 
 - **One Wessel on screen, always.** He never follows your pointer.
-- **Beats:** one job per section, triggered once per mode when the section is about 40% in view (`need` threshold). Beats always play in full. If you scroll fast (peak above 1500px/s) he waits up to 360ms. Above 4500px/s, or if the section was never really seen, the beat is unmarked and replays when you come back.
+- **Beats:** one job per section, triggered once when the section is about 40% in view (`need` threshold). Beats always play in full. If you scroll fast (peak above 1500px/s) he waits up to 360ms. Above 4500px/s, or if the section was never really seen, the beat is unmarked and replays when you come back.
 - **Between beats:** he parks where he worked while that spot is on screen. Otherwise he follows a beat behind (the page drags him at 55%) and re-enters from the edge he left by. His spring stiffens with scroll speed. His target is clamped to the viewport.
-- **Hello intro (hero, day, about 11s):** the W starts as an outline and the u of Oud is crooked. He arrives and his pin types "Hello!". He clicks the W and the fill plops in (squash plus a ring burst). He drags the u straight (tangerine baseline guide). He selects the reel (size pill) and says "Have a look". He goes to the bottom of the hero, says "More below" and nods down twice. The pin then becomes a dot. It skips only when the hero is scrolled 45% away.
+- **Hello intro (hero, about 11s):** the W starts as an outline and the u of Oud is crooked. He arrives and his pin types "Hello!". He clicks the W and the fill plops in (squash plus a ring burst). He drags the u straight (tangerine baseline guide). He selects the reel (size pill) and says "Have a look". He goes to the bottom of the hero, says "More below" and nods down twice. The pin then becomes a dot. It skips only when the hero is scrolled 45% away.
 - **Idle nod:** if you sit still on the hero, he repeats the down-nod after 7s, 12s and 17s, three times at most.
-- **Night:** he sleeps in the corner ("Wessel · asleep", note "Off the clock. Click me if it's urgent."). On phones he sleeps just under the hero (in the divider band), never on the name. Click him or the smiley to wake him; the header switch puts him to bed. Bots do the jobs: Export, Duplicate, Handoff, Rename layers, Content update, Tidy up.
 - **Reduced motion:** end states only, no travel.
 - **Hold back:** never more than one pin on screen; never select something the visitor is using; never cover the name, role or work.
 
@@ -156,16 +153,17 @@ The values are in `motion-tokens.json`. In short:
 - **Magnetism:** the reel and the project media lean toward the pointer, up to ±28px / ±18px with rotation of x × .07deg. They stay still over the middle card.
 - **Smooth scroll:** gentle Lenis (lerp .12), desktop mouse only. Off for touch and reduced motion.
 - **Boot:** 2.4s at most, and any input skips it.
-- **Page transitions** (Wons 2026-10-27): every page change is a **canvas veil** (Wons picked Veil over Fade/Lift 2026-10-27 21:43): a canvas-coloured cover over the content column fades in 160ms, the route swaps, then it lifts over 240ms while the new rows rise in (`ui` easing; Wons 2026-10-27 21:05 after the motion flow research). The header, the dotted sides, day/night switch, Pause and Wessel's cursor hold still during the switch (Wessel keeps his screen spot until the new page gives him a job); scroll resets to the top under the veil (Lenis stopped). On case pages the title row comes first and the header video one step (240ms) later. Then the first screen plays the house entrance on load (rise 16px + fade, rows top to bottom 80ms apart, 4 steps at most). Home's first visit keeps its wireframe boot instead (named frames draw, fill, hero springs in, ~1.2s; reconfirmed by Wons 2026-10-27 21:06). Paused or reduced motion: instant swap, no entrance. A morph of the project video into the case header was tried and dropped (see taste.md). Build: `PageSwitch` (DOM veil, no view-transition snapshot: that showed the grey frame and snapped the new page in) + the entrance on mount.
-- **Pause motion:** one switch stops everything that moves by itself: project videos and the reel loop (they show posters), playground drift, Wessel's travel and beats, the bots and the hello intro. Paused = the reduced-motion path (end states, every block visible, no entrances). Remembered for the visit on every page. The reel dialog you open yourself still plays. In the prototype a toggle fades the page and brings it back at the same scroll; in the build it's a motion store that flips without a reload.
+- **Home intro (Iris, Wons 2026-10-28, replaces the wireframe boot):** first visit in a session only. A tangerine sheet covers the page from the first paint; Wessel's sharpie smiley draws itself on it in `canvas` ink, glances at the corner and flies on an arc into the header logo (turning tangerine as it goes); a round hole that follows it opens the sheet onto the finished page. 2.32s (tempo 1.35). The page under the sheet never animates; only the header logo waits for the smiley. The smiley is the loader: once drawn it waits for the fonts and the reel poster, 1.2s at most. Any input, a hidden tab, a real resize or the "Skip intro" pill (first in tab order) skips; never on Pause, reduced motion, saveData, repeat visits, deep links or back/forward. If JS never runs, CSS clears the sheet at 4s. Timings in `motion-tokens.json` → `intro`; build in `src/lib/intro/iris.ts`, checks in `scripts/check-intro.mjs`; spec `motion/home-intro/build-plan_v03.md`.
+- **Page transitions** (Wons 2026-10-27): every page change is a **canvas veil** (Wons picked Veil over Fade/Lift 2026-10-27 21:43): a canvas-coloured cover over the content column fades in 160ms, the route swaps, then it lifts over 240ms while the new rows rise in (`ui` easing; Wons 2026-10-27 21:05 after the motion flow research). The header, the dotted sides, light/dark switch, Pause and Wessel's cursor hold still during the switch (Wessel keeps his screen spot until the new page gives him a job); scroll resets to the top under the veil (Lenis stopped). On case pages the title row comes first and the header video one step (240ms) later. Then the first screen plays the house entrance on load (rise 16px + fade, rows top to bottom 80ms apart, 4 steps at most). Home's first visit plays the Iris intro instead (see Home intro below). Paused or reduced motion: instant swap, no entrance. A morph of the project video into the case header was tried and dropped (see taste.md). Build: `PageSwitch` (DOM veil, no view-transition snapshot: that showed the grey frame and snapped the new page in) + the entrance on mount.
+- **Pause motion:** one switch stops everything that moves by itself: project videos and the reel loop (they show posters), playground drift, Wessel's travel and beats and the hello intro. Paused = the reduced-motion path (end states, every block visible, no entrances). Remembered for the visit on every page. The reel dialog you open yourself still plays. In the prototype a toggle fades the page and brings it back at the same scroll; in the build it's a motion store that flips without a reload.
 - **Never:** overshoot on text, glow, blur trails or sparkle, page-wide colour changes on scroll, snapshot or overlay transitions tied to scroll, more than one expressive move per screen, or motion that hides the name, role or work.
 
 ## 9. Accessibility
 
 - Contrast is AA for all text. Use `tang-ink` for small tangerine text.
 - Focus rings are visible everywhere. Tabbing reveals blocks that haven't faded in yet.
-- Tap targets are at least 44px, including the day/night switch, footer links, the email and sleeping Wessel (his wake target). Hover-only actions have a tap or keyboard equivalent (for example "Case study soon").
-- Decorative cursors, pins and bots are `aria-hidden`. Real status goes to the `aria-live` region.
+- Tap targets are at least 44px, including the light/dark switch, footer links and the email. Hover-only actions have a tap or keyboard equivalent (for example "Case study soon").
+- Decorative cursors and pins are `aria-hidden`. Real status goes to the `aria-live` region.
 - `prefers-reduced-motion` shows end states and keeps colour changes.
 - **Pause motion** (WCAG 2.2.2) is in the header on every page and does the same as reduced motion, for anyone, on demand. Nothing may move on its own for more than 5s without it.
 
@@ -188,6 +186,6 @@ The values are in `motion-tokens.json`. In short:
 ## 12. Change process
 
 1. Propose the change as options (a decision card with room for Wons's own answer).
-2. Build it in the preview, publish, and screenshot it in light, dark and night at 1440 and 390.
+2. Build it in the preview, publish, and screenshot it in light and dark at 1440 and 390.
 3. Once Wons approves, update this file, `tokens.json` / `motion-tokens.json`, Figma, and the decision log.
 4. Rejected ideas go into `taste.md` with what replaced them, so they aren't proposed again.

@@ -19,12 +19,12 @@ import { EmptyTool, Tools } from "@/components/parts/Tools";
 import { Row } from "@/components/shell/Row";
 import type { ToolId } from "@/lib/tools";
 
-// Build check for the system: every component in light, dark and night side
-// by side, then the live ones on the page itself, then every token.
+// Build check for the system: every component in light and dark side by
+// side, then the live ones on the page itself, then every token.
 // Not a public page.
 export const metadata: Metadata = { title: "System", robots: { index: false } };
 
-const MODES = ["light", "dark", "night"] as const;
+const MODES = ["light", "dark"] as const;
 type Style = { $value: Record<string, string | number>; $description?: string };
 const types = Object.entries(tokens.type as Record<string, Style>);
 
@@ -52,8 +52,8 @@ export default function SystemPage() {
         <SectionLabel as="p" name="System" />
         <h1 className="text-statement mt-4">Components v01</h1>
         <p className="text-body text-mute mt-4 max-w-[60ch]">
-          Every part in light, dark and night side by side. Below that, the live ones on the page itself: Wessel works the
-          project rows by day, the Handoff bot does at night. Use the header switch and Pause motion to try them.
+          Every part in light and dark side by side. Below that, the live ones on the page itself: Wessel works the
+          project rows. Use the header switch and Pause motion to try them.
         </p>
       </Row>
 
@@ -103,23 +103,18 @@ export default function SystemPage() {
               <Cursor kind="wes" name="Wessel" staticDemo />
               <Cursor kind="you" name="You" staticDemo />
               <Cursor kind="you" name="View case" staticDemo />
-              <Cursor kind="bot" name="Handoff" staticDemo />
-            </Specimen>
-            <Specimen name="Wessel asleep">
-              <Cursor kind="wes" name="Wessel · asleep" asleep note staticDemo />
             </Specimen>
             <Specimen name="Comment pin · note · dot" className="items-start">
               <Pin staticDemo>Every ease is hand-tuned.</Pin>
               <Pin staticDemo note>
-                Off the clock. Click me if it’s urgent.
+                The menu took longest.
               </Pin>
               <Pin staticDemo dot>
                 Read
               </Pin>
             </Specimen>
-            <Specimen name="Selection · bot" className="gap-10 pb-8">
+            <Specimen name="Selection" className="gap-10 pb-8">
               <Selection width={140} height={88} />
-              <Selection width={88} height={88} bot />
             </Specimen>
             <Specimen name="Media placeholder">
               <Media ratio="wide" className="w-full" placeholder="Header video to come" />

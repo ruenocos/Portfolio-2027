@@ -16,7 +16,7 @@ const TOSS_MS = 260;
 
 /**
  * About's toy (v07): a stack of photos. Drag the top one off (or tap it,
- * or Enter) and it flies away and tucks in at the back. By day Wessel
+ * or Enter) and it flies away and tucks in at the back. Wessel
  * pulls the top one off once, to show you how.
  */
 export function PhotoStack({ photos }: { photos: Photo[] }) {
@@ -72,7 +72,7 @@ export function PhotoStack({ photos }: { photos: Photo[] }) {
   };
 
   const beat = useBeat<HTMLDivElement>({
-    // By day he shows you the next photo: grabs the top one by its corner,
+    // He shows you the next photo: grabs the top one by its corner,
     // pulls it aside and lets it fly to the back.
     async day(g) {
       const s = stack.current!;

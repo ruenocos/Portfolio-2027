@@ -1,53 +1,28 @@
 import tokens from "../../design/tokens.json";
 
-// Light, dark and night ("purple hour").
-// Light and dark follow the system by day. Night wins from sunset to sunrise
-// in Amsterdam, whatever the system says (DESIGN.md §3). The visitor can put
-// Wessel to bed early or wake him at night; that choice lasts until the sun
-// next rises or sets, and only for this visit.
+// Light and dark. The system decides, until the visitor flips the header
+// switch: that choice is remembered on this device (DESIGN.md §3).
 
-export type Mode = "light" | "dark" | "night";
+export type Mode = "light" | "dark";
 
-export const MODE_KEY = "wsl-mode";
+export const MODE_KEY = "wsl-theme";
 
 // Self-contained on purpose: it's also stringified into the <head> script
 // so the right mode is set before the first paint.
-export function resolveMode(now: number = Date.now()): {
-  mode: Mode;
-  sunDown: boolean;
-} {
-  // Sun altitude for Amsterdam (52.37N 4.90E), after suncalc. No API.
-  const rad = Math.PI / 180;
-  const d = now / 864e5 - 10957.5;
-  const M = rad * (357.5291 + 0.98560028 * d);
-  const L =
-    M + rad * (1.9148 * Math.sin(M) + 0.02 * Math.sin(2 * M) + 0.0003 * Math.sin(3 * M)) + rad * 102.9372 + Math.PI;
-  const e = rad * 23.4397;
-  const dec = Math.asin(Math.sin(e) * Math.sin(L));
-  const ra = Math.atan2(Math.sin(L) * Math.cos(e), Math.cos(L));
-  const H = rad * (280.16 + 360.9856235 * d) + rad * 4.9 - ra;
-  const phi = rad * 52.37;
-  const alt = Math.asin(Math.sin(phi) * Math.sin(dec) + Math.cos(phi) * Math.cos(dec) * Math.cos(H));
-  const sunDown = alt < rad * -0.833;
-
-  let asleep = sunDown;
+export function resolveMode(): Mode {
   try {
-    // Stored as "asleep|sunDown" or "awake|sunDown"; stale once the sun moves on.
-    const [choice, at] = (sessionStorage.getItem("wsl-mode") || "").split("|");
-    if (at === String(sunDown) && (choice === "asleep" || choice === "awake")) asleep = choice === "asleep";
+    const own = localStorage.getItem("wsl-theme");
+    if (own === "light" || own === "dark") return own;
   } catch {}
-
-  const dark = typeof matchMedia === "function" && matchMedia("(prefers-color-scheme: dark)").matches;
-  return { mode: asleep ? "night" : dark ? "dark" : "light", sunDown };
+  return typeof matchMedia === "function" && matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
 }
 
-export const modeScript = `try{document.documentElement.dataset.mode=(${resolveMode.toString()})().mode}catch(e){}`;
+export const modeScript = `try{document.documentElement.dataset.mode=(${resolveMode.toString()})()}catch(e){}`;
 
 // The browser chrome (phone address bar) takes the canvas colour of the mode.
 export const CANVAS: Record<Mode, string> = {
   light: tokens.color.light.canvas.$value,
   dark: tokens.color.dark.canvas.$value,
-  night: tokens.color.night.canvas.$value,
 };
 
 export function paintThemeColor(mode: Mode) {

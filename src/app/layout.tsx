@@ -31,7 +31,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     >
       <head>
         {/* Sets the mode and the motion state before the first paint,
-            so night never flashes light and a paused visit never moves. */}
+            so dark never flashes light and a paused visit never moves. */}
         <meta name="theme-color" content="#FAF8F4" />
         <script dangerouslySetInnerHTML={{ __html: [modeScript, themeColorScript, bootScript, motionScript].join(";") }} />
       </head>

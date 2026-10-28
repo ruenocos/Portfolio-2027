@@ -8,6 +8,8 @@
 // <html> mirrors it before the first paint (see motionScript), so CSS can
 // read it too: .pz while paused, data-motion="calm" while calm.
 
+import motionTokens from "../../design/motion-tokens.json";
+
 export const PAUSE_KEY = "wsl-pause";
 
 export type MotionState = { paused: boolean; reduced: boolean; calm: boolean };
@@ -72,12 +74,16 @@ export function announce(text: string) {
   window.setTimeout(() => (live.textContent = text), 40);
 }
 
+/** Home's first visit in a session plays the Iris intro (DESIGN.md §8,
+ *  lib/intro/iris). Decided before the first paint, so the tangerine sheet
+ *  (CSS, until the intro takes over) is the very first thing you see. Only
+ *  on a fresh, visible, top-of-page load of "/", never paused, reduced,
+ *  saveData, a deep link or a back/forward restore. If the intro never takes
+ *  over (no JS, a render error) the flag clears itself at intro.watchdogS. Runs before
+ *  motionScript, which then skips the house entrance. */
+export const BOOT_KEY = "wsl-boot";
+export const bootScript = `try{var h=document.documentElement,n=performance.getEntriesByType("navigation")[0],c=navigator.connection;if(location.pathname==="/"&&!location.hash&&!sessionStorage.getItem("${BOOT_KEY}")&&localStorage.getItem("${PAUSE_KEY}")!=="1"&&!matchMedia("(prefers-reduced-motion: reduce)").matches&&!(c&&c.saveData)&&!(n&&n.type==="back_forward")&&document.visibilityState!=="hidden"){h.dataset.boot="pending";setTimeout(function(){if(h.dataset.boot==="pending")delete h.dataset.boot},${motionTokens.intro.watchdogS * 1000})}}catch(e){}`;
 // Runs in <head> before the first paint, next to the mode script.
 // "entering" hides the first screen until the house entrance picks it up;
 // it removes itself after 1.5s in case scripts never run.
-/** Home's first visit in a session plays the wireframe boot (DESIGN.md §8),
- *  unless calm. Set before the first paint so the hero never flashes; runs
- *  before motionScript, which then skips the house entrance. */
-export const BOOT_KEY = "wsl-boot";
-export const bootScript = `try{var h=document.documentElement;if(location.pathname==="/"&&!sessionStorage.getItem("${BOOT_KEY}")&&localStorage.getItem("${PAUSE_KEY}")!=="1"&&!matchMedia("(prefers-reduced-motion: reduce)").matches)h.dataset.boot="1"}catch(e){}`;
 export const motionScript = `try{var h=document.documentElement,p=localStorage.getItem("${PAUSE_KEY}")==="1",r=matchMedia("(prefers-reduced-motion: reduce)").matches;h.classList.toggle("pz",p);h.dataset.motion=p||r?"calm":"full";if(!p&&!r&&!h.dataset.boot){h.classList.add("entering");setTimeout(function(){h.classList.remove("entering")},1500)}}catch(e){}`;

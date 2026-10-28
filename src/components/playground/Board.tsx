@@ -4,7 +4,7 @@ import { useEffect, useRef } from "react";
 import { useMotion } from "@/components/useMotion";
 import type { Post } from "@/content/playground";
 import { announce, getMotion, subscribeMotion } from "@/lib/motion";
-import { isAsleep, wessel, type XY } from "@/lib/wessel";
+import { wessel, type XY } from "@/lib/wessel";
 
 type Item = {
   el: HTMLElement;
@@ -22,6 +22,14 @@ type Item = {
 type Col = { x: number; items: Item[]; H: number };
 
 const mod = (a: number, n: number) => ((a % n) + n) % n;
+const shuffle = <T,>(a: readonly T[]) => {
+  const b = [...a];
+  for (let i = b.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [b[i], b[j]] = [b[j], b[i]];
+  }
+  return b;
+};
 const cl = (v: number, a: number, b: number) => Math.max(a, Math.min(b, v));
 const ease = (k: number) => (k < 0.5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2);
 const calm = () => getMotion().calm;
@@ -67,19 +75,19 @@ function postEl(p: Post) {
  * Playground (v08, approved): one big masonry on a pannable board that loops
  * back to where it started, sideways and down. Drag (with a throw), wheel or
  * trackpad, arrow keys; tap a post (or Enter for the middle one) to lift it
- * open. Idle, it drifts down. By day Wessel drives it: he grabs a post that's
+ * open. Idle, it drifts down. Wessel drives it: he grabs a post that's
  * half out of view, drags it in, and selects it. He never opens one; that's
- * yours. Touch anything and he lets go and waits. Night and Pause: still.
+ * yours. Touch anything and he lets go and waits. Pause: still.
  */
 export function Board({ posts }: { posts: Post[] }) {
   const cvRef = useRef<HTMLDivElement>(null);
   const worldRef = useRef<HTMLDivElement>(null);
   const selRef = useRef<HTMLSpanElement>(null);
-  const { calm: still, asleep } = useMotion();
-  const mode = useRef({ still, asleep });
+  const { calm: still } = useMotion();
+  const mode = useRef({ still });
   useEffect(() => {
-    mode.current = { still, asleep };
-  }, [still, asleep]);
+    mode.current = { still };
+  }, [still]);
 
   useEffect(() => {
     const cv = cvRef.current!;
@@ -126,9 +134,19 @@ export function Board({ posts }: { posts: Post[] }) {
       for (let c = 0; c < n; c++) {
         const col: Col = { x: c * (CW + G), items: [], H: 0 };
         let y = c % 2 ? CW * 0.35 : 0;
-        let k = (c * 7) % posts.length;
+        // Shuffled per column, so a short list doesn't line up in rows. The
+        // next post skips one that sits right beside it (the column to the
+        // left, or the first column for the last one: the board wraps).
+        let bag: Post[] = [];
+        const near = (p: Post, at: number) =>
+          [cols[c - 1], c === n - 1 ? cols[0] : undefined].some((nb) =>
+            nb?.items.some((it) => it.p === p && it.y < at + CW * 1.4 && it.y + it.h > at - CW * 0.4),
+          );
         while (y < minH) {
-          const p = posts[k++ % posts.length];
+          if (!bag.length) bag = shuffle(posts);
+          const prev = col.items.at(-1)?.p;
+          const i = posts.length > 2 ? bag.findIndex((q) => q !== prev && !near(q, y)) : -1;
+          const p = bag.splice(Math.max(0, i), 1)[0];
           const h = Math.round(CW / p.ar);
           const el = postEl(p);
           el.style.width = `${CW}px`;
@@ -148,14 +166,14 @@ export function Board({ posts }: { posts: Post[] }) {
       later(() => cols.forEach((c) => c.items.forEach((it) => it.pi.style.removeProperty("--d"))), 1700);
     };
 
-    // ---------- Wessel drives the board (desktop, by day, not paused) ----------
+    // ---------- Wessel drives the board (desktop, not paused) ----------
     // Only while the board is mostly on screen: scrolled away to the footer,
     // he lets go instead of hanging on at the edge.
     const onScreen = () => {
       const r = cv.getBoundingClientRect();
       return r.top < innerHeight * 0.4 && r.bottom > innerHeight * 0.6;
     };
-    const wesOn = () => !mode.current.asleep && !mode.current.still && wide() && onScreen();
+    const wesOn = () => !mode.current.still && wide() && onScreen();
     const S = { s: "rest", t: performance.now() + 900, it: null as Item | null, D: [0, 0], from: [0, 0], g: [0, 0], t0: 0, dur: 0 };
     let pausedTill = 0;
     let target: XY | null = null;
@@ -310,8 +328,8 @@ export function Board({ posts }: { posts: Post[] }) {
           vy *= Math.pow(0.92, dt / 16);
           tx = px;
           ty = py;
-        } else if (!quiet && !wesOn() && !mode.current.asleep && t - idle > 2600 && !document.hidden) {
-          // Idle: a slow drift down (by day, when Wessel isn't driving).
+        } else if (!quiet && !wesOn() && t - idle > 2600 && !document.hidden) {
+          // Idle: a slow drift down (when Wessel isn't driving).
           py -= (0.35 * dt) / 16;
           tx = px;
           ty = py;
@@ -650,7 +668,7 @@ export function Board({ posts }: { posts: Post[] }) {
       cv.removeEventListener("pointermove", hover);
       cv.removeEventListener("pointerleave", leave);
       removeEventListener("resize", resize);
-      if (driving && !isAsleep()) wessel.free();
+      if (driving) wessel.free();
       world.textContent = "";
       cv.querySelector(".lb")?.remove();
     };

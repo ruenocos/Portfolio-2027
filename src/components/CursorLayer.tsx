@@ -2,60 +2,32 @@
 
 import { usePathname } from "next/navigation";
 import { useEffect, useRef } from "react";
-import { setAsleep } from "@/components/ModeProvider";
-import { announce } from "@/lib/motion";
-import { useMotion } from "@/components/useMotion";
-import { TIP, arrive, attachWessel, newPage, setWesselAsleep } from "@/lib/wessel";
+import { afterIntro } from "@/lib/intro/iris";
+import { TIP, arrive, attachWessel, newPage } from "@/lib/wessel";
 import { Cursor } from "./canvas/Cursor";
 
 // Wessel's layer. It lives in the root layout so he survives page changes:
 // one Wessel on screen, always. The engine (lib/wessel) moves him; pages
-// give him jobs with useBeat(). At night he sleeps and is the wake button.
+// give him jobs with useBeat().
 // The visitor gets a plain grape "You" cursor on mouse devices: it only
 // points, and over a project it says "View case" (any [data-you] element
 // names its own label). It sits in the shell, so Sanity Studio gets none of it.
 export function CursorLayer() {
   const pathname = usePathname();
-  const { asleep } = useMotion();
   const wes = useRef<HTMLDivElement>(null);
   const you = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const el = wes.current;
     if (!el) return;
-    const detach = attachWessel(el);
-    // Waking him makes him decoration again, so focus moves to the switch
-    // that now says day, and the change is read out.
-    const wake = (keyboard: boolean) => {
-      if (el.dataset.asleep !== "true") return;
-      setAsleep(false);
-      announce("Wessel is awake. Day mode.");
-      if (!keyboard) return;
-      // The switch, if it's on screen; else the page, so focus is never lost.
-      const dn = document.querySelector<HTMLElement>(".dn");
-      (dn?.offsetParent ? dn : document.getElementById("main"))?.focus();
-    };
-    const click = () => wake(false);
-    const key = (e: KeyboardEvent) => {
-      if (e.key === "Enter" || e.key === " ") {
-        e.preventDefault();
-        wake(true);
-      }
-    };
-    el.addEventListener("click", click);
-    el.addEventListener("keydown", key);
-    return () => {
-      el.removeEventListener("click", click);
-      el.removeEventListener("keydown", key);
-      detach();
-    };
+    el.inert = true;
+    return attachWessel(el);
   }, []);
 
-  useEffect(() => setWesselAsleep(asleep), [asleep]);
-
+  // On home's first visit he makes his entrance once the intro hands over.
   useEffect(() => {
     newPage();
-    arrive();
+    return afterIntro(arrive);
   }, [pathname]);
 
   useEffect(() => {

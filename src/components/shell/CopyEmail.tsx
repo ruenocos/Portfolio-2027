@@ -1,18 +1,16 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { useMotion } from "@/components/useMotion";
 import { announce, getMotion } from "@/lib/motion";
-import { isAsleep, select, wessel } from "@/lib/wessel";
+import { select, wessel } from "@/lib/wessel";
 
 /**
  * The email is its own copy button: click it and it's on your clipboard.
- * By day Wessel comes over, selects it and hits ⌘C with you; your tag says
+ * Wessel comes over, selects it and hits ⌘C with you; your tag says
  * "Copied". Feedback lines are in Wessel's voice (from the prototype). If
  * the clipboard is blocked, the address gets selected instead.
  */
 export function CopyEmail({ email }: { email: string }) {
-  const { asleep } = useMotion();
   const el = useRef<HTMLAnchorElement>(null);
   const [copied, setCopied] = useState(false);
   const timer = useRef(0);
@@ -20,7 +18,7 @@ export function CopyEmail({ email }: { email: string }) {
   const you = (text: string) => dispatchEvent(new CustomEvent("wsl:you", { detail: text }));
 
   const wes = async (a: HTMLElement) => {
-    if (isAsleep() || getMotion().calm) return;
+    if (getMotion().calm) return;
     await wessel.go(wessel.at(a, 1, 0.55, 14, 0), { k: 320, timeout: 600 });
     select(a, { label: false, ms: 1100 });
     wessel.press(true);
@@ -34,7 +32,7 @@ export function CopyEmail({ email }: { email: string }) {
     const a = el.current!;
     try {
       await navigator.clipboard.writeText(email);
-      announce(asleep ? "Copied. Morning me will answer." : "Copied. Talk soon.");
+      announce("Copied. Talk soon.");
       you("Copied");
       setCopied(true);
       window.clearTimeout(timer.current);

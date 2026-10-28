@@ -5,7 +5,7 @@ import type { Body as MBody, Constraint as MConstraint, Engine as MEngine } from
 import { useBeat } from "@/components/canvas/useBeat";
 import type { Sticker } from "@/content/about";
 import { announce, getMotion } from "@/lib/motion";
-import { Bot, live, pageBox, wait, wessel, type XY } from "@/lib/wessel";
+import { live, wait, wessel, type XY } from "@/lib/wessel";
 
 type Matter = typeof import("matter-js");
 type Pile = {
@@ -32,7 +32,7 @@ const DT = 1000 / 60;
  * board when it scrolls in, pile up and knock into each other. Grab one
  * and throw it; arrow keys push it, Enter makes it hop. "Tidy up" lines
  * them up along the bottom like auto layout; "Mess it up" tosses them.
- * By day Wessel picks one up and drops it; at night the Tidy up bot tidies.
+ * Wessel picks one up and drops it.
  * Physics (matter-js) loads only here, when the board is near.
  */
 export function Stickers({ items }: { items: Sticker[] }) {
@@ -402,7 +402,7 @@ export function Stickers({ items }: { items: Sticker[] }) {
 
   const beat = useBeat<HTMLElement>({
     need: 0.5,
-    // By day he picks one up, carries it over and lets it drop on the pile.
+    // He picks one up, carries it over and lets it drop on the pile.
     async day(g) {
       // Let them land first.
       for (let k = 0; k < 40 && (!pile.current || pile.current.bodies.some((b) => !b)); k++) {
@@ -440,23 +440,6 @@ export function Stickers({ items }: { items: Sticker[] }) {
         wessel.press(false);
       }
       wessel.free();
-    },
-    async night(g) {
-      const t = btn.current!;
-      const T = new Bot("Tidy up");
-      const r = pageBox(t);
-      await T.to(r.x + r.w - 18, r.y + r.h - 12);
-      live(g);
-      T.press(true);
-      await wait(140);
-      neat();
-      T.press(false);
-      await wait(700);
-      live(g);
-      await T.leave();
-    },
-    still(mode) {
-      if (mode === "night") neat();
     },
     reset() {
       if (tidyRef.current) mess();

@@ -5,7 +5,7 @@ import { Arrow } from "@/components/parts/Arrow";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { getLenis } from "@/lib/scroll";
-import { DayNight } from "./DayNight";
+import { ThemeSwitch } from "./ThemeSwitch";
 import { Hop } from "./Hop";
 import { NAV } from "./nav";
 import { PauseButton } from "./PauseButton";
@@ -111,7 +111,7 @@ export function Header() {
               ))}
             </nav>
             <div className="ctw">
-              <DayNight />
+              <ThemeSwitch />
               <PauseButton />
             </div>
           </div>

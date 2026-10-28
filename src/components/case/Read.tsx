@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Cursor } from "@/components/canvas/Cursor";
 import { Pin } from "@/components/canvas/Pin";
 import { MockTag } from "@/components/parts/Pills";
 import { useMotion } from "@/components/useMotion";
@@ -19,18 +18,16 @@ const REST_X = 110;
  * sections. Wessel is your reading buddy: he selects the layer you're
  * reading, presses once per change, and counts how far you are in his tag
  * ("Wessel · 42%"). It's the one Wessel (the shell's), driven to the layer, so
- * there's never a second one on screen. At night he sleeps in his corner
- * and the Handoff bot does it, dashed. Each figure gets its pin the first
+ * there's never a second one on screen. Each figure gets its pin the first
  * time it's half in view. Phones: the cursor hides.
  */
 export function Read({ sections }: { sections: CaseSection[] }) {
-  const { calm, asleep } = useMotion();
+  const { calm } = useMotion();
   const root = useRef<HTMLDivElement>(null);
   const list = useRef<HTMLOListElement>(null);
   const [cur, setCur] = useState(-1);
   const [pct, setPct] = useState(0);
   const [inside, setInside] = useState(false);
-  const [press, setPress] = useState(false);
   const [box, setBox] = useState<{ y: number; h: number; x: number } | null>(null);
 
   // Which section you're in, and how far through the read.
@@ -68,23 +65,18 @@ export function Read({ sections }: { sections: CaseSection[] }) {
     if (!li || !a) return;
     setBox({ y: li.offsetTop, h: li.offsetHeight, x: Math.min(a.offsetLeft + a.offsetWidth - 28, REST_X) });
     if (cur < 0 || calm) return;
-    setPress(true);
     wessel.press(true);
-    const t = setTimeout(() => {
-      setPress(false);
-      wessel.press(false);
-    }, 180);
+    const t = setTimeout(() => wessel.press(false), 180);
     return () => {
       clearTimeout(t);
-      setPress(false);
       wessel.press(false);
     };
   }, [cur, calm]);
 
-  // By day Wessel himself rests beside the layer you're reading, while the
+  // Wessel rests beside the layer you're reading, while the
   // panel is on screen (desktop only; phones have no panel).
   useEffect(() => {
-    if (asleep || cur < 0) return;
+    if (cur < 0) return;
     const a = list.current?.children[cur]?.querySelector("a");
     if (!a) return;
     // Just past the label (capped, so his tag stays inside the panel).
@@ -98,19 +90,16 @@ export function Read({ sections }: { sections: CaseSection[] }) {
     };
     wessel.show();
     void wessel.go(target, { k: 260 });
-  }, [asleep, cur]);
+  }, [cur]);
 
-  // How far through the read, in his tag (the bot's at night), while
-  // you're in it.
+  // How far through the read, in his tag, while you're in it.
   useEffect(() => {
     wessel.note(inside ? `${pct}%` : null);
   }, [pct, inside]);
   useEffect(() => () => wessel.note(null), []);
 
-  // One pin per figure, the first time it's half in view (his notes, so
-  // not while he sleeps).
+  // One pin per figure, the first time it's half in view (his notes).
   useEffect(() => {
-    if (asleep) return;
     const io = new IntersectionObserver(
       (es) =>
         es.forEach((e) => {
@@ -122,7 +111,7 @@ export function Read({ sections }: { sections: CaseSection[] }) {
     );
     root.current!.querySelectorAll("figure").forEach((f) => io.observe(f));
     return () => io.disconnect();
-  }, [asleep]);
+  }, []);
 
   return (
     <>
@@ -146,7 +135,6 @@ export function Read({ sections }: { sections: CaseSection[] }) {
               <>
                 <span
                   className="sel lsel"
-                  data-bot={asleep}
                   data-on={cur >= 0}
                   style={{ transform: `translateY(${box.y}px)`, height: box.h }}
                   aria-hidden="true"
@@ -156,15 +144,6 @@ export function Read({ sections }: { sections: CaseSection[] }) {
                   <i />
                   <i />
                 </span>
-                {asleep && (
-                  <div
-                    className="lcur"
-                    data-press={press}
-                    style={{ transform: `translate(${(cur < 0 ? 160 : box.x + 40).toFixed(0)}px, ${box.y + 26}px)` }}
-                  >
-                    <Cursor kind="bot" name={`Handoff · ${pct}%`} staticDemo />
-                  </div>
-                )}
               </>
             )}
           </div>

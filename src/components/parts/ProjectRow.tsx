@@ -7,7 +7,7 @@ import { useBeat } from "@/components/canvas/useBeat";
 import { useMotion } from "@/components/useMotion";
 import { announce } from "@/lib/motion";
 import type { ToolId } from "@/lib/tools";
-import { Bot, fade, live, pageBox, put, select, showPin, wait, wessel, type XY } from "@/lib/wessel";
+import { live, select, showPin, wait, wessel, type XY } from "@/lib/wessel";
 import motionTokens from "../../../design/motion-tokens.json";
 import { MediaFill } from "./Media";
 import { MockTag, Slot } from "./Pills";
@@ -90,8 +90,7 @@ function useMagnet() {
  * Project row (DESIGN.md §6): equal thirds. Title (Accent) + summary +
  * timeline | portrait media 3:4 at 78% of the column | role + tools.
  * Tablet: text | media. Phone: one column.
- * By day Wessel drops a pin on the media and selects it; by night the
- * Handoff bot redlines its spacing (his pins stay away while he sleeps).
+ * Wessel drops a pin on the media and selects it.
  */
 export function ProjectRow({ project: p, hidden, leaving }: { project: Project; hidden?: boolean; leaving?: boolean }) {
   const media = useMagnet();
@@ -159,37 +158,10 @@ export function ProjectRow({ project: p, hidden, leaving }: { project: Project; 
         { k: 160, timeout: 700, lean: !mobile() },
       );
     },
-    async night(g) {
-      // His pins are his voice: they stay put away while he sleeps.
-      const m = media.current;
-      if (!m) return;
-      // Handoff specs it: spacing to the cell edges, and its size.
-      const H = new Bot("Handoff");
-      const r = pageBox(m);
-      const c = pageBox(m.parentElement!);
-      await H.to(r.x + r.w - 6, r.y + r.h - 6);
-      live(g);
-      H.press(true);
-      const top = r.y - c.y;
-      const left = r.x - c.x;
-      const marks = [
-        put("red v", "", [r.x + r.w * 0.5, c.y, undefined, top]),
-        put("szp text-micro", `${Math.round(top)}`, [r.x + r.w * 0.5, c.y + top / 2]),
-        put("red h", "", [c.x, r.y + r.h * 0.5, left]),
-        put("szp text-micro", `${Math.round(left)}`, [c.x + left / 2, r.y + r.h * 0.5]),
-        put("szp text-micro below", `${m.offsetWidth} × ${m.offsetHeight}`, [r.x + r.w / 2, r.y + r.h + 10]),
-      ];
-      fade(marks, 2600);
-      await wait(160);
-      H.press(false);
-      await wait(160);
-      live(g);
-      await H.leave();
-    },
     // Calm: his pin is simply there, where he'd have dropped it.
-    still(mode) {
+    still() {
       const el = pin.current;
-      if (!el || mode !== "day") return;
+      if (!el) return;
       placePin();
       el.hidden = false;
     },

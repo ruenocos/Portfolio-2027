@@ -3,9 +3,9 @@
 import { useEffect, useSyncExternalStore } from "react";
 import { MODE_KEY, paintThemeColor, resolveMode, type Mode } from "@/lib/mode";
 
-// The current mode lives on <html data-mode>. This keeps it right while the
-// page is open (sunset, system theme changes) and lets the header switch
-// put Wessel to bed or wake him.
+// The current mode lives on <html data-mode>. This keeps it in step with
+// the system theme while the page is open, and lets the header switch
+// pick one for good.
 
 const listeners = new Set<() => void>();
 const subscribe = (fn: () => void) => (listeners.add(fn), () => listeners.delete(fn));
@@ -13,7 +13,7 @@ const read = () => (document.documentElement.dataset.mode as Mode) || "light";
 
 function apply() {
   const root = document.documentElement;
-  const { mode } = resolveMode();
+  const mode = resolveMode();
   if (root.dataset.mode === mode) return;
   // Cross-fade every colour token for the length of the mode easing.
   root.classList.add("mode-fade");
@@ -23,9 +23,12 @@ function apply() {
   listeners.forEach((fn) => fn());
 }
 
-export function setAsleep(asleep: boolean) {
+/** The header switch. Picking what the system already says forgets the choice. */
+export function setMode(mode: Mode) {
   try {
-    sessionStorage.setItem(MODE_KEY, `${asleep ? "asleep" : "awake"}|${resolveMode().sunDown}`);
+    const system = matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+    if (mode === system) localStorage.removeItem(MODE_KEY);
+    else localStorage.setItem(MODE_KEY, mode);
   } catch {}
   apply();
 }
@@ -37,12 +40,8 @@ export function useMode(): Mode {
 export function ModeProvider() {
   useEffect(() => {
     const system = matchMedia("(prefers-color-scheme: dark)");
-    const timer = window.setInterval(apply, 60_000);
     system.addEventListener("change", apply);
-    return () => {
-      window.clearInterval(timer);
-      system.removeEventListener("change", apply);
-    };
+    return () => system.removeEventListener("change", apply);
   }, []);
   return null;
 }

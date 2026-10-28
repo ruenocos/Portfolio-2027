@@ -1,19 +1,18 @@
 "use client";
 
-import { setAsleep } from "@/components/ModeProvider";
-import { useMotion } from "@/components/useMotion";
+import { setMode, useMode } from "@/components/ModeProvider";
 
-// Puts Wessel to bed or wakes him. Grape: it's yours to touch.
-export function DayNight() {
-  const { asleep } = useMotion();
+// Light or dark. Grape: it's yours to touch.
+export function ThemeSwitch() {
+  const dark = useMode() === "dark";
   return (
     <button
       type="button"
       role="switch"
-      aria-checked={asleep}
-      aria-label="Night mode"
+      aria-checked={dark}
+      aria-label="Dark mode"
       className="dn"
-      onClick={() => setAsleep(!asleep)}
+      onClick={() => setMode(dark ? "light" : "dark")}
     >
       <i className="k" aria-hidden="true" />
       <svg className="i sun" viewBox="0 0 16 16" aria-hidden="true">

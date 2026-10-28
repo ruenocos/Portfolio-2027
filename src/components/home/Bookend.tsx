@@ -1,16 +1,13 @@
 "use client";
 
 import { useEffect, useLayoutEffect, useRef } from "react";
-import { Cursor } from "@/components/canvas/Cursor";
 import { useBeat } from "@/components/canvas/useBeat";
-import { setAsleep } from "@/components/ModeProvider";
 import { Smiley } from "@/components/shell/Smiley";
 import { useMotion } from "@/components/useMotion";
-import { announce, getMotion } from "@/lib/motion";
+import { getMotion } from "@/lib/motion";
 import { isBusy, live, select, wait, wessel } from "@/lib/wessel";
 import { NAME } from "./name-paths";
 
-const CREW = ["Export", "Duplicate", "Handoff", "Rename layers", "Content update", "Tidy up"];
 
 const pieces = (n: HTMLElement | null) => [...(n?.children ?? [])] as HTMLElement[];
 const paste = (n: HTMLElement | null, on: boolean) => pieces(n).forEach((p) => p.toggleAttribute("data-in", on));
@@ -28,10 +25,9 @@ function Word({ w }: { w: (typeof NAME)[keyof typeof NAME] }) {
  * Bookend (DESIGN.md §6): the name again, Wessel ☺ Oud. It starts empty and
  * Wessel copy-pastes it in: ⌘C on the header wordmark, then ⌘V three times.
  * If his beat can't run while it's on screen, it shows by itself after 3s.
- * At night the crew of bots that did the chores lines up under it.
  */
 export function Bookend() {
-  const { calm, asleep } = useMotion();
+  const { calm } = useMotion();
   const bkn = useRef<HTMLDivElement>(null);
   const parts = () => pieces(bkn.current);
   const show = (on: boolean) => paste(bkn.current, on);
@@ -99,9 +95,6 @@ export function Bookend() {
       const mob = innerWidth < 900;
       await wessel.go(wessel.at(bkn.current!, 0.5, 1, mob ? 40 : 120, mob ? 22 : 30));
     },
-    async night() {
-      show(true);
-    },
     still() {
       show(true);
     },
@@ -110,32 +103,17 @@ export function Bookend() {
     },
   });
 
-  // The sleeping smiley wakes him, like the cursor does.
-  const wake = () => {
-    if (!asleep) return;
-    setAsleep(false);
-    announce("Wessel is awake. Day mode.");
-  };
-
   return (
     <section className="frame" data-row aria-label="Wessel Oud">
       <div className="side" />
       <div ref={cell} className="cell bk bg-dots">
-        <div ref={bkn} className="bkn" aria-hidden="true" onClick={wake}>
+        <div ref={bkn} className="bkn" aria-hidden="true">
           <Word w={NAME.Wessel} />
           <span className="smi">
             <Smiley follow />
           </span>
           <Word w={NAME.Oud} />
         </div>
-        {asleep && (
-          <div className="crew" aria-hidden="true">
-            {CREW.map((n) => (
-              <Cursor key={n} kind="bot" name={n} staticDemo />
-            ))}
-            <span className="stat opill text-label">6 boring jobs done · 0 by Wessel</span>
-          </div>
-        )}
       </div>
       <div className="side" />
     </section>

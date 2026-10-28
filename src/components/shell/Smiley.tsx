@@ -5,8 +5,7 @@ import { useMotion } from "@/components/useMotion";
 import { FACE, FEATURES } from "@/lib/smiley";
 
 // Wessel's smiley, traced from his sharpie sketch. The features (eyes and
-// mouth) look toward the pointer and close at night. Calm = they rest.
-
+// mouth) look toward the pointer. Calm = they rest.
 
 const clamp = (v: number) => Math.max(-1, Math.min(1, v));
 
@@ -18,7 +17,7 @@ export function Smiley({
   className?: string;
 }) {
   const feat = useRef<SVGGElement>(null);
-  const { calm, asleep } = useMotion();
+  const { calm } = useMotion();
 
   useEffect(() => {
     const g = feat.current;
@@ -27,7 +26,6 @@ export function Smiley({
     const fine = matchMedia("(hover: hover) and (pointer: fine)").matches;
     const ptr = { x: innerWidth / 2, y: innerHeight / 2 };
     const cur = [0, 0];
-    let sleep = asleep ? 1 : 0;
     let raf = 0;
 
     const draw = () => {
@@ -42,16 +40,12 @@ export function Smiley({
       const k = calm ? 1 : 0.12;
       cur[0] += (aim[0] - cur[0]) * k;
       cur[1] += (aim[1] - cur[1]) * k;
-      sleep += ((asleep ? 1 : 0) - sleep) * (calm ? 1 : 0.08);
-      const awake = 1 - sleep;
-      const sy = (1 - Math.abs(cur[1]) * 0.12) * (1 - 0.84 * sleep);
+      const sy = 1 - Math.abs(cur[1]) * 0.12;
       g.setAttribute(
         "transform",
-        `translate(${106 + cur[0] * 16 * awake} ${106 + cur[1] * 14 * awake + sleep * 10}) scale(${1 - Math.abs(cur[0]) * 0.12} ${sy}) translate(-106 -106)`,
+        `translate(${106 + cur[0] * 16} ${106 + cur[1] * 14}) scale(${1 - Math.abs(cur[0]) * 0.12} ${sy}) translate(-106 -106)`,
       );
-      const settled =
-        Math.abs(aim[0] - cur[0]) + Math.abs(aim[1] - cur[1]) < 0.002 &&
-        Math.abs((asleep ? 1 : 0) - sleep) < 0.002;
+      const settled = Math.abs(aim[0] - cur[0]) + Math.abs(aim[1] - cur[1]) < 0.002;
       raf = settled ? 0 : requestAnimationFrame(draw);
     };
     const wake = () => void (raf ||= requestAnimationFrame(draw));
@@ -68,7 +62,7 @@ export function Smiley({
       cancelAnimationFrame(raf);
       removeEventListener("pointermove", move);
     };
-  }, [follow, calm, asleep]);
+  }, [follow, calm]);
 
   return (
     <svg

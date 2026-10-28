@@ -6,8 +6,9 @@ import { MockTag } from "@/components/parts/Pills";
 import { useMotion } from "@/components/useMotion";
 import { useBeat } from "@/components/canvas/useBeat";
 import type { HomeContent } from "@/content/home";
-import { BOOT_KEY, getMotion } from "@/lib/motion";
-import { Bot, isAsleep, isBusy, live, pageBox, put, putPin, select, wait, wessel, type XY } from "@/lib/wessel";
+import { holdIntro, playIntro } from "@/lib/intro/iris";
+import { getMotion } from "@/lib/motion";
+import { isBusy, live, pageBox, put, putPin, select, wait, wessel, type XY } from "@/lib/wessel";
 
 const calm = () => getMotion().calm;
 const mobile = () => innerWidth < 900;
@@ -23,53 +24,6 @@ const pp = (el: Element, fx = 0, fy = 0, dx = 0, dy = 0): XY => {
   return [r.x + r.w * fx + dx, r.y + r.h * fy + dy];
 };
 
-// The first visit's wireframe boot (DESIGN.md §8): named empty frames draw
-// in, fill like a wireframe, then the real hero springs in. ~1.2s, any
-// input skips it. Shared, so the hello beat can wait for it.
-let booting: Promise<void> | null = null;
-function boot(hero: HTMLElement, parts: [Element | null, string][]) {
-  return (booting ||= (async () => {
-    const root = document.documentElement;
-    if (!root.dataset.boot) return;
-    try {
-      sessionStorage.setItem(BOOT_KEY, "1");
-    } catch {}
-    let skip = false;
-    const stop = () => (skip = true);
-    const evs = ["wheel", "keydown", "pointerdown", "touchstart"] as const;
-    evs.forEach((e) => addEventListener(e, stop, { once: true, passive: true }));
-    const hold = (ms: number) =>
-      new Promise<void>((r) => {
-        const t0 = performance.now();
-        const k = setInterval(() => {
-          if (skip || performance.now() - t0 >= ms) {
-            clearInterval(k);
-            r();
-          }
-        }, 30);
-      });
-    const hr = hero.getBoundingClientRect();
-    const frames = parts.flatMap(([el, name], i) => {
-      if (!el) return [];
-      const r = el.getBoundingClientRect();
-      const d = document.createElement("div");
-      d.className = "frm";
-      d.style.cssText = `--i:${i};left:${r.left - hr.left - 4}px;top:${r.top - hr.top - 4}px;width:${r.width + 8}px;height:${r.height + 8}px`;
-      d.innerHTML = `<span class="text-micro-caps">${name}</span>`;
-      hero.appendChild(d);
-      return [d];
-    });
-    await hold(480);
-    frames.forEach((d) => d.classList.add("f"));
-    await hold(420);
-    delete root.dataset.boot;
-    frames.forEach((d) => d.classList.add("out"));
-    await wait(640);
-    frames.forEach((d) => d.remove());
-    evs.forEach((e) => removeEventListener(e, stop));
-  })());
-}
-
 /** The letters Wessel plays with: the W, the u of Oud, and both words. */
 function letters(n: HTMLElement) {
   const words = n.querySelectorAll(".w");
@@ -77,7 +31,7 @@ function letters(n: HTMLElement) {
 }
 // Before he arrives (day, not calm): the W is only an outline and the u of Oud sits crooked.
 function prepName(n: HTMLElement) {
-  if (calm() || isAsleep()) return;
+  if (calm()) return;
   const { W, U } = letters(n);
   W.classList.add("ol");
   U.classList.add("off");
@@ -119,8 +73,8 @@ function Letters({ word, group }: { word: string; group?: [number, number] }) {
 
 /**
  * Hero (DESIGN.md §6, §7): mono meta, the name row WESSEL [reel] OUD on
- * glyph height, the role in Wessel's voice. By day his hello intro plays
- * once per mode; by night Rename layers names every letter.
+ * glyph height, the role in Wessel's voice. His hello intro plays
+ * once.
  */
 export function Hero({ hero: c }: { hero: HomeContent["hero"] }) {
   const { calm: still } = useMotion();
@@ -174,8 +128,8 @@ export function Hero({ hero: c }: { hero: HomeContent["hero"] }) {
     };
   }, []);
 
-  // The reel's loop plays once Wessel has invited you to it (or at once at
-  // night), only on screen, never while calm. A grape bar tracks its time.
+  // The reel's loop plays once Wessel has invited you to it, only on
+  // screen, never while calm. A grape bar tracks its time.
   const syncReel = useRef(() => {});
   useEffect(() => {
     const v = loop.current;
@@ -325,21 +279,18 @@ export function Hero({ hero: c }: { hero: HomeContent["hero"] }) {
     if (nm.current) prepName(nm.current);
   }, []);
 
-  const bootParts = (): [Element | null, string][] => {
-    const n = nm.current;
-    return [
-      [meta.current, "Meta"],
-      [n?.children[0] ?? null, "Name"],
-      [reel.current, "Reel"],
-      [n?.children[2] ?? null, "Name"],
-      [role.current, "Role"],
-    ];
-  };
+  // The first visit's intro starts as soon as the hero is there; the hello
+  // beat (and Wessel) wait for it to hand over.
+  // The intro is held while the hero is mounted; leaving home mid-intro ends it.
+  useEffect(() => holdIntro(), []);
 
   const hero = useBeat<HTMLDivElement>({
     async day(g) {
       const h = hero.current!;
-      await boot(h, bootParts());
+      // After the intro he glides in from the edge instead of appearing mid-hero.
+      const intro = !!document.documentElement.dataset.boot;
+      await playIntro();
+      if (intro && h.isConnected) wessel.offstage();
       live(g);
       // It skips once the hero is scrolled 45% away, or on any key or click.
       let skip = false;
@@ -480,33 +431,6 @@ export function Hero({ hero: c }: { hero: HomeContent["hero"] }) {
         }
       }
     },
-    async night(g) {
-      const h = hero.current!;
-      await boot(h, bootParts());
-      live(g);
-      unprep();
-      // A bot names every letter as a layer, then leaves.
-      const B = new Bot("Rename layers");
-      const ls = [...nm.current!.querySelectorAll<HTMLElement>(".lt")];
-      const labels: HTMLElement[] = [];
-      for (const [i, l] of ls.entries()) {
-        const [x, y] = pp(l, 0.5, 0, 0, -8);
-        if (i === 0 || i === ls.length - 1 || i === 6) await B.to(x, y - 10);
-        live(g);
-        const t = put("lt-lab text-micro", l.textContent ?? "", [x, y]);
-        t.style.animationDelay = `${i * 60}ms`;
-        labels.push(t);
-      }
-      playReel();
-      await wait(1400);
-      live(g);
-      for (const t of labels) {
-        t.style.transition = "opacity .3s";
-        t.style.opacity = "0";
-        setTimeout(() => t.remove(), 320);
-      }
-      await B.leave();
-    },
     // Calm: the finished hero, reel on its poster.
     still() {
       unprep();
@@ -522,7 +446,7 @@ export function Hero({ hero: c }: { hero: HomeContent["hero"] }) {
     },
   });
 
-  // Night, or calm, or a reload halfway down: the hero is simply finished.
+  // Calm, or a reload halfway down: the hero is simply finished.
   useEffect(() => {
     if (still && nm.current) {
       unprepName(nm.current);
@@ -540,7 +464,7 @@ export function Hero({ hero: c }: { hero: HomeContent["hero"] }) {
     evs.forEach((e) => addEventListener(e, moved, { passive: true }));
     const id = setInterval(async () => {
       const h = hero.current;
-      if (!h || !n.on || n.nodding || isBusy() || calm() || isAsleep() || document.hidden || n.nods >= 3) return;
+      if (!h || !n.on || n.nodding || isBusy() || calm() || document.hidden || n.nods >= 3) return;
       if (performance.now() - n.still < 7000 + n.nods * 5000 || scrollY > h.offsetHeight * 0.3) return;
       n.nodding = true;
       n.nods++;
