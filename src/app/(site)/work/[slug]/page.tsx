@@ -13,8 +13,8 @@ import { caseSlugs, getCase, getWork } from "@/content/get";
 import { getDraftFetchOptions } from "@/sanity/live";
 import { HeroBeat } from "@/components/case/HeroBeat";
 
-export function generateStaticParams() {
-  return caseSlugs().map((slug) => ({ slug }));
+export async function generateStaticParams() {
+  return (await caseSlugs()).map((slug) => ({ slug }));
 }
 
 export async function generateMetadata({ params }: PageProps<"/work/[slug]">): Promise<Metadata> {
@@ -80,7 +80,7 @@ async function Case({ params }: Pick<PageProps<"/work/[slug]">, "params">) {
               </p>
             )}
             {c.mock?.length ? (
-              <span data-enter>
+              <span data-enter data-mock-only>
                 <MockTag>Mock copy from desaak.com · to rewrite</MockTag>
               </span>
             ) : null}

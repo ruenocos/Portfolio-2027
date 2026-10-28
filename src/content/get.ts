@@ -1,13 +1,17 @@
 import type { Project } from "@/components/parts/ProjectRow";
 import { IS_PRODUCTION } from "@/lib/site";
 import { knownTools } from "@/lib/tools";
+import { client, urlFor } from "@/sanity/client";
 import { cachedSanity, published, type FetchOptions } from "@/sanity/live";
-import { ABOUT_QUERY, CASE_QUERY, HOME_QUERY, PLAYGROUND_QUERY, WORK_QUERY } from "@/sanity/queries";
+import { ABOUT_QUERY, CASE_QUERY, CASE_SLUGS_QUERY, HOME_QUERY, PLAYGROUND_QUERY, WORK_QUERY } from "@/sanity/queries";
 import { FALLBACK_HOME, type HomeContent, type Track } from "./home";
 import { FALLBACK_ABOUT, type AboutContent, type Sticker } from "./about";
 import { FALLBACK_CASES, type Case, type CaseSection } from "./cases";
 import { FALLBACK_POSTS, PLAYGROUND_TARGET, type Post } from "./playground";
 import { FALLBACK_ARCHIVE, FALLBACK_PROJECTS } from "./projects";
+
+/** A Sanity image as the queries return it: the asset plus the Studio's crop and focal point. */
+type Pic = { asset?: { _ref: string }; crop?: object; hotspot?: object };
 
 type Row = {
   title: string;
@@ -20,7 +24,7 @@ type Row = {
   label?: string;
   hasCase?: boolean;
   slug?: string;
-  poster?: string;
+  poster?: Pic;
   video?: string;
 };
 type HomeDoc = {
@@ -29,13 +33,19 @@ type HomeDoc = {
   reel?: { loop?: string; full?: string; poster?: string };
   aboutOpener?: string;
   aboutNext?: string;
-  photos?: { src?: string; alt?: string }[];
+  photos?: { src?: Pic; alt?: string }[];
   focusStatement?: string;
   tracks?: Partial<Track>[];
   archive?: { src?: string; name?: string }[];
 };
 
 const img = (src?: string, w = 1200) => (src ? `${src}?w=${w}&auto=format` : undefined);
+// With a ratio the CDN cuts the picture to its frame around the focal point
+// set in the Studio; without one it keeps the whole (cropped) picture.
+const pic = (p: Pic | undefined, w: number, ratio?: number) =>
+  p?.asset ? (ratio ? urlFor(p).width(w).height(Math.round(w / ratio)).fit("crop") : urlFor(p).width(w)).url() : undefined;
+const PORTRAIT = 3 / 4;
+const hasPic = <T extends { src?: Pic; alt?: string }>(p: T): p is T & { src: Pic; alt: string } => !!p.src?.asset && !!p.alt;
 // Where Wessel drops each pin on the media: a little off, like by hand.
 const SPOTS = [
   { fx: 0.72, dy: 30, rot: -3 },
@@ -51,7 +61,7 @@ function toProject(r: Row, i: number): Project {
     timeline: r.timeline,
     role: r.role ?? "",
     tools: knownTools(r.tools ?? []),
-    media: { poster: img(r.poster, 1040), video: r.video },
+    media: { poster: pic(r.poster, 1040, PORTRAIT), video: r.video },
     href: r.hasCase && r.slug ? `/work/${r.slug}` : undefined,
     label: r.label || `${r.title}, ${r.timeline}.`,
     note: r.note ? { text: r.note, spot: SPOTS[i % SPOTS.length] } : undefined,
@@ -75,7 +85,7 @@ export async function getHome(o: FetchOptions = published): Promise<HomeContent>
     console.warn("Home: Sanity unavailable, using the fallback content.", e);
   }
   const h = doc ?? {};
-  const photos = (h.photos ?? []).filter((p): p is { src: string; alt: string } => !!p.src && !!p.alt);
+  const photos = (h.photos ?? []).filter(hasPic);
   const archive = (h.archive ?? []).filter((c): c is { src: string; name: string } => !!c.src && !!c.name);
   const reel = h.reel?.loop || h.reel?.full ? { ...h.reel, poster: img(h.reel.poster, 1600) } : f.hero.reel;
 
@@ -88,7 +98,7 @@ export async function getHome(o: FetchOptions = published): Promise<HomeContent>
     about: {
       opener: h.aboutOpener || f.about.opener,
       next: h.aboutNext || f.about.next,
-      photos: photos.length ? photos.map((p) => ({ ...p, src: img(p.src, 760)! })) : f.about.photos,
+      photos: photos.length ? photos.map((p) => ({ alt: p.alt, src: pic(p.src, 760, PORTRAIT)! })) : f.about.photos,
     },
     projects: rows.length ? rows.map(toProject) : f.projects,
     focus: {
@@ -128,7 +138,7 @@ type CaseDoc = {
   role?: string;
   scope?: string;
   timeline?: string;
-  hero?: { video?: string; poster?: string; alt?: string; caption?: string };
+  hero?: { video?: string; poster?: Pic; alt?: string; caption?: string };
   sections?: (Omit<CaseSection, "key" | "figure"> & {
     _key: string;
     figure?: { src?: string; alt?: string; caption?: string; width?: number; height?: number };
@@ -140,7 +150,7 @@ function toCase(slug: string, d: CaseDoc): Case {
   const fb = FALLBACK_CASES.find((c) => c.slug === slug);
   const fact = (label: string, value?: string) =>
     value ? { label, value } : (fb?.facts.find((f) => f.label === label) ?? { label, value: "" });
-  const poster = img(d.hero?.poster, 1800);
+  const poster = pic(d.hero?.poster, 1800, 16 / 9);
   return {
     slug,
     title: d.title || fb?.title || slug,
@@ -186,14 +196,23 @@ export async function getCase(slug: string, o: FetchOptions = published): Promis
   return FALLBACK_CASES.find((c) => c.slug === slug) ?? null;
 }
 
-export const caseSlugs = () => FALLBACK_CASES.map((c) => c.slug);
+/** Case pages to prebuild: the drafts in code plus every live case in Sanity. */
+export async function caseSlugs(): Promise<string[]> {
+  let live: string[] = [];
+  try {
+    live = (await client.fetch<string[] | null>(CASE_SLUGS_QUERY)) ?? [];
+  } catch (e) {
+    console.warn("Case slugs: Sanity unavailable, using the fallback list.", e);
+  }
+  return [...new Set([...FALLBACK_CASES.map((c) => c.slug), ...live])];
+}
 
 type AboutDoc = {
   hello?: string;
   lead?: string;
-  photos?: { src?: string; alt?: string }[];
+  photos?: { src?: Pic; alt?: string }[];
   facts?: { label?: string; value?: string; sub?: string }[];
-  experience?: { when?: string; place?: string; role?: string; slug?: string; hasCase?: boolean }[];
+  experience?: { when?: string; place?: string; role?: string }[];
   stickers?: { text?: string; tone?: Sticker["tone"]; size?: Sticker["size"] }[];
 };
 
@@ -207,14 +226,14 @@ export async function getAbout(o: FetchOptions = published): Promise<AboutConten
   } catch (e) {
     console.warn("About: Sanity unavailable, using the fallback content.", e);
   }
-  const photos = (d.photos ?? []).filter((p): p is { src: string; alt: string } => !!p.src && !!p.alt);
+  const photos = (d.photos ?? []).filter(hasPic);
   const facts = (d.facts ?? []).filter((x) => x.label && x.value);
   const jobs = (d.experience ?? []).filter((j) => j.when && j.place && j.role);
   const stickers = (d.stickers ?? []).filter((s): s is Sticker => !!s.text);
   return {
     hello: d.hello || f.hello,
     lead: d.lead || f.lead,
-    photos: photos.length ? photos.map((p) => ({ ...p, src: img(p.src, 760)! })) : f.photos,
+    photos: photos.length ? photos.map((p) => ({ alt: p.alt, src: pic(p.src, 760, PORTRAIT)! })) : f.photos,
     facts: facts.length ? facts.map((x) => ({ label: x.label!, value: x.value, sub: x.sub })) : f.facts,
     experience: jobs.length
       ? jobs.map((j) => ({

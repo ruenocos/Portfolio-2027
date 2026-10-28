@@ -1,14 +1,22 @@
+import { UserIcon } from "@sanity/icons/User";
 import { defineArrayMember, defineField, defineType } from "sanity";
+import { FALLBACK_ABOUT as f } from "../../content/about";
 
 // About (one fixed document). Every field is optional: what's empty keeps
-// the approved copy that ships with the site (src/content/about.ts).
+// the approved copy that ships with the site (src/content/about.ts), shown
+// here as the grey placeholder.
+const TONE: Record<string, string> = { tang: "Tangerine", grape: "Grape", ink: "Ink", outline: "Outline" };
+const SIZE: Record<string, string> = { s: "Small", m: "Medium", l: "Large" };
+
 export const about = defineType({
   name: "about",
   title: "About",
   type: "document",
+  icon: UserIcon,
+  description: "Empty fields use the text shown in grey.",
   fields: [
-    defineField({ name: "hello", type: "string", description: "The page title, like \"Hi, I’m Wessel.\"" }),
-    defineField({ name: "lead", type: "text", rows: 2 }),
+    defineField({ name: "hello", type: "string", description: "The page title.", placeholder: f.hello }),
+    defineField({ name: "lead", type: "text", rows: 2, placeholder: f.lead }),
     defineField({
       name: "photos",
       type: "array",
@@ -50,7 +58,6 @@ export const about = defineType({
             defineField({ name: "when", type: "string", description: "Like \"Jul 2024 – now\".", validation: (rule) => rule.required() }),
             defineField({ name: "place", type: "string", validation: (rule) => rule.required() }),
             defineField({ name: "role", type: "string", validation: (rule) => rule.required() }),
-            defineField({ name: "case", title: "Case page", type: "reference", to: [{ type: "project" }] }),
           ],
           preview: { select: { title: "place", subtitle: "when" } },
         }),
@@ -69,16 +76,38 @@ export const about = defineType({
             defineField({
               name: "tone",
               type: "string",
-              options: { list: ["tang", "grape", "ink", "outline"], layout: "radio" },
+              options: {
+                list: [
+                  { title: "Tangerine", value: "tang" },
+                  { title: "Grape", value: "grape" },
+                  { title: "Ink", value: "ink" },
+                  { title: "Outline", value: "outline" },
+                ],
+                layout: "radio",
+                direction: "horizontal",
+              },
               initialValue: "tang",
             }),
             defineField({
               name: "size",
               type: "string",
-              options: { list: ["s", "m", "l"], layout: "radio" },
+              description: "Large for themes, small for single games.",
+              options: {
+                list: [
+                  { title: "Small", value: "s" },
+                  { title: "Medium", value: "m" },
+                  { title: "Large", value: "l" },
+                ],
+                layout: "radio",
+                direction: "horizontal",
+              },
               initialValue: "m",
             }),
           ],
+          preview: {
+            select: { title: "text", tone: "tone", size: "size" },
+            prepare: ({ title, tone, size }) => ({ title, subtitle: [TONE[tone] ?? tone, SIZE[size] ?? size].filter(Boolean).join(" · ") }),
+          },
         }),
       ],
     }),

@@ -104,5 +104,20 @@ some parts several times; they're merged into one component each (list in
 
 Project `u0p6z6ze`, dataset `production` (public: never put private content in
 it). Studio at `/studio`, draft mode at `/api/draft-mode/enable`. Schemas in
-`src/sanity/schemaTypes` are carried over from the old site and get reworked
-with the pages.
+`src/sanity/schemaTypes`:
+
+- `home`, `about`: one fixed document each. Every field is optional; an empty
+  one shows the approved copy from `src/content`, which the Studio shows as
+  grey placeholder text.
+- `project`: one per project, its row on Home and Work plus its case page.
+  Home and Work show the built-in rows until projects are published, then
+  only published ones, so publish them together.
+- `playgroundPiece`: one per Playground post.
+
+Projects and Playground posts are ordered by dragging in the Studio
+(`@sanity/orderable-document-list`, field `orderRank`). Images go through
+`urlFor`, so the crop and focal point set in the Studio are used.
+
+Scripts (need `SANITY_API_WRITE_TOKEN`, an Editor token; `--dry` to preview):
+`npx jiti scripts/seed-sanity.ts` fills empty fields from `src/content`;
+`npx jiti scripts/order-rank.ts` gives existing documents a drag rank.
