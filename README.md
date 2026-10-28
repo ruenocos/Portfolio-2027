@@ -59,8 +59,10 @@ Motion:
 - Page changes cross-fade: 240ms out, then 240ms in (`PageFade`, React
   `<ViewTransition>`). Then the first screen's `main [data-row]`s play the
   house entrance (rise 16px + fade, 80ms apart). A row can mark its own
-  blocks with `data-enter`. Home's boot intro can skip it by setting
-  `<html data-boot>`.
+  blocks with `data-enter`. Home's first-visit intro (Iris,
+  `src/lib/intro/iris.ts`) skips it through `<html data-boot>`, which
+  `bootScript` sets before the first paint. `node scripts/check-intro.mjs`
+  runs its behaviour checks against a running build.
 - `src/components/CursorLayer.tsx` is Wessel's layer. It sits in the shell
   (which stays mounted between pages), so he survives page changes.
 - Status messages go to `#live` through `announce()`.

@@ -196,5 +196,79 @@
     "state": "reduced-motion path",
     "persist": "localStorage wsl-pause (visit)",
     "exempt": "reel dialog the visitor opens"
+  },
+  "intro": {
+    "$description": "Home first-visit intro 'Iris' (Wons 2026-10-28, replaces Relay). Seconds from start, already at tempo 1.35. Source: motion/home-intro/proto/intro.js relay() with plane=iris, sheet=tang, under=page. Spec: motion/home-intro/build-plan_v03.md.",
+    "tempo": 1.35,
+    "sheet": {
+      "color": "tang",
+      "smileyInk": "canvas",
+      "under": "finished page (only the header logo hidden)"
+    },
+    "draw": {
+      "outline": [
+        0.05,
+        0.63
+      ],
+      "eyes": [
+        0.61,
+        1.08
+      ],
+      "smile": [
+        0.79,
+        1.03
+      ],
+      "eyesEase": "back 1.5"
+    },
+    "gate": {
+      "at": 1.03,
+      "maxWait": 1.2,
+      "waitsFor": [
+        "document.fonts.ready",
+        "reel poster decode()"
+      ],
+      "fallback": "none needed: the page is never hidden"
+    },
+    "glance": [
+      1.03,
+      1.22
+    ],
+    "fly": {
+      "t": [
+        1.19,
+        1.59
+      ],
+      "easing": "move",
+      "arcLift": "5vh",
+      "inkTo": "tang"
+    },
+    "iris": {
+      "t": [
+        1.22,
+        2.16
+      ],
+      "easing": "move",
+      "center": "the smiley's current position",
+      "radiusTo": "1.05 x viewport diagonal"
+    },
+    "endS": 2.32,
+    "failsafeS": 4,
+    "watchdogS": 4.5,
+    "skip": [
+      "wheel",
+      "keydown",
+      "pointerdown",
+      "touchstart",
+      "Skip pill",
+      "tab hidden",
+      "real resize (width, or height > 150px)"
+    ],
+    "never": [
+      "Pause",
+      "reduced motion",
+      "repeat visit (sessionStorage wsl-boot)",
+      "saveData",
+      "deep link / restored scroll"
+    ]
   }
 }

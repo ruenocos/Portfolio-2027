@@ -267,49 +267,13 @@
     transition: none;
   }
 
-  /* The first visit's boot: named empty frames draw in, then fill. */
+  /* Hero parts ease when the hello beat touches them. */
   .hero .hmeta,
   .hero .name > *,
   .hero .role {
     transition:
       opacity 420ms var(--ease-ui),
       transform var(--dur-spring) var(--ease-spring);
-  }
-  html[data-boot] .hero .hmeta,
-  html[data-boot] .hero .name > *,
-  html[data-boot] .hero .role {
-    opacity: 0;
-    transform: translateY(8px) scale(0.97);
-  }
-  /* He arrives once the wireframe is done, not on top of it. */
-  html[data-boot] .cur.wes {
-    visibility: hidden;
-  }
-  .frm {
-    position: absolute;
-    z-index: 2;
-    border: 1px solid color-mix(in srgb, var(--mute) 55%, transparent);
-    background: color-mix(in srgb, var(--fill) 40%, transparent);
-    border-radius: var(--radius-focus);
-    pointer-events: none;
-    animation: frm 420ms var(--ease-ui) both;
-    animation-delay: calc(var(--i) * 70ms);
-    transition:
-      background-color 300ms var(--ease-ui),
-      opacity 360ms var(--ease-ui);
-  }
-  .frm span {
-    position: absolute;
-    left: -1px;
-    bottom: calc(100% + 6px);
-    color: var(--mute);
-    white-space: nowrap;
-  }
-  .frm.f {
-    background: color-mix(in srgb, var(--fill), var(--mute) 14%);
-  }
-  .frm.out {
-    opacity: 0;
   }
 
   /* ---------- about ---------- */
@@ -851,15 +815,6 @@
     transform: none;
   }
 }
-@keyframes frm {
-  /* Negative top inset: the frame's name label sits above the box. */
-  from {
-    clip-path: inset(-28px 100% 100% 0);
-  }
-  to {
-    clip-path: inset(-28px 0 0 0);
-  }
-}
 @keyframes ring {
   from {
     transform: scale(0.2);
@@ -903,4 +858,100 @@
    .frame is a utility and would win over the components layer. */
 .page:has(.bk) .footer-air {
   display: none;
+}
+
+/* ---------- home's first-visit intro, "Iris" (lib/intro/iris) ----------
+   Unlayered, so nothing in the page can sit on top of the sheet. Pending:
+   the sheet is a body pseudo-element from the first paint, before any JS.
+   Playing: the intro's own layer takes over. Either way only the header
+   logo waits; the page under the sheet is the finished page. */
+html[data-boot="pending"] body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 58;
+  background: var(--tang);
+  pointer-events: none;
+  /* If the intro never starts, the sheet clears itself. */
+  animation: wsl-failsafe 1ms 4s forwards;
+}
+html[data-boot="pending"] .hd .home .logo {
+  opacity: 0;
+  animation: wsl-failsafe-in 1ms 4s forwards;
+}
+/* Wessel arrives once the intro hands over. */
+html[data-boot] .cur.wes {
+  visibility: hidden;
+}
+.ilayer {
+  position: fixed;
+  inset: 0;
+  z-index: 58;
+  pointer-events: none;
+  overflow: hidden;
+  contain: strict;
+}
+.isheet {
+  position: absolute;
+  inset: 0;
+  background: var(--tang);
+}
+.ismi {
+  position: absolute;
+  left: 0;
+  top: 0;
+  color: var(--canvas);
+}
+.ismi svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+.iskip {
+  position: fixed;
+  right: 40px;
+  bottom: 28px;
+  z-index: 61;
+  height: 34px;
+  padding: 0 14px;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--canvas);
+  background: transparent;
+  color: var(--canvas);
+  cursor: pointer;
+  transition:
+    opacity 240ms var(--ease-ui),
+    background-color 240ms var(--ease-ui),
+    color 240ms var(--ease-ui);
+}
+.iskip:hover {
+  background: var(--canvas);
+  color: var(--ink);
+}
+.iskip:focus-visible {
+  outline: 2px solid var(--canvas);
+  outline-offset: 3px;
+}
+.iskip.out {
+  opacity: 0;
+  pointer-events: none;
+}
+@media (width < 900px) {
+  .iskip {
+    right: 16px;
+    bottom: 20px;
+    height: 44px;
+  }
+}
+@keyframes wsl-failsafe {
+  to {
+    opacity: 0;
+    visibility: hidden;
+  }
+}
+@keyframes wsl-failsafe-in {
+  to {
+    opacity: 1;
+  }
 }

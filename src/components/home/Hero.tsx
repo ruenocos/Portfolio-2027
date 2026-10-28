@@ -6,7 +6,8 @@ import { MockTag } from "@/components/parts/Pills";
 import { useMotion } from "@/components/useMotion";
 import { useBeat } from "@/components/canvas/useBeat";
 import type { HomeContent } from "@/content/home";
-import { BOOT_KEY, getMotion } from "@/lib/motion";
+import { endIntro, playIntro } from "@/lib/intro/iris";
+import { getMotion } from "@/lib/motion";
 import { isBusy, live, pageBox, put, putPin, select, wait, wessel, type XY } from "@/lib/wessel";
 
 const calm = () => getMotion().calm;
@@ -22,53 +23,6 @@ const pp = (el: Element, fx = 0, fy = 0, dx = 0, dy = 0): XY => {
   const r = pageBox(el);
   return [r.x + r.w * fx + dx, r.y + r.h * fy + dy];
 };
-
-// The first visit's wireframe boot (DESIGN.md §8): named empty frames draw
-// in, fill like a wireframe, then the real hero springs in. ~1.2s, any
-// input skips it. Shared, so the hello beat can wait for it.
-let booting: Promise<void> | null = null;
-function boot(hero: HTMLElement, parts: [Element | null, string][]) {
-  return (booting ||= (async () => {
-    const root = document.documentElement;
-    if (!root.dataset.boot) return;
-    try {
-      sessionStorage.setItem(BOOT_KEY, "1");
-    } catch {}
-    let skip = false;
-    const stop = () => (skip = true);
-    const evs = ["wheel", "keydown", "pointerdown", "touchstart"] as const;
-    evs.forEach((e) => addEventListener(e, stop, { once: true, passive: true }));
-    const hold = (ms: number) =>
-      new Promise<void>((r) => {
-        const t0 = performance.now();
-        const k = setInterval(() => {
-          if (skip || performance.now() - t0 >= ms) {
-            clearInterval(k);
-            r();
-          }
-        }, 30);
-      });
-    const hr = hero.getBoundingClientRect();
-    const frames = parts.flatMap(([el, name], i) => {
-      if (!el) return [];
-      const r = el.getBoundingClientRect();
-      const d = document.createElement("div");
-      d.className = "frm";
-      d.style.cssText = `--i:${i};left:${r.left - hr.left - 4}px;top:${r.top - hr.top - 4}px;width:${r.width + 8}px;height:${r.height + 8}px`;
-      d.innerHTML = `<span class="text-micro-caps">${name}</span>`;
-      hero.appendChild(d);
-      return [d];
-    });
-    await hold(480);
-    frames.forEach((d) => d.classList.add("f"));
-    await hold(420);
-    delete root.dataset.boot;
-    frames.forEach((d) => d.classList.add("out"));
-    await wait(640);
-    frames.forEach((d) => d.remove());
-    evs.forEach((e) => removeEventListener(e, stop));
-  })());
-}
 
 /** The letters Wessel plays with: the W, the u of Oud, and both words. */
 function letters(n: HTMLElement) {
@@ -325,21 +279,18 @@ export function Hero({ hero: c }: { hero: HomeContent["hero"] }) {
     if (nm.current) prepName(nm.current);
   }, []);
 
-  const bootParts = (): [Element | null, string][] => {
-    const n = nm.current;
-    return [
-      [meta.current, "Meta"],
-      [n?.children[0] ?? null, "Name"],
-      [reel.current, "Reel"],
-      [n?.children[2] ?? null, "Name"],
-      [role.current, "Role"],
-    ];
-  };
+  // The first visit's intro starts as soon as the hero is there; the hello
+  // beat (and Wessel) wait for it to hand over.
+  // Leaving home mid-intro ends it (a remount, as in dev, doesn't).
+  useEffect(() => {
+    void playIntro();
+    return () => void setTimeout(() => document.querySelector("[data-hero]") || endIntro(), 0);
+  }, []);
 
   const hero = useBeat<HTMLDivElement>({
     async day(g) {
       const h = hero.current!;
-      await boot(h, bootParts());
+      await playIntro();
       live(g);
       // It skips once the hero is scrolled 45% away, or on any key or click.
       let skip = false;
