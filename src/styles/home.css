@@ -731,10 +731,11 @@
       left: 12px;
       bottom: 12px;
     }
+    /* Room under the reel for Wessel's size label and his "Have a look". */
     .role {
       position: relative;
       inset: auto;
-      margin-top: 28px;
+      margin-top: 72px;
     }
     .divider.divider-tall > .cell,
     .divider.divider-tall > .side {
