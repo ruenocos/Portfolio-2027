@@ -1,0 +1,37 @@
+# Runs on every pull request (and on main): the same checks a contributor
+# runs by hand. Netlify's deploy preview only catches build errors.
+name: Checks
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+concurrency:
+  group: checks-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Typecheck
+        run: npm run typecheck
+      - name: Lint
+        run: npm run lint
+      - name: Build
+        run: npm run build
+      - name: Accessibility scan
+        run: |
+          npm install --no-save playwright@1.63.0 axe-core@4.10.2
+          npx playwright install --with-deps chromium
+          npx next start -p 3100 &
+          for i in $(seq 60); do curl -sf -o /dev/null http://localhost:3100/ && break; sleep 1; done
+          node scripts/check-a11y.mjs http://localhost:3100
