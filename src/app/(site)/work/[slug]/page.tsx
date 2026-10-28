@@ -48,7 +48,7 @@ export default async function CasePage({ params }: PageProps<"/work/[slug]">) {
   return (
     <>
       <Crumb {...crumb} />
-      <section className="frame" data-row aria-labelledby="ttl">
+      <section className="frame" data-row data-steps aria-labelledby="ttl">
         <div className="side" />
         {/* Nothing written yet beside the title: it takes the full row. */}
         <div className="copen" data-solo={!c.lead && !c.intro ? "" : undefined}>
@@ -104,7 +104,7 @@ export default async function CasePage({ params }: PageProps<"/work/[slug]">) {
       <Facts items={c.facts} />
       {/* The short page (no case written yet) has no read. */}
       {c.sections.length > 0 && (
-        <section className="frame" data-row aria-label="Case study">
+        <section className="frame" data-row data-steps aria-label="Case study">
           <div className="side" />
           <Read sections={c.sections} />
           <div className="side" />

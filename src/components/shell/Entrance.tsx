@@ -33,9 +33,22 @@ export function Entrance() {
     const steps: HTMLElement[][] = [];
     for (const row of document.querySelectorAll<HTMLElement>("main [data-row]")) {
       if (!seen(row)) continue;
-      const own = [...row.querySelectorAll<HTMLElement>("[data-enter]")];
+      const named = [...row.querySelectorAll<HTMLElement>("[data-enter]")];
+      // Only the blocks on the first screen: the rest get the scroll entrance.
+      const own = named.filter(seen);
+      if (named.length && !own.length) continue;
       const cell = row.children[1] as HTMLElement | undefined;
-      if (own.length) steps.push(own);
+      // A row marked [data-steps] (the case opening) steps through its
+      // blocks line by line too: blocks that start on the same line share one.
+      if (own.length && row.hasAttribute("data-steps")) {
+        const lines = new Map<number, HTMLElement[]>();
+        for (const el of own) {
+          const top = el.getBoundingClientRect().top;
+          const key = [...lines.keys()].find((k) => Math.abs(k - top) < 24) ?? top;
+          lines.set(key, [...(lines.get(key) ?? []), el]);
+        }
+        [...lines.keys()].sort((a, b) => a - b).forEach((k) => steps.push(lines.get(k)!));
+      } else if (own.length) steps.push(own);
       else if (cell?.classList.contains("ruled")) {
         for (const line of cell.children)
           if (line instanceof HTMLElement && seen(line)) steps.push([line]);
