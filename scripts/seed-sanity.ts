@@ -17,6 +17,7 @@
 import { createReadStream, existsSync } from "node:fs";
 import { basename, join } from "node:path";
 import { createClient, type SanityDocumentStub } from "@sanity/client";
+import { LexoRank } from "lexorank";
 import { FALLBACK_HOME } from "../src/content/home";
 import { FALLBACK_ABOUT } from "../src/content/about";
 import { FALLBACK_POSTS } from "../src/content/playground";
@@ -56,6 +57,11 @@ async function asset(kind: "image" | "file", src?: string) {
   return { _type: kind, asset: { _type: "reference", _ref: id } };
 }
 const image = (src?: string) => asset("image", src);
+// Drag-to-order ranks (the Studio's orderable lists), in list order.
+const ranks = (n: number) => {
+  let r = LexoRank.min();
+  return Array.from({ length: n }, () => (r = r.genNext().genNext()).toString());
+};
 const file = (src?: string) => asset("file", src);
 
 // Create it if it's new, then fill only what's still empty.
@@ -114,6 +120,7 @@ async function playground() {
   // in the Studio) a second run would only add duplicates.
   if (!dry && (await client.fetch(`count(*[_type == "playgroundPiece"])`))) return console.log("skip playground: posts already exist");
   const real = FALLBACK_POSTS.filter((p) => !p.mock && p.src);
+  const rank = ranks(real.length);
   for (const [i, p] of real.entries()) {
     await fill({
       _id: `play-${key(p.title)}`,
@@ -121,12 +128,13 @@ async function playground() {
       title: p.title,
       image: await image(p.src),
       ...(p.video ? { video: await file(p.video) } : {}),
-      order: (i + 1) * 10,
+      orderRank: rank[i],
     });
   }
 }
 
 async function projects() {
+  const rank = ranks(FALLBACK_PROJECTS.length);
   for (const [i, p] of FALLBACK_PROJECTS.entries()) {
     const slug = p.href?.split("/").pop() ?? key(p.title);
     const c = FALLBACK_CASES.find((x) => x.slug === slug);
@@ -145,7 +153,7 @@ async function projects() {
       label: p.label,
       hasCase: !!c,
       featured: true,
-      order: (i + 1) * 10,
+      orderRank: rank[i],
       poster: await image(p.media.poster),
       ...(p.media.video ? { video: await file(p.media.video) } : {}),
       ...(c && {

@@ -12,8 +12,8 @@ import { caseSlugs, getCase, getWork } from "@/content/get";
 import { getDraftFetchOptions } from "@/sanity/live";
 import { HeroBeat } from "@/components/case/HeroBeat";
 
-export function generateStaticParams() {
-  return caseSlugs().map((slug) => ({ slug }));
+export async function generateStaticParams() {
+  return (await caseSlugs()).map((slug) => ({ slug }));
 }
 
 export async function generateMetadata({ params }: PageProps<"/work/[slug]">): Promise<Metadata> {
