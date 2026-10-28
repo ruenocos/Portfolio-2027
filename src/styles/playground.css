@@ -69,6 +69,25 @@
   .pgcv [data-tint="grape"] {
     background: color-mix(in srgb, var(--grape) 18%, var(--canvas));
   }
+  /* A prompt card: what kind of piece goes here, bottom-left. */
+  .pgcv .pi > .idea {
+    position: absolute;
+    inset: auto 16px 16px;
+    color: var(--ink);
+    text-wrap: balance;
+  }
+  .pgcv .pi > .idea::before {
+    content: attr(data-kind);
+    display: block;
+    margin-bottom: 4px;
+    color: var(--mute);
+    font: 500 var(--type-micro-caps-size) / 14px var(--font-mono);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+  html[data-live] .pgcv .pi > .idea {
+    display: none;
+  }
   .pgcv :is(.pi, .lbm) > .mock {
     position: absolute;
     left: 12px;

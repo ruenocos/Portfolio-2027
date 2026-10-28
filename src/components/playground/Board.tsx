@@ -65,6 +65,13 @@ function postEl(p: Post) {
     m.dataset.mock = "";
     m.textContent = "mock";
     pi.appendChild(m);
+    // The prompt itself, so the empty card says what belongs there.
+    const idea = document.createElement("span");
+    idea.className = "idea text-small";
+    const text = p.title.replace(/^(Loop|Picture) idea: /, "");
+    idea.textContent = text[0].toUpperCase() + text.slice(1);
+    idea.dataset.kind = p.title.startsWith("Loop") ? "Loop" : "Picture";
+    pi.appendChild(idea);
   }
   f.appendChild(pi);
   return f;

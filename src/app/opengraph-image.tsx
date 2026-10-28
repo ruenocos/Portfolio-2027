@@ -1,0 +1,110 @@
+import { ImageResponse } from "next/og";
+import tokens from "../../design/tokens.json";
+import { FALLBACK_HOME } from "@/content/home";
+import { FACE, FEATURES } from "@/lib/smiley";
+
+// The link preview for every page (Slack, LinkedIn, iMessage, X): the ruled
+// canvas with the smiley, the name and the role line, in light mode.
+// Rendered once at build time. Copy is the approved hero copy.
+
+export const alt = "Wessel Oud, medior UI/UX and motion designer";
+export const size = { width: 1200, height: 630 };
+export const contentType = "image/png";
+
+const c = tokens.color.light;
+const NAME = "Wessel Oud";
+const ROLE = FALLBACK_HOME.hero.role.join(" ");
+const PLACE = FALLBACK_HOME.hero.basedIn.toUpperCase();
+
+// Google Fonts hands back a TTF (which the renderer needs) cut down to the
+// letters we draw. Cached, so the image is built once instead of per visit.
+async function font(family: string, text: string) {
+  "use cache";
+  const css = await (
+    await fetch(`https://fonts.googleapis.com/css2?family=${family}&text=${encodeURIComponent(text)}`)
+  ).text();
+  const url = css.match(/src: url\((.+?)\)/)?.[1];
+  if (!url) throw new Error(`No font file for ${family}`);
+  return (await fetch(url)).arrayBuffer();
+}
+
+// The canvas's dotted side band. Drawn as circles: the renderer doesn't
+// repeat a gradient background.
+const STEP = 24;
+function Dots() {
+  const cols = 4;
+  const rows = Math.ceil(size.height / STEP);
+  return (
+    <svg width={cols * STEP} height={size.height}>
+      {Array.from({ length: cols * rows }, (_, i) => (
+        <circle key={i} cx={12 + (i % cols) * STEP} cy={12 + Math.floor(i / cols) * STEP} r={2} fill={c.dot.$value} />
+      ))}
+    </svg>
+  );
+}
+
+export default async function Image() {
+  const [display, serif, mono] = await Promise.all([
+    font("Bricolage+Grotesque:opsz,wght@96,600", NAME),
+    font("Instrument+Serif:ital@1", ROLE),
+    font("Geist+Mono:wght@500", `{ } ${PLACE}`),
+  ]);
+  const line = `2px solid ${c.line.$value}`;
+
+  return new ImageResponse(
+    (
+      <div style={{ display: "flex", width: "100%", height: "100%", background: c.canvas.$value }}>
+        <div style={{ display: "flex", borderRight: line }}>
+          <Dots />
+        </div>
+        <div
+          style={{
+            flex: 1,
+            display: "flex",
+            flexDirection: "column",
+            justifyContent: "space-between",
+            padding: "64px 72px",
+            background: c.canvas.$value,
+          }}
+        >
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+            <svg width="120" height="120" viewBox="0 0 212 212">
+              <path fill={c.tang.$value} fillRule="evenodd" d={FACE} />
+              <path fill={c.tang.$value} d={FEATURES} />
+            </svg>
+            <div style={{ display: "flex", fontFamily: "Mono", fontSize: 26, letterSpacing: 2, color: c.ink.$value }}>
+              <span style={{ color: c["tang-ink"].$value }}>{"{"}</span>
+              <span style={{ margin: "0 14px" }}>{PLACE}</span>
+              <span style={{ color: c["tang-ink"].$value }}>{"}"}</span>
+            </div>
+          </div>
+          <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+            <div
+              style={{
+                fontFamily: "Display",
+                fontSize: 168,
+                lineHeight: 1,
+                letterSpacing: -4,
+                color: c.ink.$value,
+              }}
+            >
+              {NAME}
+            </div>
+            <div style={{ fontFamily: "Serif", fontStyle: "italic", fontSize: 60, color: c.mute.$value }}>{ROLE}</div>
+          </div>
+        </div>
+        <div style={{ display: "flex", borderLeft: line }}>
+          <Dots />
+        </div>
+      </div>
+    ),
+    {
+      ...size,
+      fonts: [
+        { name: "Display", data: display, weight: 600 },
+        { name: "Serif", data: serif, style: "italic", weight: 400 },
+        { name: "Mono", data: mono, weight: 500 },
+      ],
+    },
+  );
+}
