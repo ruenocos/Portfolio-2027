@@ -41,7 +41,8 @@ function postEl(p: Post) {
   const f = document.createElement("figure");
   f.className = "post";
   // Your cursor names what you're over (CursorLayer reads [data-you]).
-  f.dataset.you = p.title;
+  // The frame name already says what it is; your tag says what a click does.
+  f.dataset.you = "Open";
   const pi = document.createElement("div");
   pi.className = "pi";
   if (p.tint) pi.dataset.tint = p.tint;

@@ -228,7 +228,18 @@
   }
   .arow .apk .hsel {
     inset: -6px;
+    /* Follows the picture's corner (radius 24) at its 6px offset. */
+    border-radius: calc(var(--radius-media, 24px) + 6px);
     opacity: 0;
+  }
+  /* Pointing at a row hides the other rows' thumbs, so the peek never
+     overlaps one. */
+  .ruled:has(.arow:is(:hover, :focus-within)) .arow:not(:hover, :focus-within) .apk {
+    opacity: 0;
+  }
+  /* Dark: a hairline keeps black posters from melting into the canvas. */
+  html[data-mode="dark"] :is(.arow .apk, .whand a) {
+    outline: 1px solid var(--line);
   }
   /* Your selection is an outline only: handles are Wessel's. */
   .arow .apk .hsel i {
@@ -319,7 +330,7 @@
 /* Phones: no room for him beside the rows, so on Work and the case he
    stays off the page (as in the prototype) instead of sitting on copy. */
 @media (width < 900px) {
-  body:has(main .whero, main .rd) .cur.wes {
+  body:has(main .whero, main .rd, main .copen) .cur.wes {
     display: none;
   }
 }

@@ -50,7 +50,8 @@ function unprepName(n: HTMLElement) {
 const nodSpot = (hero: HTMLElement): [number, number, number] => {
   if (!mobile()) return [0.32, 1, -44];
   const bottom = hero.getBoundingClientRect().bottom + scrollY;
-  return [0.14, 1, Math.max(8, Math.min(40, innerHeight - 64 - bottom))];
+  // Right half of the band: the { About } label sits bottom-left of it.
+  return [0.56, 1, Math.max(8, Math.min(24, innerHeight - 64 - bottom))];
 };
 async function nodDown(hero: HTMLElement) {
   const [fx, fy, dy] = nodSpot(hero);

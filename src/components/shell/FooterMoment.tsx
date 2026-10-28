@@ -98,8 +98,10 @@ function Moment({ kind, children }: { kind: Kind; children: React.ReactNode }) {
           wessel.press(false);
           await wait(110);
         }
+        // Double-click selects the word; he copies it.
+        wessel.chip("⌘C");
         live(g);
-        await wait(500);
+        await wait(700);
       } else if (kind === "case") {
         // He points at it and nods twice, the home's "this way" nod.
         const to = (dy: number) => (): XY => {
@@ -113,8 +115,8 @@ function Moment({ kind, children }: { kind: Kind; children: React.ReactNode }) {
         live(g);
         await wait(400);
       } else {
-        // About: a comment pin by the address. Name and local time only; there's
-        // no line written for it. Its corner sits on the address's top-right
+        // About: a comment pin by the address, as its dot (there's no line
+        // written for it). Its corner sits on the address's top-right
         // (or over the label's row on a phone), never on the text.
         const r = pageBox(a);
         const label = cell.current?.querySelector<HTMLElement>("h3");
@@ -129,9 +131,12 @@ function Moment({ kind, children }: { kind: Kind; children: React.ReactNode }) {
         bub.remove();
         await wait(110);
         wessel.press(false);
-        await wait(1700);
-        live(g);
+        // No line written for it, so it lands as a pin, not an empty card:
+        // it folds to its dot almost at once and rests there.
+        await wait(380);
         pin.dataset.dot = "true";
+        await wait(2200);
+        live(g);
         setTimeout(() => pin.remove(), 2600);
       }
     },

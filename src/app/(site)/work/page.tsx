@@ -21,7 +21,7 @@ export default async function WorkPage() {
               each one a way into its project (the rows below say the same). */}
           <div className="whand" aria-hidden="true">
             {projects.map((p, i) => (
-              <Link key={p.title} href={p.href ?? "/work"} tabIndex={-1} style={{ "--i": i - (projects.length - 1) / 2 } as React.CSSProperties}>
+              <Link key={p.title} href={p.href ?? "/work"} tabIndex={-1} data-you="View case" style={{ "--i": i - (projects.length - 1) / 2 } as React.CSSProperties}>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 {p.media.poster && <img src={p.media.poster} alt="" loading="lazy" decoding="async" />}
               </Link>

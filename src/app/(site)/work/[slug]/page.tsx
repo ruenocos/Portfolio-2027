@@ -123,7 +123,8 @@ async function Case({ params }: Pick<PageProps<"/work/[slug]">, "params">) {
           <ProjectRows projects={[after]} label="Next project" />
         </>
       )}
-      <Crumb {...crumb} label="Case navigation, end" />
+      {/* The short page is short enough: the Next row is its way on. */}
+      {c.sections.length > 0 && <Crumb {...crumb} label="Case navigation, end" />}
     </>
   );
 }
