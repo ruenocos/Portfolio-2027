@@ -13,7 +13,6 @@ import { SIZES, srcSet } from "@/lib/image";
 type Item = {
   el: HTMLElement;
   pi: HTMLElement;
-  fl: HTMLElement;
   p: Post;
   y: number;
   h: number;
@@ -40,9 +39,9 @@ const calm = () => getMotion().calm;
 function postEl(p: Post) {
   const f = document.createElement("figure");
   f.className = "post";
-  // Your cursor names what you're over (CursorLayer reads [data-you]).
-  // The frame name already says what it is; your tag says what a click does.
+  // Your tag says what a click does (CursorLayer reads [data-you]).
   f.dataset.you = "Open";
+  f.setAttribute("aria-label", p.title);
   const pi = document.createElement("div");
   pi.className = "pi";
   if (p.tint) pi.dataset.tint = p.tint;
@@ -71,8 +70,6 @@ function postEl(p: Post) {
     pi.appendChild(i);
   }
   if (p.mock) {
-    // A prompt card says what it is on the card itself, so it wears no frame name.
-    f.dataset.prompt = "";
     const m = document.createElement("span");
     m.className = "mock text-micro-caps";
     m.dataset.mock = "";
@@ -86,11 +83,9 @@ function postEl(p: Post) {
     idea.dataset.kind = p.title.startsWith("Loop") ? "Loop" : "Picture";
     pi.appendChild(idea);
   }
-  // Its frame name, like Figma's: just above the top-left corner.
-  const fl = document.createElement("figcaption");
-  fl.className = "fl text-micro-caps";
-  fl.textContent = p.title;
-  f.append(fl, pi);
+  // No frame name above it: the board is purely visual (Wons 2026-10-28);
+  // the name is read out and captions the open post.
+  f.append(pi);
   return f;
 }
 
@@ -101,8 +96,8 @@ function postEl(p: Post) {
  * open. At rest it settles on whole columns. Wessel drives it: he grabs a post that's
  * half out of view, drags it in, and selects it. He never opens one; that's
  * yours. Touch anything and he lets go and waits. Pause: still.
- * Like a Figma canvas: every tile wears its frame name, the one you're over
- * turns grape (yours) and your cursor names it. On arrival Wessel says hello
+ * Like a Figma canvas: the tile you're over turns grape (yours). No frame
+ * names: the board is purely visual. On arrival Wessel says hello
  * by selecting one tile in view, real size label and all.
  */
 type Hello = {
@@ -182,7 +177,7 @@ export function Board({ posts }: { posts: Post[] }) {
       timers.add(id);
     };
 
-    // The row gap (it holds the frame names on desktop) and the left inset
+    // The row gap (same as the column gap: no frame names) and the left inset
     // that centres the columns that fit: at rest the gutters left and right
     // match, and no tile is cut at the sides.
     let GY = 24;
@@ -197,7 +192,7 @@ export function Board({ posts }: { posts: Post[] }) {
       const W = cv.clientWidth;
       const H = cv.clientHeight;
       G = mob ? 12 : 24;
-      GY = mob ? G : 52;
+      GY = G;
       const fit = Math.max(2, Math.round((W - G) / ((mob ? 170 : 300) + G)));
       CW = Math.floor((W - G * (fit + 1)) / fit);
       OX = Math.round((W - fit * CW - (fit - 1) * G) / 2);
@@ -255,8 +250,7 @@ export function Board({ posts }: { posts: Post[] }) {
         // Load-in: a wave from the top-left corner, on first paint only.
         el.style.setProperty("--d", first && !calm() ? `${Math.min(900, Math.hypot(col.x, y) * 0.45)}ms` : "0ms");
         const pi = el.querySelector<HTMLElement>(".pi")!;
-        const fl = el.querySelector<HTMLElement>(".fl")!;
-        col.items.push({ el, pi, fl, p, y, h, v: el.querySelector("video"), x: 0, yy: 0, lx: 0, ly: 0, vis: false });
+        col.items.push({ el, pi, p, y, h, v: el.querySelector("video"), x: 0, yy: 0, lx: 0, ly: 0, vis: false });
         tops[c] = y + h + GY;
       }
       cols.forEach((col, c) => (col.H = tops[c]));
@@ -522,7 +516,7 @@ export function Board({ posts }: { posts: Post[] }) {
           if (Math.abs(lx - it.lx) + Math.abs(ly - it.ly) > 0.3) {
             it.lx = lx;
             it.ly = ly;
-            it.pi.style.translate = it.fl.style.translate = `${lx.toFixed(1)}px ${ly.toFixed(1)}px`;
+            it.pi.style.translate = `${lx.toFixed(1)}px ${ly.toFixed(1)}px`;
           }
         }
       }

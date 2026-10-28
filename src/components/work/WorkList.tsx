@@ -74,7 +74,7 @@ export function WorkList({ projects }: { projects: Project[] }) {
         </div>
         <div className="side" />
       </section>
-      <div className="frame wgap" aria-hidden="true">
+      <div className="frame wgap" data-row aria-hidden="true">
         <div className="side" />
         <div className="cell bg-dots" />
         <div className="side" />

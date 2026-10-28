@@ -54,7 +54,7 @@ export default async function CasePage({ params }: PageProps<"/work/[slug]">) {
         <div className="copen" data-solo={!c.lead && !c.intro ? "" : undefined}>
           <div className="cell ot">
             <span data-enter>
-              <SectionLabel as="p" name={`${c.sections.length ? "Case" : "Project"} · ${c.title}`} />
+              <SectionLabel as="p" name={c.sections.length ? "Case" : "Project"} />
             </span>
             <h1 id="ttl" className="text-statement" lang={c.lang} data-enter>
               {c.title}
