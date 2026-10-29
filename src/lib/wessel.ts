@@ -11,7 +11,9 @@
 //   on a fast scroll he waits a breath, on a flick past he skips and the
 //   beat replays when you come back
 // - between beats he parks where he worked, then drifts after you a beat
-//   behind (the page drags him at 55%) and re-enters from the edge he left
+//   behind (the page drags him at 55%; on touch he rides the page while
+//   your finger scrolls and catches up after) and re-enters from the edge he left
+// - he travels like a hand on a mouse: speeds up, tops out, the spring lands him
 // - on the way back up he looks over what he made in each section you pass
 //   (a dashed box, no size pill), then parks where he left it; once per trip
 // - calm (Pause motion or reduced motion): no travel, end states only
@@ -251,17 +253,6 @@ function draw(el: HTMLElement) {
   if (at !== shownAt) el.style.transform = shownAt = at;
 }
 
-// How he follows you on touch while you scroll (temporary, for picking:
-// ?wsl-touch=drift|ride|hang). drift = today, the page drags him 55%;
-// ride = he scrolls with the page and catches up once it stops;
-// hang = the page drags him 85% and he catches up slower.
-type TouchFollow = "drift" | "ride" | "hang";
-let touchFollow: TouchFollow = "ride";
-// How he travels (temporary, for picking: ?wsl-travel=spring|hand).
-// spring = today, a spring flings him from rest; hand = he speeds up over
-// a moment and tops out, like a hand moving a mouse.
-type Travel = "spring" | "hand";
-let travel: Travel = "hand";
 
 function tick(frameTime: number) {
   const el = cursor.el;
@@ -295,11 +286,11 @@ function tick(frameTime: number) {
   lastTargetY = driving ? ty : null;
   // After a page change he holds his spot on screen, like the header.
   const holding = !driving && !!cursor.hold;
-  // On touch, free and mid-scroll: in "ride" he stays on the page under
-  // your finger (the browser carries him, nothing to lag) until it stops.
+  // On touch, free and mid-scroll, he rides the page under your finger
+  // (the browser carries him, nothing to lag) and catches up once it stops.
   const fingerScroll = onTouch && frameTime - lastScrollAt < wesselMotion.follow.touchSettleMs;
-  const riding = !driving && !parked && fingerScroll && touchFollow === "ride";
-  const drag = driving || parked || riding ? 1 : onTouch && touchFollow === "hang" ? 0.85 : wesselMotion.follow.drag;
+  const riding = !driving && !parked && fingerScroll;
+  const drag = driving || parked || riding ? 1 : wesselMotion.follow.drag;
   if (!still && !pinned && !holding) cursor.y -= scrolled * drag;
   const settled = cursor.distance < 0.5 && cursor.speed < 4;
   if (still || holding || (parked && settled)) {
@@ -311,12 +302,11 @@ function tick(frameTime: number) {
     cursor.vx = cursor.vy = 0;
   } else {
     // Back to his parking spot after wandering: he glides there, no jump.
-    const base = driving ? cursor.spring : springs.free;
-    const spring = !driving && onTouch && touchFollow === "hang" ? { k: base.k * 0.7, z: base.z } : base;
+    const spring = driving ? cursor.spring : springs.free;
     const stiffness = spring.k * Math.min(springs.maxBoost, 1 + scrollSpeed / springs.boostPerPxSec);
     const stiffnessY = stiffness * springs.yScale;
     // Not on a drag: that path is already eased and must stay on it.
-    const hand = travel === "hand" && spring.k < 1000 ? (narrow() ? wesselMotion.hand.phone : wesselMotion.hand.desktop) : null;
+    const hand = spring.k < 1000 ? (narrow() ? wesselMotion.hand.phone : wesselMotion.hand.desktop) : null;
     // Small steps: a stiff spring (a drag, a fast scroll) on a slow frame
     // would otherwise overshoot further each frame and fling him away.
     const steps = Math.ceil((dt * Math.sqrt(stiffnessY)) / 0.25);
@@ -470,17 +460,6 @@ export function attachWessel(el: HTMLElement) {
   flipped = false;
   el.dataset.hide = "true";
   measureLabel();
-  const query = new URLSearchParams(location.search);
-  try {
-    for (const key of ["wsl-touch", "wsl-travel"]) {
-      const pick = query.get(key);
-      if (pick) sessionStorage.setItem(key, pick);
-    }
-    const follow = sessionStorage.getItem("wsl-touch");
-    if (follow === "drift" || follow === "ride" || follow === "hang") touchFollow = follow;
-    const how = sessionStorage.getItem("wsl-travel");
-    if (how === "spring" || how === "hand") travel = how;
-  } catch {}
   addEventListener("resize", measureScreen);
   // A font swap can change his tag's width.
   document.fonts?.ready.then(measureLabel);
