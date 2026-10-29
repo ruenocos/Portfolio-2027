@@ -155,16 +155,14 @@ export function ProjectRow({
       await wait(150);
       wessel.press(false);
       await wait(250);
-      // He parks just outside the media's right edge with his tag leaning
-      // back over his own work, so the role and tools stay readable. On a
-      // phone he waits above the pin, clear of its text.
+      // He lifts off just above his pin, clear of its text, with his tag
+      // on its usual side like everywhere else (Wons 2026-10-29).
       await wessel.go(
         () => {
           const r = el.querySelector(".bub")!.getBoundingClientRect();
-          const b = m.getBoundingClientRect();
-          return narrow() ? [r.left + 24, r.top - 44] : [b.right + 12, r.top + r.height * 0.6];
+          return [r.left + 24, el.getBoundingClientRect().top - 40];
         },
-        { k: 160, timeout: 700, lean: !narrow() },
+        { k: 160, timeout: 700 },
       );
     },
     // Calm: his pin is simply there, where he'd have dropped it.
