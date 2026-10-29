@@ -47,8 +47,10 @@ function postEl(post: Post) {
   if (post.tint) tile.dataset.tint = post.tint;
   if (post.video) {
     const video = document.createElement("video");
-    Object.assign(video, { muted: true, loop: true, playsInline: true, preload: "metadata" });
-    video.src = post.video;
+    Object.assign(video, { muted: true, loop: true, playsInline: true, preload: "none" });
+    // Fetched the first time the tile comes on screen (the board repeats
+    // tiles, so loading them all up front pulled the same files many times).
+    video.dataset.src = post.video;
     if (post.src) video.poster = post.src;
     video.setAttribute("aria-hidden", "true");
     video.addEventListener("loadeddata", () => video.classList.add("ok"));
@@ -493,7 +495,10 @@ export function Board({ posts }: { posts: Post[] }) {
           item.el.style.visibility = x + colW < 3 || x > viewW - 3 ? "hidden" : "";
           const visible = x > -colW && x < viewW && y > -item.h && y < viewH;
           if (item.video && visible !== item.visible) {
-            if (visible && !quiet) item.video.play().catch(() => {});
+            if (visible && !quiet) {
+              if (!item.video.src && item.video.dataset.src) item.video.src = item.video.dataset.src;
+              item.video.play().catch(() => {});
+            }
             else item.video.pause();
           }
           item.visible = visible;

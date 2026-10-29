@@ -7,7 +7,8 @@
 
 const WIDTHS = [160, 320, 480, 640, 960, 1280, 1600, 2000];
 
-function at(src: string, w: number): string | undefined {
+/** One resized copy of a picture, or undefined when nothing can resize it. */
+export function resized(src: string, w: number): string | undefined {
   if (src.startsWith("https://cdn.sanity.io/")) {
     const u = new URL(src);
     u.searchParams.set("w", String(w));
@@ -23,7 +24,7 @@ function at(src: string, w: number): string | undefined {
 /** A srcset for a picture, or undefined when nothing can resize it. */
 export function srcSet(src: string | undefined): string | undefined {
   if (!src) return undefined;
-  const set = WIDTHS.map((w) => [at(src, w), w] as const).filter(([u]) => u);
+  const set = WIDTHS.map((w) => [resized(src, w), w] as const).filter(([u]) => u);
   return set.length ? set.map(([u, w]) => `${u} ${w}w`).join(", ") : undefined;
 }
 

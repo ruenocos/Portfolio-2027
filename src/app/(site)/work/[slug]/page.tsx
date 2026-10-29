@@ -90,6 +90,7 @@ export default async function CasePage({ params }: PageProps<"/work/[slug]">) {
                 ratio="wide"
                 squareSmall
                 sizes={SIZES.wide}
+                priority
                 poster={c.hero.poster}
                 video={c.hero.video}
                 alt={c.hero.alt}

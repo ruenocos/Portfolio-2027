@@ -7,7 +7,7 @@ import { useMotion } from "@/components/useMotion";
 import { useBeat } from "@/components/canvas/useBeat";
 import type { HomeContent } from "@/content/home";
 import { holdIntro } from "@/lib/intro/iris";
-import { SIZES, srcSet } from "@/lib/image";
+import { SIZES, resized, srcSet } from "@/lib/image";
 import { playHello } from "./hero/hello";
 import { Letters, prepName, unprepName, useFitName } from "./hero/name";
 import { useIdleNod, type IdleNod } from "./hero/nod";
@@ -147,7 +147,7 @@ export function Hero({ hero: content }: { hero: HomeContent["hero"] }) {
         onClick={(e) => e.target === e.currentTarget && closeReel()}
       >
         <div className="rbm">
-          {content.reel.full && <video ref={full} controls playsInline loop preload="none" poster={content.reel.poster} src={content.reel.full} />}
+          {content.reel.full && <video ref={full} controls playsInline loop preload="none" poster={content.reel.poster && (resized(content.reel.poster, 1280) ?? content.reel.poster)} src={content.reel.full} />}
         </div>
         <p className="rbc text-label">Reel {content.reel.mock && <MockTag>placeholder</MockTag>}</p>
         <button type="button" className="rbx gpill text-micro-caps" data-size="tap" onClick={closeReel}>

@@ -11,11 +11,19 @@ const securityHeaders = [
 
 const nextConfig: NextConfig = {
   // The widths lib/image asks /_next/image for, so the optimizer accepts them.
-  images: { deviceSizes: [640, 960, 1280, 1600, 2000], imageSizes: [160, 320, 480] },
+  // Resized copies stay cached for a week, which also spares Vercel's monthly
+  // image-optimisation quota.
+  images: { deviceSizes: [640, 960, 1280, 1600, 2000], imageSizes: [160, 320, 480], minimumCacheTTL: 604800 },
   cacheComponents: true,
   partialPrefetching: true,
   async headers() {
-    return [{ source: "/:path*", headers: securityHeaders }];
+    return [
+      { source: "/:path*", headers: securityHeaders },
+      // Pictures and loops in /public: a week in the browser (they went out
+      // with max-age=0, so every visit asked again). A file that changes
+      // gets a new name, or shows after a week at the latest.
+      { source: "/media/:path*", headers: [{ key: "Cache-Control", value: "public, max-age=604800, stale-while-revalidate=86400" }] },
+    ];
   },
 };
 
