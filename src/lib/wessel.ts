@@ -199,6 +199,7 @@ const cursor = {
   drive: null as (() => XY | null) | null,
   spring: springs.beat as Spring,
   anchor: null as XY | null,
+  aim: null as XY | null,
   /** After a page change: the screen spot he holds until his next job. */
   hold: null as XY | null,
   parked: false,
@@ -278,6 +279,9 @@ function tick(frameTime: number) {
   if (!target) target = home();
   const [tx, ty] = target;
   const parked = !driving && cursor.parked;
+  // Where his job last pointed him, in page coordinates: if he's let go
+  // before he's there (a step timed out), that's still where he parks.
+  if (driving) cursor.aim = [tx + scrollX, ty + scrollY];
 
   // The page drags him a little; he resists and catches up. Not when his
   // job holds still on screen while you scroll (a sticky panel): then he
@@ -406,7 +410,8 @@ export const wessel = {
     cursor.lean = false;
     wessel.press(false);
     cursor.hold = null;
-    cursor.anchor = [cursor.x + scrollX, cursor.y + scrollY];
+    cursor.anchor = cursor.aim ?? [cursor.x + scrollX, cursor.y + scrollY];
+    cursor.aim = null;
   },
 
   /** Where he is now, on screen. */
@@ -505,6 +510,7 @@ export function newPage() {
 function newGeneration() {
   generation++;
   cursor.drive = null;
+  cursor.aim = null;
   wessel.press(false);
   selections.clear();
   clearMarks();
