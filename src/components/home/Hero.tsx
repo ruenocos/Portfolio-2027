@@ -104,7 +104,7 @@ export function Hero({ hero: content }: { hero: HomeContent["hero"] }) {
         </b>
       </p>
       <h1 id="h-name" className="sr-only">
-        {`Wessel Oud, ${content.role.join(" ").replace(/^./, (m) => m.toLowerCase())}`}
+        {`Wessel Oud, ${content.role.join(" ").replace(/^[A-Z](?=[a-z])/, (m) => m.toLowerCase())}`}
       </h1>
       <div ref={name} className="name text-display" data-enter>
         <span className="w" aria-hidden="true">

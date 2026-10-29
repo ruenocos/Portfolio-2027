@@ -1,5 +1,5 @@
 import type { Fact } from "@/components/parts/Facts";
-import { FALLBACK_HOME, type Photo } from "./home";
+import type { Photo } from "./home";
 
 export type Job = { when: string; place: string; role: string };
 export type Sticker = { text: string; tone: "tang" | "grape" | "ink" | "outline"; size?: "s" | "m" | "l" };
@@ -16,7 +16,7 @@ export type AboutContent = {
 // it is Wons's own: facts and dates from his LinkedIn (wessel-work-history).
 export const FALLBACK_ABOUT: AboutContent = {
   hello: "Hi, I’m Wessel.",
-  lead: FALLBACK_HOME.about.opener,
+  lead: "I studied design at Mediacollege and learned motion from a lot of YouTube. These days I do both at WP Masters.",
   photos: [
     // Wons's own photos (2026-10-27). Not the Home deck's: no image appears on
     // two pages (Wons, 2026-10-28). Alt text describes, it doesn't caption.
@@ -27,11 +27,11 @@ export const FALLBACK_ABOUT: AboutContent = {
   facts: [
     { label: "Now", value: "UX/UI & Motion Designer", sub: "WP Masters, since Jul 2024" },
     { label: "Studied", value: "E-commerce Design, cum laude", sub: "Mediacollege Amsterdam, 2020–2024" },
-    { label: "Looking for", value: "A medior UI/UX role", sub: "With motion as part of it" },
+    { label: "Looking for", value: "A medior UI/UX role", sub: "Where I get to animate too" },
   ],
   experience: [
     { when: "Jul 2024 – now", place: "WP Masters", role: "UX/UI & Motion Designer" },
-    { when: "Apr 2023 – now", place: "De Saak", role: "User Experience Designer" },
+    { when: "Apr 2023 – now", place: "De Saak", role: "Designer and developer" },
     { when: "Feb 2023 – Feb 2024", place: "WP Masters", role: "Two UX/UI internships" },
     { when: "Jul 2020 – Jun 2023", place: "CAD & Company", role: "UX Designer, then marketing graphic design" },
     { when: "Jan 2020 – Jul 2024", place: "Mediacollege Amsterdam", role: "E-commerce Design, cum laude" },
