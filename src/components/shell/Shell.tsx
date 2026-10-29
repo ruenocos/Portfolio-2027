@@ -26,10 +26,12 @@ export function Shell({ children }: { children: React.ReactNode }) {
         </PageFade>
         {/* Wessel's marks: page coordinates, so they scroll with it. */}
         <div id="ovl" className="ovl" aria-hidden="true" />
+        {/* Wessel's layer, in page coordinates too: the browser scrolls him
+            with the page, so a touch scroll can't leave him a frame behind.
+            The shell stays mounted between pages, so he survives every page change. */}
+        <CursorLayer />
       </div>
       <ContactPill />
-      {/* Wessel's layer: the shell stays mounted between pages, so he survives every page change. */}
-      <CursorLayer />
       <PageSwitch />
       <Entrance />
       <SmoothScroll />

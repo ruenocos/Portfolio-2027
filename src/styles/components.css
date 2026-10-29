@@ -636,6 +636,8 @@
   .cur.wes {
     --c: var(--tang);
     --on: var(--on-tang);
+    /* His own layer: a move is a composite, never a repaint of the page. */
+    will-change: transform;
   }
   .cur.you {
     --c: var(--grape);

@@ -430,9 +430,11 @@
     display: none;
   }
 
-  /* ---------- Wessel's layer ---------- */
+  /* ---------- Wessel's layer ----------
+     Page coordinates (inside .page), like #ovl: the compositor scrolls him
+     with the content, the engine only adds his own travel. */
   .cursors {
-    position: fixed;
+    position: absolute;
     inset: 0;
     z-index: 50;
     pointer-events: none;
