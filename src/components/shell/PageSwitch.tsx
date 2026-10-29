@@ -80,7 +80,8 @@ export function PageSwitch() {
       const bar = /^\/work\/[^/]+$/.test(location.pathname) && /^\/work\/[^/]+$/.test(url.pathname)
         ? document.querySelector("main .crumb")?.getBoundingClientRect()
         : null;
-      if (bar && bar.top >= 0 && bar.top < 120) veil.style.top = `${bar.bottom}px`;
+      // It starts under the bar's bottom hairline too, so the line stays.
+      if (bar && bar.top >= 0 && bar.top < 120) veil.style.top = `calc(${bar.bottom}px + var(--spacing-hairline))`;
       document.body.append(veil);
       leaving.veil = veil;
       veil.animate([{ opacity: 0 }, { opacity: 1 }], { duration: OUT, easing: ease, fill: "forwards" });
