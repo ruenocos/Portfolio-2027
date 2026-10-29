@@ -114,13 +114,6 @@
     min-height: var(--spacing-tap);
     padding: 0 18px;
   }
-  /* Draft mode outside the Studio: the way back to the published site. */
-  .exit-preview {
-    position: fixed;
-    left: 16px;
-    bottom: 16px;
-    z-index: 100;
-  }
   /* Outline pill: Copy email, a 44-tall canvas-coloured button. */
   .opill {
     display: inline-flex;
