@@ -11,6 +11,7 @@ import { getDraftFetchOptions } from "@/sanity/live";
 export const metadata: Metadata = {
   title: "About",
   description: "Wessel Oud, UI/UX and motion designer at WP Masters. Experience, education and what he does off screen.",
+  alternates: { canonical: "/about" },
 };
 
 /**
