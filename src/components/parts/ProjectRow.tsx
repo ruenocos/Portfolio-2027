@@ -193,10 +193,6 @@ export function ProjectRow({
 
   const inner = (
     <>
-      {/* Your selection: it snaps round the card when you come to the row. */}
-      <span className="hov" aria-hidden="true">
-          <span className="hsel" />
-      </span>
       <MediaFill poster={p.media.poster} video={p.media.video} />
       {p.note && (
         <Pin ref={pin} live note={false} data-mock={mock("note")}>

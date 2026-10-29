@@ -114,6 +114,13 @@
     min-height: var(--spacing-tap);
     padding: 0 18px;
   }
+  /* Draft mode outside the Studio: the way back to the published site. */
+  .exit-preview {
+    position: fixed;
+    left: 16px;
+    bottom: 16px;
+    z-index: 100;
+  }
   /* Outline pill: Copy email, a 44-tall canvas-coloured button. */
   .opill {
     display: inline-flex;
@@ -927,30 +934,10 @@
 /* ---------- project card hover ----------
    The whole row is the target and one clickable text: pointing anywhere on
    it hops and colours the title like a header link (Hop's [data-hop-host]),
-   the tools lift like Daily kit chips, and your grape selection snaps round
-   the card. Pictures never move here (the scroll depth does). */
+   and the tools lift like Daily kit chips. No outline round the picture:
+   selections are Wessel's (Wons 2026-10-29). Pictures never move here
+   (the scroll depth does). */
 @layer components {
-  :is(.pj, .arow) .media .hov {
-    position: absolute;
-    inset: 0;
-    z-index: -1;
-    border-radius: inherit;
-    pointer-events: none;
-  }
-  /* Your selection: a grape outline that follows the picture's corner at
-     its 6px offset, the same on home, Work and the case's Next row. No
-     handles (those are Wessel's) and no size pill. */
-  :is(.pj, .arow) .media .hsel {
-    position: absolute;
-    inset: -6px;
-    border: 1.5px solid var(--grape);
-    border-radius: calc(var(--radius-media, 24px) + 6px);
-    opacity: 0;
-    scale: 1.04;
-    transition:
-      opacity var(--dur-ui) var(--ease-ui),
-      scale var(--dur-spring) var(--ease-spring);
-  }
   .pj .tools .tool:nth-child(2) { transition-delay: 0ms, 40ms, 0ms, 0ms, 40ms; }
   .pj .tools .tool:nth-child(3) { transition-delay: 0ms, 80ms, 0ms, 0ms, 80ms; }
 
@@ -959,12 +946,8 @@
     .pj:is(:hover, :focus-within) .tools .tool {
       transform: translateY(-3px);
     }
-    :is(.pj, .arow):is(:hover, :focus-within) .media .hsel {
-      opacity: 1;
-      scale: 1;
-    }
   }
-  html[data-motion="calm"] :is(.pj, .arow) :is(.hsel, .tool, .apk) {
+  html[data-motion="calm"] :is(.pj, .arow) :is(.tool, .apk) {
     transition: none;
   }
 }

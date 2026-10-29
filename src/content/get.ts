@@ -94,7 +94,7 @@ export async function getHome(o: FetchOptions = published): Promise<HomeContent>
   let doc: HomeDoc | null = null;
   let rows: Row[] = [];
   try {
-    const { data } = await cachedSanity({ query: HOME_QUERY, perspective: o.perspective, stega: o.stega });
+    const { data } = await cachedSanity({ query: HOME_QUERY, perspective: o.perspective, variant: o.variant, stega: o.stega });
     const d = data as unknown as { home: HomeDoc | null; projects: Row[] | null };
     doc = d.home;
     rows = d.projects ?? [];
@@ -133,7 +133,7 @@ export async function getHome(o: FetchOptions = published): Promise<HomeContent>
 export async function getWork(o: FetchOptions = published): Promise<Project[]> {
   let rows: Row[] | null = null;
   try {
-    const { data } = await cachedSanity({ query: WORK_QUERY, perspective: o.perspective, stega: o.stega });
+    const { data } = await cachedSanity({ query: WORK_QUERY, perspective: o.perspective, variant: o.variant, stega: o.stega });
     rows = data as unknown as Row[] | null;
   } catch (e) {
     console.warn("Work: Sanity unavailable, using the fallback content.", e);
@@ -211,7 +211,7 @@ function toCase(slug: string, d: CaseDoc): Case {
  */
 export async function getCase(slug: string, o: FetchOptions = published): Promise<Case | null> {
   try {
-    const { data } = await cachedSanity({ query: CASE_QUERY, params: { slug }, perspective: o.perspective, stega: o.stega });
+    const { data } = await cachedSanity({ query: CASE_QUERY, params: { slug }, perspective: o.perspective, variant: o.variant, stega: o.stega });
     const d = data as unknown as CaseDoc | null;
     if (d?.sections?.some((s) => s.name && s.heading)) return toCase(slug, d);
   } catch (e) {
@@ -266,7 +266,7 @@ export async function getAbout(o: FetchOptions = published): Promise<AboutConten
   const f = FALLBACK_ABOUT;
   let d: AboutDoc = {};
   try {
-    const { data } = await cachedSanity({ query: ABOUT_QUERY, perspective: o.perspective, stega: o.stega });
+    const { data } = await cachedSanity({ query: ABOUT_QUERY, perspective: o.perspective, variant: o.variant, stega: o.stega });
     d = (data as unknown as AboutDoc | null) ?? {};
   } catch (e) {
     console.warn("About: Sanity unavailable, using the fallback content.", e);
@@ -301,7 +301,7 @@ export async function getAbout(o: FetchOptions = published): Promise<AboutConten
 /** Playground posts: Sanity's, or the v08 placeholders while there are none. */
 export async function getPosts(o: FetchOptions = published): Promise<Post[]> {
   try {
-    const { data } = await cachedSanity({ query: PLAYGROUND_QUERY, perspective: o.perspective, stega: o.stega });
+    const { data } = await cachedSanity({ query: PLAYGROUND_QUERY, perspective: o.perspective, variant: o.variant, stega: o.stega });
     const rows = (data as unknown as { title: string; src: string; video?: string; w?: number; h?: number }[] | null) ?? [];
     if (rows.length) {
       const real: Post[] = rows.map((r) => ({ title: r.title, src: img(r.src, 640), video: r.video, ar: r.w && r.h ? r.w / r.h : 1 }));
