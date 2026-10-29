@@ -27,7 +27,8 @@ export type Project = {
   timeline: string;
   role: string;
   tools: ToolId[];
-  media: { poster?: string; video?: string };
+  /** peek: the small copy of the loop, for thumbnails (Work's rows). */
+  media: { poster?: string; video?: string; videoAv1?: string; peek?: string; peekAv1?: string };
   /** The case page. Without one the media says "Case study soon". */
   href?: string;
   /** Read out for the media link, e.g. "De Saak case study. Design, dev and SEO, 2023 to now." */
@@ -191,7 +192,7 @@ export function ProjectRow({
 
   const inner = (
     <>
-      <MediaFill poster={p.media.poster} video={p.media.video} />
+      <MediaFill poster={p.media.poster} video={p.media.video} videoAv1={p.media.videoAv1} />
       {p.note && (
         <Pin ref={pin} live note={false} data-mock={mock("note")}>
           {p.note.text}

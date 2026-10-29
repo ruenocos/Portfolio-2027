@@ -21,7 +21,7 @@ export type Case = {
   lead: string;
   intro: string;
   facts: Fact[];
-  hero: { video?: string; poster?: string; caption: string; alt: string };
+  hero: { video?: string; videoAv1?: string; poster?: string; caption: string; alt: string };
   sections: CaseSection[];
   /** Which top-level texts are placeholder copy. */
   mock?: ("lead" | "intro" | "caption")[];

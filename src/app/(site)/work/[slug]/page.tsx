@@ -94,6 +94,7 @@ export default async function CasePage({ params }: PageProps<"/work/[slug]">) {
                 priority
                 poster={c.hero.poster}
                 video={c.hero.video}
+                videoAv1={c.hero.videoAv1}
                 alt={c.hero.alt}
                 rate={1}
                 caption={c.hero.caption ? <span data-mock={mock("caption")}>{c.hero.caption}</span> : undefined}

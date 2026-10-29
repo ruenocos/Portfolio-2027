@@ -27,6 +27,9 @@ type Row = {
   slug?: string;
   poster?: Pic;
   video?: string;
+  videoAv1?: string;
+  peek?: string;
+  peekAv1?: string;
 };
 type HomeDoc = {
   basedIn?: string;
@@ -79,7 +82,7 @@ function toProject(r: Row, i: number): Project {
     timeline: r.timeline,
     role: r.role ?? "",
     tools: knownTools(r.tools ?? []),
-    media: { poster: pic(r.poster, 1040, PORTRAIT), video: r.video },
+    media: { poster: pic(r.poster, 1040, PORTRAIT), video: r.video, videoAv1: r.videoAv1, peek: r.peek, peekAv1: r.peekAv1 },
     // Every project has a page; without a written case it's the short one.
     href: r.slug ? `/work/${r.slug}` : undefined,
     label: r.label || `${r.title}, ${r.timeline}.`,
@@ -180,7 +183,7 @@ type CaseDoc = {
   role?: string;
   scope?: string;
   timeline?: string;
-  hero?: { video?: string; poster?: Pic; alt?: string; caption?: string };
+  hero?: { video?: string; videoAv1?: string; poster?: Pic; alt?: string; caption?: string };
   sections?: (Omit<CaseSection, "key" | "figure"> & {
     _key: string;
     figure?: { src?: string; alt?: string; caption?: string; width?: number; height?: number };
@@ -206,7 +209,7 @@ function toCase(slug: string, d: CaseDoc): Case {
     }),
     facts: [fact("Role", d.role), fact("Scope", d.scope), fact("Timeline", d.timeline)],
     hero: poster
-      ? { video: d.hero?.video, poster, alt: d.hero?.alt ?? "", caption: d.hero?.caption ?? "" }
+      ? { video: d.hero?.video, videoAv1: d.hero?.videoAv1, poster, alt: d.hero?.alt ?? "", caption: d.hero?.caption ?? "" }
       : fb?.hero ?? { poster: undefined, alt: "", caption: "" },
     sections: (d.sections ?? [])
       .filter((s) => s.name && s.heading)
@@ -333,9 +336,9 @@ export async function getAbout(o: FetchOptions = published): Promise<AboutConten
 export async function getPosts(o: FetchOptions = published): Promise<Post[]> {
   try {
     const { data } = await cachedSanity({ query: PLAYGROUND_QUERY, perspective: o.perspective, variant: o.variant, stega: o.stega });
-    const rows = (data as unknown as { title: string; src: string; video?: string; w?: number; h?: number }[] | null) ?? [];
+    const rows = (data as unknown as { title: string; src: string; video?: string; videoAv1?: string; w?: number; h?: number }[] | null) ?? [];
     if (rows.length) {
-      const real: Post[] = rows.map((r) => ({ title: r.title, src: img(r.src, 640), video: r.video, ar: r.w && r.h ? r.w / r.h : 1 }));
+      const real: Post[] = rows.map((r) => ({ title: r.title, src: img(r.src, 640), video: r.video, videoAv1: r.videoAv1, ar: r.w && r.h ? r.w / r.h : 1 }));
       // Until there are enough, previews top the board up with the prompt
       // cards (what kind of piece fits). The live site shows only real posts.
       if (IS_PRODUCTION) return real;

@@ -2,6 +2,7 @@ import { ProjectsIcon } from "@sanity/icons/Projects";
 import { orderRankField, orderRankOrdering } from "@sanity/orderable-document-list";
 import { defineArrayMember, defineField, defineType } from "sanity";
 import { TOOLS } from "../../lib/tools";
+import { copiesField } from "./videoCopies";
 
 // A project: one row on Home and Work (DESIGN.md §6, Project row), and its
 // case page when it has one (case-study-spec v02), all in one document.
@@ -100,6 +101,7 @@ export const project = defineType({
       options: { accept: "video/mp4,video/webm" },
       description: "3:4, muted, plays at 0.75×. Keep it under 10 MB.",
     }),
+    { ...copiesField, group: "media" },
     defineField({ name: "lead", type: "string", group: "case", description: "One line under the title, in Lead." }),
     defineField({ name: "intro", type: "text", rows: 3, group: "case", description: "Two or three sentences next to the title." }),
     defineField({ name: "scope", type: "string", group: "case", description: "Like \"Design, dev, SEO\"." }),
@@ -110,6 +112,7 @@ export const project = defineType({
       group: "case",
       fields: [
         defineField({ name: "video", type: "file", options: { accept: "video/mp4,video/webm" }, description: "16:9 loop, muted." }),
+        copiesField,
         defineField({ name: "poster", type: "image" }),
         defineField({ name: "alt", type: "string", description: "What the loop shows, for screen readers." }),
         defineField({ name: "caption", type: "string" }),
