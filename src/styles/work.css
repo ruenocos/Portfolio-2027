@@ -195,9 +195,6 @@
   html[data-mode="dark"] .arow .apk {
     outline: 1px solid color-mix(in srgb, var(--mute) 55%, transparent);
   }
-  .arow:is(:hover, :focus-within) .apk .hsel {
-    opacity: 1;
-  }
   .arow .soontag {
     left: auto;
     right: var(--spacing-inset);
@@ -255,9 +252,6 @@
       opacity: 1;
       scale: 1;
       border-radius: 12px;
-    }
-    .arow .apk .hov {
-      display: none;
     }
     /* A project still to write is only its title and thumb: the row
        shrinks to the thumb, title centred beside it (?mocks keeps the slots). */
