@@ -30,7 +30,9 @@ export const FALLBACK_POSTS: Post[] = [
   { title: "A loader worth waiting for", video: `${P}/shape-loader.mp4`, src: `${P}/shape-loader.jpg`, ar: 1 },
   { title: "Letters, timed", video: `${P}/text-anim.mp4`, src: `${P}/text-anim.jpg`, ar: 16 / 9 },
   { title: "Gravity, roughly", video: `${P}/shape-fall.mp4`, src: `${P}/shape-fall.jpg`, ar: 1 },
-  // Placeholders, 18 of them: with the six above that's 24, about two
+  // feellikedancing.nl, header and a bit below it (screenshot 2026-10-29).
+  { title: "Feel Like Dancing Partyband, website header", src: `${P}/feel-like-dancing.jpg`, ar: 4 / 3 },
+  // Placeholders, 18 of them: with the seven above that's 25, about two
   // screens of the board before a post repeats. Each title is a prompt for
   // the kind of piece that fits there (picture or loop), across the three
   // Focus tracks plus some play. Replace them in Sanity, in any order.
