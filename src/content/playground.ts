@@ -4,6 +4,8 @@ export type Post = {
   /** Still image, or the poster of a loop. */
   src?: string;
   video?: string;
+  /** The loop's AV1 copy, for browsers that play it. */
+  videoAv1?: string;
   /** Width / height. */
   ar: number;
   /** Placeholder (no real experiment yet): a tinted card with a mock tag. */

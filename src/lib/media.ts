@@ -10,5 +10,11 @@ export const STACK_PX = parseFloat(tokens.breakpoint.stack.$value);
 export const narrow = () => innerWidth < STACK_PX;
 /** A mouse or trackpad: hover effects, magnetism, the "You" cursor, Lenis. */
 export const finePointer = () => matchMedia("(hover: hover) and (pointer: fine)").matches;
+let av1: boolean | undefined;
+/** Plays AV1 (most browsers; Safari only with the hardware for it). */
+export const playsAv1 = () =>
+  (av1 ??= document.createElement("video").canPlayType('video/mp4; codecs="av01.0.08M.08"') === "probably");
+/** The lightest copy of a loop this browser plays. */
+export const pickVideo = (mp4?: string, av1Copy?: string) => (av1Copy && playsAv1() ? av1Copy : mp4);
 /** Touch first: nothing can hover. */
 export const touch = () => matchMedia("(hover: none)").matches;

@@ -3,12 +3,19 @@ import { defineQuery } from "next-sanity";
 // Pictures come as the image itself (asset, crop, hotspot), so the site can
 // honour the crop and focal point set in the Studio.
 const pic = `{ asset, crop, hotspot }`;
+// A loop's lighter copies (scripts/video-copies.mjs), only while they were
+// made from the file that's there now.
+const copy = (video: string, kind: string) =>
+  `select(${video}Copies.from == ${video}.asset._ref => ${video}Copies.${kind}.asset->url)`;
 
 const projectRow = `{
   title, lang, summary, timeline, role, tools, note, label, hasCase,
   "slug": slug.current,
   "poster": poster${pic},
-  "video": video.asset->url
+  "video": video.asset->url,
+  "videoAv1": ${copy("video", "av1")},
+  "peek": ${copy("video", "small")},
+  "peekAv1": ${copy("video", "smallAv1")}
 }`;
 
 export const HOME_QUERY = defineQuery(`{
@@ -29,7 +36,7 @@ export const WORK_QUERY = defineQuery(`*[_type == "project"] | order(orderRank) 
 
 export const CASE_QUERY = defineQuery(`*[_type == "project" && hasCase == true && slug.current == $slug][0]{
   title, lang, lead, intro, role, scope, timeline,
-  "hero": { "video": hero.video.asset->url, "poster": hero.poster${pic}, "alt": hero.alt, "caption": hero.caption },
+  "hero": { "video": hero.video.asset->url, "videoAv1": ${copy("hero.video", "av1")}, "poster": hero.poster${pic}, "alt": hero.alt, "caption": hero.caption },
   "sections": sections[]{ _key, name, heading, body, note,
     "figure": figure{ "src": asset->url, alt, caption, "width": asset->metadata.dimensions.width, "height": asset->metadata.dimensions.height } }
 }`);
@@ -45,6 +52,6 @@ export const ABOUT_QUERY = defineQuery(`*[_id == "about"][0]{
 }`);
 
 export const PLAYGROUND_QUERY = defineQuery(`*[_type == "playgroundPiece" && defined(image.asset)] | order(orderRank){
-  title, "src": image.asset->url, "video": video.asset->url,
+  title, "src": image.asset->url, "video": video.asset->url, "videoAv1": ${copy("video", "av1")},
   "w": image.asset->metadata.dimensions.width, "h": image.asset->metadata.dimensions.height
 }`);

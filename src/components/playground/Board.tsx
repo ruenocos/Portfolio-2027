@@ -7,7 +7,7 @@ import type { Post } from "@/content/playground";
 import { announce, getMotion, subscribeMotion } from "@/lib/motion";
 import { live, wait, wessel, type XY } from "@/lib/wessel";
 import { clamp, easeInOutCubic } from "@/lib/math";
-import { narrow } from "@/lib/media";
+import { narrow, pickVideo } from "@/lib/media";
 import { SIZES, srcSet } from "@/lib/image";
 
 type Item = {
@@ -50,7 +50,7 @@ function postEl(post: Post) {
     Object.assign(video, { muted: true, loop: true, playsInline: true, preload: "none" });
     // Fetched the first time the tile comes on screen (the board repeats
     // tiles, so loading them all up front pulled the same files many times).
-    video.dataset.src = post.video;
+    video.dataset.src = pickVideo(post.video, post.videoAv1);
     if (post.src) video.poster = post.src;
     video.setAttribute("aria-hidden", "true");
     video.addEventListener("loadeddata", () => video.classList.add("ok"));
@@ -565,7 +565,7 @@ export function Board({ posts }: { posts: Post[] }) {
       if (item.post.video) {
         const video = document.createElement("video");
         Object.assign(video, { muted: true, loop: true, playsInline: true });
-        video.src = item.post.video;
+        video.src = pickVideo(item.post.video, item.post.videoAv1)!;
         video.currentTime = item.video?.currentTime ?? 0;
         if (!calm()) video.play().catch(() => {});
         media.appendChild(video);

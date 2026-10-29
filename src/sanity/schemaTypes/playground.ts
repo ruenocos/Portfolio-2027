@@ -1,6 +1,7 @@
 import { ImagesIcon } from "@sanity/icons/Images";
 import { orderRankField, orderRankOrdering } from "@sanity/orderable-document-list";
 import { defineField, defineType } from "sanity";
+import { copiesField } from "./videoCopies";
 
 // A Playground post: one picture or loop on the masonry board (v08). The
 // board sizes it from the image, so the still sets the ratio.
@@ -19,6 +20,7 @@ export const playgroundPiece = defineType({
       validation: (rule) => rule.required(),
     }),
     defineField({ name: "video", title: "Loop", type: "file", options: { accept: "video/mp4,video/webm" }, description: "Optional. Muted, plays while on screen." }),
+    copiesField,
     // Set by dragging in the Playground list.
     orderRankField({ type: "playgroundPiece", newItemPosition: "before" }),
   ],

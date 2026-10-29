@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { useMotion } from "@/components/useMotion";
 import motionTokens from "../../../design/motion-tokens.json";
 import { SIZES, srcSet } from "@/lib/image";
+import { pickVideo } from "@/lib/media";
 import { MockTag } from "./Pills";
 
 const RATE = motionTokens.video.playbackRate;
@@ -23,7 +24,7 @@ export function useInViewVideo(rate = RATE) {
     let visible = false;
     const sync = () => {
       if (visible && !calm) {
-        if (!v.src && v.dataset.src) v.src = v.dataset.src;
+        if (!v.src && v.dataset.src) v.src = pickVideo(v.dataset.src, v.dataset.av1)!;
         v.play().catch(() => {});
       } else v.pause();
       if (calm) setOn(false);
@@ -39,7 +40,7 @@ export function useInViewVideo(rate = RATE) {
     // Fetch a little early so it's ready when it scrolls in.
     const near = new IntersectionObserver(([e]) => {
       if (e.isIntersecting && !calm && !v.src && v.dataset.src) {
-        v.src = v.dataset.src;
+        v.src = pickVideo(v.dataset.src, v.dataset.av1)!;
         v.preload = "auto";
       }
     }, { rootMargin: "50% 0px" });
@@ -64,6 +65,8 @@ export function useInViewVideo(rate = RATE) {
 export type MediaSrc = {
   poster?: string;
   video?: string;
+  /** The loop's AV1 copy: played instead where the browser supports it. */
+  videoAv1?: string;
   alt?: string;
   sizes?: string;
   /** The page's first picture (its LCP): fetched at once, not lazily. */
@@ -71,7 +74,7 @@ export type MediaSrc = {
 };
 
 /** The picture inside a media frame: poster, plus a loop if there is one. */
-export function MediaFill({ poster, video, alt = "", rate, sizes = SIZES.project, priority }: MediaSrc & { rate?: number }) {
+export function MediaFill({ poster, video, videoAv1, alt = "", rate, sizes = SIZES.project, priority }: MediaSrc & { rate?: number }) {
   const [ref, on] = useInViewVideo(rate);
   const [err, setErr] = useState(false);
   return (
@@ -92,7 +95,7 @@ export function MediaFill({ poster, video, alt = "", rate, sizes = SIZES.project
         />
       )}
       {/* No poster on the video: the img behind it is the poster, at the right size. */}
-      {video && <video ref={ref} data-src={video} muted loop playsInline preload="none" data-on={on} aria-hidden="true" />}
+      {video && <video ref={ref} data-src={video} data-av1={videoAv1} muted loop playsInline preload="none" data-on={on} aria-hidden="true" />}
     </span>
   );
 }
@@ -107,6 +110,7 @@ export function Media({
   ratio = "free",
   poster,
   video,
+  videoAv1,
   alt,
   rate,
   placeholder,
@@ -134,7 +138,7 @@ export function Media({
       data-print={print ? "" : undefined}
       data-square-small={squareSmall ? "" : undefined}
     >
-      {empty ? <MockTag>{placeholder ?? "Media to come"}</MockTag> : <MediaFill poster={poster} video={video} alt={alt} rate={rate} sizes={sizes} priority={priority} />}
+      {empty ? <MockTag>{placeholder ?? "Media to come"}</MockTag> : <MediaFill poster={poster} video={video} videoAv1={videoAv1} alt={alt} rate={rate} sizes={sizes} priority={priority} />}
       {children}
     </span>
   );

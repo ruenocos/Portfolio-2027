@@ -114,7 +114,12 @@ export function WorkRow({ project: p, hidden, leaving }: { project: Project; hid
       <div className="cell ac">
         <span className="ay">{gap ? <Slot>Year</Slot> : p.timeline}</span>
         <span ref={peek} className="media apk" data-ratio="portrait" aria-hidden="true">
-          <MediaFill poster={p.media.poster} video={p.media.video} sizes={SIZES.peek} />
+          <MediaFill
+            poster={p.media.poster}
+            video={p.media.peek ?? p.media.video}
+            videoAv1={p.media.peek ? p.media.peekAv1 : p.media.videoAv1}
+            sizes={SIZES.peek}
+          />
         </span>
       </div>
       <div className="cell ap">
