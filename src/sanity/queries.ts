@@ -5,7 +5,7 @@ import { defineQuery } from "next-sanity";
 const pic = `{ asset, crop, hotspot }`;
 
 const projectRow = `{
-  title, lang, summary, timeline, role, tools, note, label, hasCase,
+  _createdAt, title, lang, summary, timeline, role, tools, note, label, hasCase,
   "slug": slug.current,
   "poster": poster${pic},
   "video": video.asset->url
@@ -19,9 +19,11 @@ export const HOME_QUERY = defineQuery(`{
     "photos": photos[]{ "src": @${pic}, alt },
     focusStatement,
     tracks[]{ key, title, line },
-    "archive": archive[]{ "src": asset->url, name }
+    "archive": archive[]{ "src": asset->url, name },
+    "featured": featured[]->${projectRow}
   },
-  "projects": *[_type == "project" && featured == true] | order(orderRank) ${projectRow}
+  // For the fallback when nothing is picked: the site takes the newest three.
+  "projects": *[_type == "project"] | order(orderRank) ${projectRow}
 }`);
 
 // Work: every project, in the Studio's drag order.

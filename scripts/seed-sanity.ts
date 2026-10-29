@@ -152,7 +152,6 @@ async function projects() {
       note: p.note?.text,
       label: p.label,
       hasCase: !!c,
-      featured: true,
       orderRank: rank[i],
       poster: await image(p.media.poster),
       ...(p.media.video ? { video: await file(p.media.video) } : {}),

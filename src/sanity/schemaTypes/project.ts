@@ -81,7 +81,6 @@ export const project = defineType({
             : true,
         ),
     }),
-    defineField({ name: "featured", title: "Show on Home", type: "boolean", group: "row", initialValue: true }),
     // Set by dragging in the Projects list.
     orderRankField({ type: "project" }),
     defineField({
