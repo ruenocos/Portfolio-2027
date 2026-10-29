@@ -4,7 +4,7 @@
 //   small     a 360px-wide H.264 copy of a project's portrait loop, for Work's thumbnails
 //   smallAv1  the same in AV1
 // Only loops whose copies are missing or were made from an older upload are
-// done, so it's safe to run again (and nightly, .github/workflows/video-copies.yml).
+// done, so it's safe to run again after uploading or replacing a loop.
 // A copy that comes out barely lighter than its source isn't kept.
 //
 //   SANITY_API_WRITE_TOKEN=… node scripts/video-copies.mjs [--dry]
