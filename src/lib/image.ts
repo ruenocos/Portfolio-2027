@@ -11,6 +11,12 @@ const WIDTHS = [160, 320, 480, 640, 960, 1280, 1600, 2000];
 export function resized(src: string, w: number): string | undefined {
   if (src.startsWith("https://cdn.sanity.io/")) {
     const u = new URL(src);
+    // A picture cut to its frame (content/get.ts asks w + h) keeps its shape:
+    // the height scales with the width, or a narrow copy comes back as a
+    // tall slice of the photo.
+    const w0 = Number(u.searchParams.get("w"));
+    const h0 = Number(u.searchParams.get("h"));
+    if (w0 && h0) u.searchParams.set("h", String(Math.round((h0 * w) / w0)));
     u.searchParams.set("w", String(w));
     u.searchParams.set("auto", "format");
     return u.toString();
