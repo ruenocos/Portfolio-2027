@@ -73,6 +73,7 @@ export function PhotoStack({ photos }: { photos: Photo[] }) {
   };
 
   const beat = useBeat<HTMLDivElement>({
+    look: () => stack.current,
     // He shows you the next photo: grabs the top one by its corner,
     // pulls it aside and lets it fly to the back.
     async day(g) {

@@ -23,6 +23,7 @@ export function Archive({ cards }: { cards: ArchiveCard[] }) {
   const open = hover || wes;
 
   const beat = useBeat<HTMLDivElement>({
+    look: () => hand.current,
     async day(g) {
       const i = Math.ceil(mid);
       const card = hand.current!.children[i];

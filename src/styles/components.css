@@ -790,6 +790,19 @@
     pointer-events: none;
     transition: opacity 360ms var(--ease-ui);
   }
+  /* His look-over on the way back up: lighter than a real selection. */
+  .sel[data-look] {
+    border-style: dashed;
+    animation: look-in 240ms var(--ease-ui);
+  }
+  .sel[data-look] > i {
+    display: none;
+  }
+  @keyframes look-in {
+    from {
+      opacity: 0;
+    }
+  }
   .sel[data-static] {
     position: relative;
     display: block;
