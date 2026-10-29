@@ -42,6 +42,7 @@ export function History({ jobs }: { jobs: Job[] }) {
   }, []);
 
   const beat = useBeat<HTMLDivElement>({
+    look: () => list.current,
     async day(g) {
       const rows = [...list.current!.children] as HTMLElement[];
       for (let i = rows.length - 1; i >= 0; i--) {

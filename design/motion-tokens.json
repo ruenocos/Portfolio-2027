@@ -118,8 +118,22 @@
       "skipAbovePxPerSec": 4500,
       "skipped": "replays on return"
     },
+    "look": {
+      "$description": "On the way back up (2026-10-28): once per section per trip he glides along the top of what he made in a dashed box (no size pill), then parks where he let go after the beat.",
+      "k": 150,
+      "glideK": 110,
+      "glideMs": 650,
+      "selectMs": 900,
+      "holdMs": 250
+    },
+    "hand": {
+      "$description": "2026-10-29: his travel speeds up like a hand on a mouse instead of being flung by the spring from rest. accel = px/s² while speeding up (braking is the spring's own), top = px/s.",
+      "desktop": { "accel": 9000, "top": 2600 },
+      "phone": { "accel": 6000, "top": 1600 }
+    },
     "follow": {
       "drag": 0.55,
+      "touchSettleMs": 140,
       "springBoost": "k * min(2.6, 1 + v/1200)"
     },
     "entranceHoldMs": 300,
