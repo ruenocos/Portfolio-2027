@@ -5,7 +5,7 @@ import { getDraftFetchOptions } from "@/sanity/live";
 
 export const metadata: Metadata = {
   title: "Work",
-  description: "Every project, filterable by tool.",
+  description: "Everything I’ve made, filterable by the tool I made it with.",
   alternates: { canonical: "/work" },
 };
 

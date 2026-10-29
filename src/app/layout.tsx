@@ -17,7 +17,7 @@ const serif = Instrument_Serif({ variable: "--nf-serif", subsets: ["latin"], wei
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: { default: "Wessel Oud", template: "%s · Wessel Oud" },
-  description: "Medior UI/UX and motion designer.",
+  description: "UI/UX and motion designer.",
   openGraph: { siteName: "Wessel Oud", type: "website", locale: "en" },
   twitter: { card: "summary_large_image" },
 };

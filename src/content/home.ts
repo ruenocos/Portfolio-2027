@@ -31,13 +31,13 @@ export type HomeContent = {
 export const FALLBACK_HOME: HomeContent = {
   hero: {
     basedIn: "Netherlands",
-    role: ["Medior UI/UX and", "motion designer"],
+    role: ["UI/UX and", "motion designer"],
     // A placeholder loop until the real reel is cut.
     reel: { loop: "/media/reel-loop.mp4", full: "/media/reel.mp4", poster: "/media/reel.jpg", mock: true },
   },
   about: {
-    opener: "I learned design at Mediacollege and motion from a lot of YouTube. Now I do both at WP Masters.",
-    next: "Next, I’m looking for a medior UI/UX role where motion is part of the job, not an extra.",
+    opener: "Hi, I’m Wessel. I design websites and animate them at WP Masters.",
+    next: "I’m looking for a medior UI/UX role where I get to animate too.",
     photos: [
       { src: "/media/portrait.jpg", alt: "Wessel Oud, portrait" },
       { src: "/media/about-barcelona.jpg", alt: "Wessel in front of the Sagrada Família in Barcelona" },
@@ -46,11 +46,11 @@ export const FALLBACK_HOME: HomeContent = {
   },
   projects: FALLBACK_FEATURED,
   focus: {
-    statement: "Primarily working on the details you feel before you notice them",
+    statement: "I like the small stuff. The bits you feel before you notice them.",
     tracks: [
-      { key: "ux", title: "UX/UI design", line: "Websites first. Then the components, so nobody has to redraw a button twice." },
-      { key: "motion", title: "Motion design", line: "I animate to show what changed, where it went, and what to do next." },
-      { key: "ai", title: "AI / automation", line: "Exports, handoff files, content updates: the jobs I’d rather a plugin did." },
+      { key: "ux", title: "UX/UI design", line: "I design websites and the components behind them, so nobody has to redraw the same button." },
+      { key: "motion", title: "Motion design", line: "From a small hover to a full After Effects piece, motion is how I explain things on screen." },
+      { key: "ai", title: "AI / automation", line: "Exports and handoff files eat time. I’d rather a plugin did them, so I build those too." },
     ],
   },
   // The fanned hand above "All work": all six projects, the three still to
