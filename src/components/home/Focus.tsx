@@ -87,6 +87,7 @@ function Card({
   // Wessel uses the scene once (with the card's full hover, so you
   // see what hovering does). In the phone deck his one job is tapping a tool.
   const card = useBeat<HTMLElement>({
+    look: () => svg.current?.parentElement ?? null,
     need: NEED,
     async day(g) {
       if (deck()) return;

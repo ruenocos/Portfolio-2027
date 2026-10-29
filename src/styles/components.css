@@ -643,6 +643,8 @@
   .cur.wes {
     --c: var(--tang);
     --on: var(--on-tang);
+    /* His own layer: a move is a composite, never a repaint of the page. */
+    will-change: transform;
   }
   .cur.you {
     --c: var(--grape);
@@ -796,6 +798,19 @@
     border: 1.5px solid var(--tang);
     pointer-events: none;
     transition: opacity 360ms var(--ease-ui);
+  }
+  /* His look-over on the way back up: lighter than a real selection. */
+  .sel[data-look] {
+    border-style: dashed;
+    animation: look-in 240ms var(--ease-ui);
+  }
+  .sel[data-look] > i {
+    display: none;
+  }
+  @keyframes look-in {
+    from {
+      opacity: 0;
+    }
   }
   .sel[data-static] {
     position: relative;
