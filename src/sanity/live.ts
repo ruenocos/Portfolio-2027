@@ -1,3 +1,4 @@
+import { cacheTag } from "next/cache";
 import { cookies, draftMode } from "next/headers";
 import {
   defineLive,
@@ -19,9 +20,13 @@ export const { sanityFetch, SanityLive } = defineLive({
   strict: true,
 });
 
+// One tag on all Sanity content, so the publish webhook can drop it in one go.
+export const SANITY_TAG = "sanity";
+
 // The one shared cache boundary for Sanity content.
 export const cachedSanity: StrictDefinedFetchType = async (options) => {
   "use cache";
+  cacheTag(SANITY_TAG);
   return sanityFetch(options);
 };
 
