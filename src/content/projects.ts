@@ -47,16 +47,33 @@ export const FALLBACK_FEATURED: Project[] = [
   },
 ];
 
-// Three more projects whose stories aren't written yet: Wessel's own side
+// Orka (2026-10-29): the facts are Wons's answers (own product, paused
+// prototype, product + UX/UI + build with AI); summary and note are mock.
+// The loop is real Orka UI on a made-up demo workspace.
+export const ORKA: Project = {
+  title: "Orka",
+  summary:
+    "Writing for search meant the same chores for every post: find a keyword, brief it, draft it, fill the meta, add links, publish. Most of it was copy and paste. Orka runs those steps in one line, from keyword to published.",
+  timeline: "2026",
+  role: "Product, UX/UI and build",
+  tools: ["claude"],
+  media: { poster: "/media/orka/orka-portrait.jpg", video: "/media/orka/orka-portrait.mp4" },
+  href: "/work/orka",
+  label: "Orka case study. Self-initiated, 2026.",
+  note: { text: "Five steps, not one prompt.", spot: { fx: 0.6, dy: 28, rot: -1.5 } },
+  mock: ["summary", "note"],
+};
+
+// Two more projects whose stories aren't written yet: Wessel's own side
 // projects. Only the titles are real; year, role and tools show as slots
 // (hidden on the live site) and the poster is a placeholder tile.
 const TO_WRITE: [string, string, number][] = [
-  ["Orka", "orka", 1],
   ["Wagg.le", "waggle", 2],
   ["AniPlanner", "aniplanner", 3],
 ];
 export const FALLBACK_PROJECTS: Project[] = [
   ...FALLBACK_FEATURED,
+  ORKA,
   ...TO_WRITE.map(([title, slug, tile]) => ({
     title,
     summary: "",

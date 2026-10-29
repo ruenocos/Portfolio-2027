@@ -27,6 +27,83 @@ export type Case = {
   mock?: ("lead" | "intro" | "caption")[];
 };
 
+const O = "/media/orka";
+const fig = (src: string, alt: string, caption: string): CaseFigure => ({ src: `${O}/${src}.jpg`, width: 1600, height: 1000, alt, caption });
+
+// Orka v01 (2026-10-29). Facts are Wons's answers and the Orka repo (README,
+// git history, Wons's own TODO notes at the pause); the wording is mock until
+// Wons rewrites it. Every screen is real Orka UI on a made-up demo workspace,
+// so no number in them is a result.
+const ORKA_CASE: Case = {
+  slug: "orka",
+  title: "Orka",
+  lead: "A content tool that takes a blog post from keyword to published.",
+  intro:
+    "Orka is my own product idea for WordPress site owners. It audits the site, plans what to write, drafts the articles with AI and publishes them back. A working prototype I designed and built in about four weeks, now paused. The screens use a made-up coffee roaster as demo data.",
+  facts: [
+    { label: "Role", value: "Product, UX/UI and build" },
+    { label: "Scope", value: "Product, design, build" },
+    { label: "Timeline", value: "2026" },
+  ],
+  hero: {
+    video: `${O}/orka-hero.mp4`,
+    poster: `${O}/orka-hero.jpg`,
+    caption: "The editor while a draft writes itself, one step at a time. Demo data.",
+    alt: "Orka editor: the generating panel ticks through draft, SEO, links, citations and quality, then the article is ready for review",
+  },
+  mock: ["lead", "intro", "caption"],
+  sections: [
+    {
+      key: "context",
+      name: "Context",
+      heading: "A content team in one app",
+      body: "Orka is for people who own a WordPress site and know they should blog for search, but never get to it. It audits the site, plans campaigns, drafts the articles and publishes them on a schedule. I did the product, the UX/UI and the build, with AI tools doing a lot of the typing.",
+      figure: fig("or-home", "Orka home: publishing chart, articles that need review and progress per campaign", "Home: what went out, what needs you, how far each campaign is."),
+      mock: "all",
+    },
+    {
+      key: "problem",
+      name: "Problem",
+      heading: "The same chores for every post",
+      body: "Find a keyword, check the volume, write a brief, draft it, fill the meta title and description, add links, pick a date, publish. Every article runs the same steps, and most of them are copy and paste. That's slow, and it's the part people skip.",
+      figure: fig("or-keywords", "Orka keyword list with intent, difficulty, volume and cost per click per keyword", "Keyword research: intent, difficulty and volume, per keyword."),
+      mock: "all",
+    },
+    {
+      key: "approach",
+      name: "Approach",
+      heading: "Start from the site, not a blank page",
+      body: "Onboarding connects the WordPress site and audits it first: how much is there, what it's about, what's missing. The first campaign is built from what the audit found, so nobody starts from an empty list.",
+      figure: fig("or-audit", "Orka onboarding audit results: posts analysed, average word count, top topics, strengths and content gaps", "Onboarding: the audit finds the topics and the gaps."),
+      mock: "all",
+    },
+    {
+      key: "design",
+      name: "Design",
+      heading: "Every article has a place in the line",
+      body: "Every article moves through the same line: idea, planned, drafting, ready for review, scheduled, published. I kept that line visible everywhere, as a board, a list and a calendar, so you can always see what's next.",
+      figure: fig("or-board", "Orka content board with one column per status, from idea to published", "The content board: one column per step."),
+      mock: "all",
+    },
+    {
+      key: "build",
+      name: "Build",
+      heading: "A pipeline, not one prompt",
+      body: "Writing an article runs in five steps: draft, SEO, links, citations and a quality check. The editor shows each one as it runs, so you see what it's doing instead of a spinner. Next.js and Convex underneath, Claude for the writing, DataForSEO for the keyword data.",
+      figure: fig("or-editor", "Orka editor with SEO fields on the left and the finished article on the right", "The editor after the steps: keywords and meta on the left, the article on the right."),
+      note: "Five steps, not one prompt.",
+      mock: "all",
+    },
+    {
+      key: "takeaway",
+      name: "Takeaway",
+      heading: "The data was there. The app didn't use it.",
+      body: "My own notes from when I paused it say it best: the SEO data was in a good spot, but the app almost never used it. If I pick Orka up again, that's where I start.",
+      mock: "all",
+    },
+  ],
+};
+
 const M = "/media/de-saak";
 
 // De Saak v01 (studio/web/hifi/case, spec v02). The wording is mock, drafted
@@ -153,4 +230,5 @@ export const FALLBACK_CASES: Case[] = [
       },
     ],
   },
+  ORKA_CASE,
 ];
