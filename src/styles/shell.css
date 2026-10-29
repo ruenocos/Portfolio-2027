@@ -436,7 +436,9 @@
   .cursors {
     position: absolute;
     inset: 0;
-    z-index: 50;
+    /* Under the sticky header (40): scrolled up past it, he slides behind
+       it and out of view for a moment, like the page (Wons 2026-10-29). */
+    z-index: 39;
     pointer-events: none;
     overflow: clip;
   }
