@@ -1,6 +1,7 @@
 import { draftMode } from "next/headers";
 import { VisualEditing } from "next-sanity/visual-editing";
 import { SanityLive } from "@/sanity/live";
+import { ExitPreview } from "./ExitPreview";
 
 // Live content updates for everyone, click-to-edit overlays while editing.
 export async function LiveEditing() {
@@ -9,7 +10,12 @@ export async function LiveEditing() {
   return (
     <>
       <SanityLive includeDrafts={isEnabled} />
-      {isEnabled && <VisualEditing />}
+      {isEnabled && (
+        <>
+          <VisualEditing />
+          <ExitPreview />
+        </>
+      )}
     </>
   );
 }
