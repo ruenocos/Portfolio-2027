@@ -20,6 +20,7 @@ export const home = defineType({
   groups: [
     { name: "hero", title: "Hero", default: true },
     { name: "about", title: "About teaser" },
+    { name: "work", title: "Selected work" },
     { name: "focus", title: "Focus" },
     { name: "archive", title: "Archive" },
   ],
@@ -47,6 +48,15 @@ export const home = defineType({
     defineField({ name: "aboutOpener", title: "Opener", type: "text", rows: 2, group: "about", placeholder: f.about.opener }),
     defineField({ name: "aboutNext", title: "What's next", type: "text", rows: 2, group: "about", placeholder: f.about.next }),
     defineField({ name: "photos", type: "array", group: "about", of: [photo], description: "The deck, top photo first. Portrait 3:4: set the focal point so faces stay in frame." }),
+    defineField({
+      name: "featured",
+      title: "Projects on Home",
+      type: "array",
+      group: "work",
+      description: "Pick up to three, in the order they show. Empty: the three newest projects.",
+      of: [defineArrayMember({ type: "reference", to: [{ type: "project" }], weak: true })],
+      validation: (rule) => rule.max(3).unique(),
+    }),
     defineField({ name: "focusStatement", title: "Statement", type: "text", rows: 2, group: "focus", placeholder: f.focus.statement }),
     defineField({
       name: "tracks",

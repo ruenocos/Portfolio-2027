@@ -14,6 +14,7 @@ import { FALLBACK_PROJECTS } from "./projects";
 type Pic = { asset?: { _ref: string }; crop?: object; hotspot?: object };
 
 type Row = {
+  _createdAt?: string;
   title: string;
   lang?: string;
   summary: string;
@@ -37,6 +38,7 @@ type HomeDoc = {
   focusStatement?: string;
   tracks?: Partial<Track>[];
   archive?: { src?: string; name?: string }[];
+  featured?: (Row | null)[];
 };
 
 const img = (src?: string, w = 1200) => (src ? `${src}?w=${w}&auto=format` : undefined);
@@ -85,6 +87,35 @@ function toProject(r: Row, i: number): Project {
   };
 }
 
+// The year a project last ran: "2023–now" is this year, "2026" is 2026,
+// a placeholder like "20XX" has none and sorts last.
+function endYear(timeline: string): number {
+  if (/now/i.test(timeline)) return Infinity;
+  const years = timeline.match(/\d{4}/g);
+  return years ? Math.max(...years.map(Number)) : -Infinity;
+}
+
+const HOME_ROWS = 3;
+
+/**
+ * Selected work on Home: the projects picked on the Home doc, in that order.
+ * Nothing picked: the three newest, by the year in their timeline, then the
+ * most recently created, then the Studio's drag order.
+ */
+function homeRows(picked: Row[], all: Row[]): Row[] {
+  if (picked.length) return picked.slice(0, HOME_ROWS);
+  return all
+    .map((r, i) => ({ r, i }))
+    .sort(
+      (a, b) =>
+        endYear(b.r.timeline) - endYear(a.r.timeline) ||
+        (b.r._createdAt ?? "").localeCompare(a.r._createdAt ?? "") ||
+        a.i - b.i,
+    )
+    .slice(0, HOME_ROWS)
+    .map((x) => x.r);
+}
+
 /**
  * Home content: Sanity first, the approved copy for whatever is still empty.
  * If Sanity can't be reached the page still renders, from the fallback.
@@ -97,7 +128,7 @@ export async function getHome(o: FetchOptions = published): Promise<HomeContent>
     const { data } = await cachedSanity({ query: HOME_QUERY, perspective: o.perspective, variant: o.variant, stega: o.stega });
     const d = data as unknown as { home: HomeDoc | null; projects: Row[] | null };
     doc = d.home;
-    rows = d.projects ?? [];
+    rows = homeRows((d.home?.featured ?? []).filter((r): r is Row => !!r?.title), d.projects ?? []);
   } catch (e) {
     console.warn("Home: Sanity unavailable, using the fallback content.", e);
   }
