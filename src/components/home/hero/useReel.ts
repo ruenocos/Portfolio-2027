@@ -50,6 +50,8 @@ export function useReel(still: boolean, nameRef: RefObject<HTMLDivElement | null
       video.pause();
     };
   }, [still]);
+  // Leaving home with the reel open (the router hides the page): your pointer comes back.
+  useEffect(() => () => document.documentElement.classList.remove("reel-open"), []);
 
   const playLoop = () => {
     invited.current = true;
@@ -148,6 +150,9 @@ export function useReel(still: boolean, nameRef: RefObject<HTMLDivElement | null
     const video = full.current;
     if (!box || !video) return;
     box.showModal();
+    // Your own pointer comes back in the dialog (components.css, .youcur).
+    // A class, not html:has(dialog[open]): that made every style write restyle the page.
+    document.documentElement.classList.add("reel-open");
     loop.current?.pause();
     video.currentTime = 0;
     video.play().catch(() => {});
@@ -169,6 +174,7 @@ export function useReel(still: boolean, nameRef: RefObject<HTMLDivElement | null
   };
   /** After the dialog closed (by any route): back to the loop, focus on the reel. */
   const reelClosed = () => {
+    document.documentElement.classList.remove("reel-open");
     full.current?.pause();
     syncLoop.current();
     reel.current?.focus({ preventScroll: true });

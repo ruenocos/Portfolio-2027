@@ -7,9 +7,16 @@
 
 const WIDTHS = [160, 320, 480, 640, 960, 1280, 1600, 2000];
 
-function at(src: string, w: number): string | undefined {
+/** One resized copy of a picture, or undefined when nothing can resize it. */
+export function resized(src: string, w: number): string | undefined {
   if (src.startsWith("https://cdn.sanity.io/")) {
     const u = new URL(src);
+    // A picture cut to its frame (content/get.ts asks w + h) keeps its shape:
+    // the height scales with the width, or a narrow copy comes back as a
+    // tall slice of the photo.
+    const w0 = Number(u.searchParams.get("w"));
+    const h0 = Number(u.searchParams.get("h"));
+    if (w0 && h0) u.searchParams.set("h", String(Math.round((h0 * w) / w0)));
     u.searchParams.set("w", String(w));
     u.searchParams.set("auto", "format");
     return u.toString();
@@ -23,7 +30,7 @@ function at(src: string, w: number): string | undefined {
 /** A srcset for a picture, or undefined when nothing can resize it. */
 export function srcSet(src: string | undefined): string | undefined {
   if (!src) return undefined;
-  const set = WIDTHS.map((w) => [at(src, w), w] as const).filter(([u]) => u);
+  const set = WIDTHS.map((w) => [resized(src, w), w] as const).filter(([u]) => u);
   return set.length ? set.map(([u, w]) => `${u} ${w}w`).join(", ") : undefined;
 }
 

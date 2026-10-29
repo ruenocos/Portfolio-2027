@@ -2,7 +2,8 @@
 // the 1px gaps between them are that colour showing through. So whatever
 // fades, rises or dims (the load entrance, the scroll entrance, the text
 // reveal) must be the content inside a tile, never the tile itself, or the
-// hairline grey shows through it. This is the one place that rule lives.
+// hairline grey shows through it. This is the one place that rule lives,
+// apart from lib/entrance's copy (it runs as an inline script, before modules).
 
 let lineMode: string | undefined;
 let line = "";

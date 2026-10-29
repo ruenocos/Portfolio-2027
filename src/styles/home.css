@@ -927,15 +927,6 @@
   }
 }
 
-/* The bookend takes the footer's spacer's place on home. Unlayered, since
-   .frame is a utility and would win over the components layer. Only a
-   showing bookend counts: the router keeps home in the page, hidden, after
-   you leave it (React's Activity, display none inline), and that hidden
-   one used to take the spacer off the next page until a reload. */
-.page:has(.bk:not([style*="display: none"] *)) .footer-air {
-  display: none;
-}
-
 /* ---------- home's first-visit intro, "Iris" (lib/intro/iris) ----------
    Unlayered, so nothing in the page can sit on top of the sheet. Pending:
    the sheet is a body pseudo-element from the first paint, before any JS.

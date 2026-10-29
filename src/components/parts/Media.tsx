@@ -61,10 +61,17 @@ export function useInViewVideo(rate = RATE) {
   return [video, on] as const;
 }
 
-export type MediaSrc = { poster?: string; video?: string; alt?: string; sizes?: string };
+export type MediaSrc = {
+  poster?: string;
+  video?: string;
+  alt?: string;
+  sizes?: string;
+  /** The page's first picture (its LCP): fetched at once, not lazily. */
+  priority?: boolean;
+};
 
 /** The picture inside a media frame: poster, plus a loop if there is one. */
-export function MediaFill({ poster, video, alt = "", rate, sizes = SIZES.project }: MediaSrc & { rate?: number }) {
+export function MediaFill({ poster, video, alt = "", rate, sizes = SIZES.project, priority }: MediaSrc & { rate?: number }) {
   const [ref, on] = useInViewVideo(rate);
   const [err, setErr] = useState(false);
   return (
@@ -79,11 +86,13 @@ export function MediaFill({ poster, video, alt = "", rate, sizes = SIZES.project
           alt={alt}
           data-err={err}
           onError={() => setErr(true)}
-          loading="lazy"
+          loading={priority ? "eager" : "lazy"}
+          fetchPriority={priority ? "high" : undefined}
           decoding="async"
         />
       )}
-      {video && <video ref={ref} data-src={video} poster={poster} muted loop playsInline preload="none" data-on={on} aria-hidden="true" />}
+      {/* No poster on the video: the img behind it is the poster, at the right size. */}
+      {video && <video ref={ref} data-src={video} muted loop playsInline preload="none" data-on={on} aria-hidden="true" />}
     </span>
   );
 }
@@ -102,6 +111,7 @@ export function Media({
   rate,
   placeholder,
   sizes,
+  priority,
   print,
   squareSmall,
   className = "",
@@ -124,7 +134,7 @@ export function Media({
       data-print={print ? "" : undefined}
       data-square-small={squareSmall ? "" : undefined}
     >
-      {empty ? <MockTag>{placeholder ?? "Media to come"}</MockTag> : <MediaFill poster={poster} video={video} alt={alt} rate={rate} sizes={sizes} />}
+      {empty ? <MockTag>{placeholder ?? "Media to come"}</MockTag> : <MediaFill poster={poster} video={video} alt={alt} rate={rate} sizes={sizes} priority={priority} />}
       {children}
     </span>
   );

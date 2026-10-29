@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { Arrow } from "@/components/parts/Arrow";
-import { SectionLabel } from "@/components/parts/SectionLabel";
 import { CopyEmail } from "./CopyEmail";
+import { FooterAir } from "./FooterAir";
 import { FooterMoment } from "./FooterMoment";
 import { Hop } from "./Hop";
 import { EMAIL, LINKEDIN, NAV } from "./nav";
@@ -14,13 +14,7 @@ export function Footer() {
   return (
     <footer className="site-foot">
       {/* Named like every other band, so "Contact ↓" lands on a label. */}
-      <div className="frame divider divider-tall footer-air" aria-hidden="true">
-        <div className="side" />
-        <div className="cell bg-dots">
-          <SectionLabel name="Contact" as="p" />
-        </div>
-        <div className="side" />
-      </div>
+      <FooterAir />
       <section id="contact" aria-labelledby="h-contact" className="frame">
         <h2 id="h-contact" className="sr-only">
           Contact

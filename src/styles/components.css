@@ -661,8 +661,8 @@
   }
   /* Your own pointer hides only while the You cursor really stands in for
      it: not while calm, not in the reel dialog, not in forced colours. */
-  html.youcur:not([data-motion="calm"]):not(:has(dialog[open])),
-  html.youcur:not([data-motion="calm"]):not(:has(dialog[open])) * {
+  html.youcur:not([data-motion="calm"]):not(.reel-open),
+  html.youcur:not([data-motion="calm"]):not(.reel-open) * {
     cursor: none !important;
   }
   html[data-motion="calm"] .cur.you[data-fixed] {

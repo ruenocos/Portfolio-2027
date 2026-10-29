@@ -1,4 +1,5 @@
 import { CursorLayer } from "@/components/CursorLayer";
+import { entranceScript } from "@/lib/entrance";
 import { AwayTitle } from "./AwayTitle";
 import { ContactPill } from "./ContactPill";
 import { Entrance } from "./Entrance";
@@ -31,6 +32,8 @@ export function Shell({ children }: { children: React.ReactNode }) {
             The shell stays mounted between pages, so he survives every page change. */}
         <CursorLayer />
       </div>
+      {/* The first screen enters on first paint, before the JS has loaded (lib/entrance). */}
+      <script dangerouslySetInnerHTML={{ __html: entranceScript }} />
       <ContactPill />
       <PageSwitch />
       <Entrance />

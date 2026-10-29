@@ -27,7 +27,7 @@ async function page(opts = {}, setup) {
   const p = await ctx.newPage();
   const errs = [];
   p.on("pageerror", (e) => errs.push(e.message));
-  p.on("console", (m) => m.type() === "error" && !/sanity|CORS|ERR_FAILED/i.test(m.text()) && errs.push(m.text()));
+  p.on("console", (m) => m.type() === "error" && !/sanity|CORS|ERR_FAILED/i.test(m.text()) && !(m.location().url + m.text()).includes("/_vercel/") && errs.push(m.text()));
   if (setup) await setup(p, ctx);
   return { p, ctx, errs };
 }
