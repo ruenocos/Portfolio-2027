@@ -6,6 +6,7 @@ import { getDraftFetchOptions } from "@/sanity/live";
 export const metadata: Metadata = {
   title: "Work",
   description: "Every project, filterable by tool.",
+  alternates: { canonical: "/work" },
 };
 
 export default async function WorkPage() {

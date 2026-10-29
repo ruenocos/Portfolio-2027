@@ -18,8 +18,9 @@ export async function generateStaticParams() {
 }
 
 export async function generateMetadata({ params }: PageProps<"/work/[slug]">): Promise<Metadata> {
-  const c = await getCase((await params).slug);
-  return c ? { title: c.title, description: c.lead || undefined } : {};
+  const { slug } = await params;
+  const c = await getCase(slug);
+  return c ? { title: c.title, description: c.lead || undefined, alternates: { canonical: `/work/${slug}` } } : {};
 }
 
 /**

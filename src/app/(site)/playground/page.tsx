@@ -6,6 +6,7 @@ import { getDraftFetchOptions } from "@/sanity/live";
 export const metadata: Metadata = {
   title: "Playground",
   description: "Experiments, loops and pictures on one big board you can drag around.",
+  alternates: { canonical: "/playground" },
 };
 
 // Playground: a title row like Work's (Statement title, one hint in Label
