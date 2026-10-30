@@ -9,7 +9,6 @@ export type ViewerItem = {
   srcSet?: string;
   video?: string;
   alt: string;
-  caption?: string;
   width: number;
   height: number;
   /** A reel with sound: it plays from the start, unmuted, with controls. */

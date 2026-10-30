@@ -6,7 +6,7 @@ import { getMotion } from "@/lib/motion";
 import { onViewer, type ViewerRequest } from "@/lib/viewer";
 import { Player } from "./Player";
 
-// Room the media leaves for the chrome: Close on top, caption and counter
+// Room the media leaves for the chrome: Close on top, the counter
 // under it, the step buttons at the sides (phones swipe instead).
 const ROOM = { top: 72, bottom: 88, side: 88, sidePhone: 16 };
 const MS = 560;
@@ -228,14 +228,11 @@ export function Viewer() {
               />
             )}
           </div>
-          <div className="vcap" style={{ left: box.x, top: box.y + box.h + 12, width: box.w }}>
-            {item.caption && <p className="text-label text-mute">{item.caption}</p>}
-            {many && (
-              <p className="vcount text-micro" aria-live="polite">
-                {index + 1} / {req.items.length}
-              </p>
-            )}
-          </div>
+          {many && (
+            <p className="vcount text-micro" aria-live="polite" style={{ left: box.x, top: box.y + box.h + 12, width: box.w }}>
+              {index + 1} / {req.items.length}
+            </p>
+          )}
           {many && (
             <>
               <button type="button" className="vstep pbtn" data-dir="prev" aria-label="Previous" onClick={() => step(-1)}>

@@ -40,8 +40,8 @@ const calm = () => getMotion().calm;
 function postEl(post: Post) {
   const f = document.createElement("figure");
   f.className = "post";
-  // Your tag says what a click does (CursorLayer reads [data-you]).
-  f.dataset.you = "Open";
+  // Your tag says what a click does (CursorLayer reads [data-you]); a prompt card doesn't open.
+  if (!post.mock) f.dataset.you = "Open";
   f.setAttribute("aria-label", post.title);
   const tile = document.createElement("div");
   tile.className = "pi";
@@ -87,7 +87,7 @@ function postEl(post: Post) {
     tile.appendChild(idea);
   }
   // No frame name above it (the board is purely visual); the name is read
-  // out and captions the open post.
+  // out, and names the open post for screen readers.
   f.append(tile);
   return f;
 }

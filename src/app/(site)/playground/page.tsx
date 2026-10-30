@@ -11,7 +11,8 @@ export const metadata: Metadata = {
 
 // Playground: one full-screen canvas under the header, edge to edge, like a
 // Figma file. The title sits on it as a small chip, top left; the zoom pill
-// floats bottom centre. This page has no footer (Contact goes to the home's).
+// floats bottom centre. The board holds the wheel, so the footer below is
+// reached by Contact, which scrolls down to it.
 export default async function PlaygroundPage() {
   const posts = await getPosts(await getDraftFetchOptions());
   return (

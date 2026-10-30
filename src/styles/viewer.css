@@ -229,18 +229,10 @@
   }
 
   /* ---------- chrome ---------- */
-  .vcap {
-    position: absolute;
-    display: flex;
-    justify-content: space-between;
-    align-items: baseline;
-    gap: 16px;
-  }
-  .vcap > :only-child.vcount {
-    margin-left: auto;
-  }
   .vcount {
-    flex: none;
+    position: absolute;
+    margin: 0;
+    text-align: right;
     color: var(--mute);
     font-variant-numeric: tabular-nums;
   }
