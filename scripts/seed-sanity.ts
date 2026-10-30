@@ -95,7 +95,7 @@ async function home() {
     role: [...h.hero.role],
     // Left out: the reel (the real file is still to come) and the archive (mostly placeholder tiles).
     aboutOpener: h.about.opener,
-    aboutNext: h.about.next,
+    aboutNext: h.about.intro,
     photos: await Promise.all(h.about.photos.map(async (p) => ({ _key: key(p.src), ...(await image(p.src))!, alt: p.alt }))),
     focusStatement: h.focus.statement,
     tracks: h.focus.tracks.map((t) => ({ _key: t.key, key: t.key, title: t.title, line: t.line })),

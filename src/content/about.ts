@@ -26,7 +26,6 @@ export const FALLBACK_ABOUT: AboutContent = {
   facts: [
     { label: "Now", value: "UX/UI & Motion Designer", sub: "WP Masters, since Jul 2024" },
     { label: "Studied", value: "E-commerce Design, cum laude", sub: "Mediacollege Amsterdam, 2020–2024" },
-    { label: "Looking for", value: "A medior UI/UX role", sub: "Where I get to animate too" },
   ],
   experience: [
     { when: "Jul 2024 – now", place: "WP Masters", role: "UX/UI & Motion Designer" },

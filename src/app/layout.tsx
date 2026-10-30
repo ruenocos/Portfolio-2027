@@ -16,7 +16,7 @@ const serif = Instrument_Serif({ variable: "--nf-serif", subsets: ["latin"], wei
 // The description is the hero's role line (DESIGN.md §6, approved copy).
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
-  title: { default: "Wessel Oud", template: "%s · Wessel Oud" },
+  title: { default: "Wessel Oud", template: "%s | Wessel Oud" },
   description: "UI/UX and motion designer.",
   openGraph: { siteName: "Wessel Oud", type: "website", locale: "en" },
   twitter: { card: "summary_large_image" },

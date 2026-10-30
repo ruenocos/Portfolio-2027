@@ -134,7 +134,7 @@ export async function getHome(o: FetchOptions = published): Promise<HomeContent>
     },
     about: {
       opener: h.aboutOpener || f.about.opener,
-      next: h.aboutNext || f.about.next,
+      intro: h.aboutNext || f.about.intro,
       photos: photos.length ? photos.map((p) => ({ alt: p.alt, src: pic(p.src, 760, PORTRAIT)! })) : f.about.photos,
     },
     projects: rows.length ? rows.map(toProject) : f.projects,

@@ -19,7 +19,8 @@ export type HomeContent = {
   };
   about: {
     opener: string;
-    next: string;
+    /** Who Wessel is, in short paragraphs (blank line between them). */
+    intro: string;
     photos: Photo[];
   };
   projects: Project[];
@@ -36,7 +37,8 @@ export const FALLBACK_HOME: HomeContent = {
   },
   about: {
     opener: "Hi, I’m Wessel. I design websites and animate them at WP Masters.",
-    next: "I’m looking for a medior UI/UX role where I get to animate too.",
+    intro:
+      "I start with the person on the other side of the screen: who they are and how it should feel when they land. Once that’s clear, I use motion to show what changed and where to go next.\n\nI learned design at Mediacollege Amsterdam and motion through a lot of YouTube. Off screen, it’s sports and board games.",
     photos: [
       { src: "/media/portrait.jpg", alt: "Wessel Oud, portrait" },
       { src: "/media/about-barcelona.jpg", alt: "Wessel in front of the Sagrada Família in Barcelona" },

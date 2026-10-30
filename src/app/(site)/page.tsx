@@ -10,7 +10,7 @@ import { getHome } from "@/content/get";
 import { getDraftFetchOptions } from "@/sanity/live";
 
 export const metadata: Metadata = {
-  title: { absolute: "Wessel Oud · UI/UX and motion designer" },
+  title: { absolute: "UI/UX and motion designer | Wessel Oud" },
   description:
     "UI/UX and motion designer in the Netherlands, currently at WP Masters. I design it, bring it to life, and automate the boring parts.",
   alternates: { canonical: "/" },
