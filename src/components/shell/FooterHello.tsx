@@ -5,7 +5,7 @@ import { useEffect, useRef } from "react";
 import { useBeat } from "@/components/canvas/useBeat";
 import { SectionLabel } from "@/components/parts/SectionLabel";
 import { getMotion } from "@/lib/motion";
-import { finePointer, narrow } from "@/lib/media";
+import { finePointer, headerHeight, narrow } from "@/lib/media";
 import { isBusy, live, wait, wessel, type XY } from "@/lib/wessel";
 
 // The footer's hello: the email across the full width, its letters leaning
@@ -20,7 +20,7 @@ const REACH_MIN = 70;
 // His cursor + name tag, about this big to the right of and below his tip.
 const CUR_H = 44;
 
-const header = () => parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--spacing-header")) || 90;
+const header = headerHeight;
 const wes = () => document.querySelector<HTMLElement>(".cur.wes");
 const here = (spot: XY) => {
   const [x, y] = wessel.pos();
@@ -38,12 +38,17 @@ function Hello({ email }: { email: string }) {
   const yours = useRef(false);
   const alive = useRef(true);
   const waves = useRef(0);
+  const lastSpot = useRef<XY>([0, 0]);
 
   const on = () => link.current?.setAttribute("data-on", "");
   /** His parking spot: under the end of the address, clear of the letters. */
   const spot = (): XY => {
-    const r = chs.current!.getBoundingClientRect();
-    return [r.right - Math.min(150, r.width * 0.2), r.bottom + (narrow() ? 22 : 26)];
+    // A page you left stays mounted but hidden: its refs let go before its
+    // observers do, so the last spot stands in for that moment.
+    const box = chs.current;
+    if (!box) return lastSpot.current;
+    const r = box.getBoundingClientRect();
+    return (lastSpot.current = [r.right - Math.min(150, r.width * 0.2), r.bottom + (narrow() ? 22 : 26)]);
   };
 
   // The lean. Letter centres are measured once per layout; each frame only
@@ -178,6 +183,7 @@ function Hello({ email }: { email: string }) {
     const cell = b.parentElement!;
     let t = 0;
     const place = () => {
+      if (!chs.current) return;
       const c = cell.getBoundingClientRect();
       const [x, y] = spot();
       b.style.left = `${x - c.left}px`;
@@ -301,6 +307,11 @@ function Hello({ email }: { email: string }) {
         return r.top > header() + 8 && r.bottom + 26 + CUR_H < innerHeight;
       };
       for (let i = 0; i < 12 && !clear(); i++) {
+        await wait(100);
+        live(g);
+      }
+      // One mover at a time: stickers still landing above (About) go first.
+      for (let i = 0; i < 12 && document.querySelector("main [data-landing]"); i++) {
         await wait(100);
         live(g);
       }

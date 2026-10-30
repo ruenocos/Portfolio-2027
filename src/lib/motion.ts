@@ -53,6 +53,8 @@ export function subscribeMotion(fn: () => void) {
 }
 
 export const getMotion = () => (start(), state);
+/** Pause motion or reduced motion is on: end states only. */
+export const isCalm = () => getMotion().calm;
 export const getServerMotion = () => SERVER;
 
 export function setPaused(paused: boolean) {

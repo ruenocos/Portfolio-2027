@@ -53,13 +53,20 @@
   }
 }
 
-/* Mode change: every token cross-fades over 0.6s, in-out so it never sits
-   in a flat mid-grey (DESIGN.md §3; was 0.9s, Wons 2026-10-28).
+/* Mode change: the colour tokens themselves cross-fade on <html> (they're
+   registered with @property in tokens.css) and every element inherits them,
+   so it's one animated style instead of a transition on every node, and no
+   element's own transitions get replaced (the switch knob keeps its spring).
+   The surfaces go first and the text follows a quarter later, so ink never
+   sits on the same grey as the canvas. 0.6s in total, in-out (DESIGN.md §3).
    Kept under reduced motion: colour changes are allowed there. */
-.mode-fade,
-.mode-fade * {
-  transition-property: background-color, color, border-color, fill, stroke, outline-color;
-  transition-duration: var(--dur-mode);
+.mode-fade {
+  transition-property: --canvas, --line, --fill, --dot, --tang, --tang-ink, --grape, --ink, --mute, --on-tang, --on-grape;
+  transition-duration:
+    calc(var(--dur-mode) * 0.75), calc(var(--dur-mode) * 0.75), calc(var(--dur-mode) * 0.75), calc(var(--dur-mode) * 0.75),
+    var(--dur-mode), var(--dur-mode), var(--dur-mode),
+    calc(var(--dur-mode) * 0.75), calc(var(--dur-mode) * 0.75), calc(var(--dur-mode) * 0.75), calc(var(--dur-mode) * 0.75);
+  transition-delay: 0s, 0s, 0s, 0s, 0s, 0s, 0s, calc(var(--dur-mode) * 0.25), calc(var(--dur-mode) * 0.25), calc(var(--dur-mode) * 0.25), calc(var(--dur-mode) * 0.25);
   transition-timing-function: var(--ease-mode);
 }
 

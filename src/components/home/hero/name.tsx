@@ -13,6 +13,8 @@ export function nameLetters(name: HTMLElement) {
 }
 
 // Before he arrives (day, not calm): the W is only an outline and the u of Oud sits crooked.
+// The server renders these classes already (<Letters marks>), so the first
+// paint is the prepped name and it never changes after; calm ignores them in CSS.
 export function prepName(name: HTMLElement) {
   if (getMotion().calm) return;
   const { letterW, letterU } = nameLetters(name);
@@ -27,11 +29,11 @@ export function unprepName(name: HTMLElement) {
   letterU.style.transform = "";
 }
 
-/** Splits a word into letters Wessel can grab; group = [from, to) kept together. */
-export function Letters({ word, group }: { word: string; group?: [number, number] }) {
+/** Splits a word into letters Wessel can grab; group = [from, to) kept together, marks = extra class per letter. */
+export function Letters({ word, group, marks }: { word: string; group?: [number, number]; marks?: Record<number, string> }) {
   const chars = [...word];
   const letter = (char: string, index: number) => (
-    <span key={index} className="lt">
+    <span key={index} className={marks?.[index] ? `lt ${marks[index]}` : "lt"}>
       {char}
     </span>
   );
@@ -64,8 +66,9 @@ export function useFitName(nameRef: RefObject<HTMLDivElement | null>) {
         name.style.fontSize = `${Math.min(Math.floor((base * width) / (parts + base * 0.3)), 240)}px`;
       }
     };
+    let gone = false;
     fit();
-    document.fonts?.ready.then(fit);
+    document.fonts?.ready.then(() => gone || fit());
     let timer = 0;
     const resized = () => {
       clearTimeout(timer);
@@ -73,6 +76,7 @@ export function useFitName(nameRef: RefObject<HTMLDivElement | null>) {
     };
     addEventListener("resize", resized);
     return () => {
+      gone = true;
       removeEventListener("resize", resized);
       clearTimeout(timer);
     };

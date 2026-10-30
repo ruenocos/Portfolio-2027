@@ -361,7 +361,8 @@
     background: var(--grape);
     transform-origin: 0 50%;
     transform: scaleX(0);
-    transition: transform 700ms var(--ease-spring);
+    /* Drawn in, no overshoot: a springy line would run past the address. */
+    transition: transform var(--dur-enter-rise) var(--ease-enter-rise);
   }
   .big[data-on] .chs::after {
     transform: none;
@@ -404,7 +405,7 @@
     border-radius: 50%;
     border: 2px solid var(--c);
     pointer-events: none;
-    animation: five-ring 620ms cubic-bezier(0.2, 0.7, 0.2, 1) forwards;
+    animation: five-ring var(--dur-spring) var(--ease-ui) forwards;
   }
   .cur.wes[data-wave] .ptr {
     animation: wes-wave 900ms var(--ease-ui);

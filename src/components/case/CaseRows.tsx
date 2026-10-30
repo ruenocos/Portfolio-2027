@@ -2,14 +2,15 @@
 
 import type { ReactNode } from "react";
 import { MediaFill } from "@/components/parts/Media";
+import { SIZES } from "@/lib/image";
 import type { CaseMedia, CaseRow } from "@/content/cases";
 import { Compare } from "./Compare";
 
 // A tile's picture width, for its srcset sizes.
 const SIZE = {
-  full: "(width < 900px) 100vw, 860px",
-  half: "(width < 600px) 100vw, (width < 900px) 50vw, 420px",
-  third: "(width < 600px) 100vw, (width < 900px) 33vw, 280px",
+  full: SIZES.figure,
+  half: SIZES.figureHalf,
+  third: SIZES.figureThird,
 } as const;
 
 /** One picture or loop: a button that opens it in the viewer. */

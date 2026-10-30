@@ -70,20 +70,21 @@
     position: relative;
     transform-origin: 50% 55%;
   }
-  /* Before Wessel arrives: an outlined W and a crooked u. */
-  .name .lt.ol {
+  /* Before Wessel arrives: an outlined W and a crooked u. Rendered by the
+     server, so calm (paused or reduced) shows the finished name instead. */
+  :root:not([data-motion="calm"]) .name .lt.ol {
     color: transparent;
     -webkit-text-stroke: 0.022em var(--tang);
   }
-  .name .lt.off {
+  :root:not([data-motion="calm"]) .name .lt.off {
     transform: translate(0.05em, 0.11em) rotate(-7deg);
     transition: none;
   }
   .name .lt.plop {
-    animation: plop 760ms cubic-bezier(0.3, 1.5, 0.5, 1);
+    animation: plop var(--dur-spring) var(--ease-spring);
   }
   .name .lt.snap {
-    animation: snap 520ms cubic-bezier(0.3, 1.6, 0.5, 1);
+    animation: snap var(--dur-spring) var(--ease-spring);
   }
   .role {
     position: absolute;
@@ -212,6 +213,9 @@
     flex-direction: column;
     gap: 16px;
   }
+  .atext .intro p {
+    max-width: 34em;
+  }
   .atext h3 {
     max-width: 20ch;
     overflow-wrap: break-word;
@@ -239,8 +243,8 @@
     box-shadow: inset 0 0 0 1px var(--frame-edge), 0 24px 48px -26px rgb(0 0 0 / 0.55);
     transform: translate(-50%, -50%) var(--pose);
     transition:
-      transform 620ms cubic-bezier(0.22, 1, 0.36, 1),
-      filter 620ms cubic-bezier(0.22, 1, 0.36, 1);
+      transform var(--dur-spring) var(--ease-enter-rise),
+      filter var(--dur-spring) var(--ease-enter-rise);
   }
   .deck .dk img {
     width: 100%;
@@ -494,7 +498,7 @@
     z-index: 6;
     translate: 0 -100%;
     transform-origin: 0 100%;
-    animation: pinpop 520ms cubic-bezier(0.3, 1.6, 0.5, 1) backwards;
+    animation: pinpop var(--dur-spring) var(--ease-spring) backwards;
     transition:
       transform 420ms var(--ease-spring),
       opacity 300ms var(--ease-ui);

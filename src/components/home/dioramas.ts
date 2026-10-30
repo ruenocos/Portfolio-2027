@@ -8,14 +8,14 @@
 // Not React: each scene redraws its SVG from a few springs, only while on
 // screen and only while something is moving. Calm shows end states.
 
-import { getMotion } from "@/lib/motion";
+import { isCalm } from "@/lib/motion";
 import { FEATURES } from "@/lib/smiley";
 import { easeInOutCubic } from "@/lib/math";
 
 export type DioKind = "ux" | "motion" | "ai";
 
 type Pt = [number, number];
-const calm = () => getMotion().calm;
+const calm = isCalm;
 
 function spring(k = 320, z = 0.38) {
   return {

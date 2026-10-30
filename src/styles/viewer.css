@@ -13,18 +13,36 @@
     padding: 0;
     border: 0;
     color: var(--ink);
-    background: color-mix(in srgb, var(--canvas) 94%, transparent);
-    backdrop-filter: blur(12px);
-    opacity: 0;
-    transition: opacity 300ms var(--ease-ui);
+    background: transparent;
     overflow: hidden;
     overscroll-behavior: contain;
   }
-  .vwr[data-on] {
-    opacity: 1;
-  }
   .vwr::backdrop {
     background: transparent;
+  }
+  /* The wash and the chrome fade; the frame itself is opaque from its first
+     frame, so what you see is the tile growing, not a box fading in. On
+     close they wait a moment, so the frame leaves first. */
+  .vwr::before,
+  .vwr :is(.vx, .vcount, .vstep) {
+    opacity: 0;
+    transition: opacity var(--dur-wash) var(--ease-wash) var(--delay-wash-out);
+  }
+  .vwr::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    background: color-mix(in srgb, var(--canvas) 94%, transparent);
+  }
+  .vwr {
+    --delay-wash-out: 80ms;
+  }
+  .vwr[data-on] {
+    --delay-wash-out: 0ms;
+  }
+  .vwr[data-on]::before,
+  .vwr[data-on] :is(.vx, .vcount, .vstep) {
+    opacity: 1;
   }
 
   /* ---------- the frame ---------- */
@@ -34,8 +52,26 @@
     background: var(--fill);
     box-shadow: inset 0 0 0 1px var(--frame-edge);
     transform-origin: center;
-    transition: transform var(--dur-spring) var(--ease-spring);
+    transition: transform var(--dur-viewer-open) var(--ease-viewer-open);
     will-change: transform;
+  }
+  .vwr[data-closing] .vfr {
+    transition: transform var(--dur-viewer-close) var(--ease-viewer-close);
+  }
+  /* The tile's own picture, already decoded: the frame is never black
+     while the full picture or the video's first frame loads over it. */
+  .vfr > .vfrom {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    border-radius: inherit;
+    pointer-events: none;
+  }
+  .vfr > img:not(.vfrom),
+  .vfr > .plyr {
+    position: relative;
   }
   .vfr[data-kind="image"] {
     overflow: hidden;
@@ -70,9 +106,12 @@
     width: 100%;
     height: 100%;
     object-fit: contain;
-    background: #000;
+    background: transparent;
     border-radius: inherit;
     cursor: pointer;
+  }
+  .plyr:fullscreen video {
+    background: #000;
   }
   .plyr:fullscreen {
     border-radius: 0;
@@ -268,7 +307,8 @@
     }
   }
 
-  html[data-motion="calm"] :is(.vwr, .vfr, .vfr > img, .pbar, .phead, .pbtn) {
+  html[data-motion="calm"] :is(.vwr, .vfr, .vfr > img, .pbar, .phead, .pbtn, .vx, .vcount, .vstep),
+  html[data-motion="calm"] .vwr::before {
     transition: none;
   }
 }

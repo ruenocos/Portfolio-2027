@@ -27,6 +27,9 @@
   --ease-enter-rise: cubic-bezier(0.16, 1, 0.3, 1);
   --ease-mode: cubic-bezier(0.65, 0, 0.35, 1);
   --ease-press: cubic-bezier(0.2, 0, 0, 1);
+  --ease-viewer-open: cubic-bezier(0.2, 0, 0, 1);
+  --ease-viewer-close: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-wash: cubic-bezier(0.2, 0, 0, 1);
   --breakpoint-stack: 900px;
   --breakpoint-small: 600px;
 }
@@ -38,6 +41,9 @@
   --dur-enter-rise: 720ms;
   --dur-mode: 600ms;
   --dur-press: 120ms;
+  --dur-viewer-open: 420ms;
+  --dur-viewer-close: 320ms;
+  --dur-wash: 200ms;
   --enter-rise: 16px;
   --press-y: 1px;
   --dur-page-out: 160ms;
@@ -57,6 +63,62 @@
   --type-wordmark-size: 28px;
   --type-cursor-tag-size: 13px;
   --type-micro-caps-size: 11px;
+}
+
+@property --canvas {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: #FAF8F4;
+}
+@property --ink {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: #161412;
+}
+@property --mute {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: #736B61;
+}
+@property --line {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: #E6E0D7;
+}
+@property --fill {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: #EFEBE4;
+}
+@property --dot {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: #D9D2C7;
+}
+@property --tang {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: #F0611F;
+}
+@property --tang-ink {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: #C2410C;
+}
+@property --on-tang {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: #161412;
+}
+@property --grape {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: #6A3DF0;
+}
+@property --on-grape {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: #FFFFFF;
 }
 
 :root, [data-mode="light"] {

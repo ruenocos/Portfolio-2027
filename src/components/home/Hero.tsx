@@ -102,7 +102,7 @@ export function Hero({ hero: content }: { hero: HomeContent["hero"] }) {
       </h1>
       <div ref={name} className="name text-display" data-enter>
         <span className="w" aria-hidden="true">
-          <Letters word="Wessel" group={[2, 6]} />
+          <Letters word="Wessel" group={[2, 6]} marks={{ 0: "ol" }} />
         </span>
         <a
           ref={reel}
@@ -121,7 +121,7 @@ export function Hero({ hero: content }: { hero: HomeContent["hero"] }) {
           </span>
         </a>
         <span className="w" aria-hidden="true">
-          <Letters word="Oud" />
+          <Letters word="Oud" marks={{ 1: "off" }} />
         </span>
       </div>
       <p className="role text-accent" aria-hidden="true" data-enter>

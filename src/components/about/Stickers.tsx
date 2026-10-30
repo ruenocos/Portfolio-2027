@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import type { Body as MBody, Constraint as MConstraint, Engine as MEngine } from "matter-js";
 import { useBeat } from "@/components/canvas/useBeat";
 import type { Sticker } from "@/content/about";
-import { announce, getMotion } from "@/lib/motion";
+import { announce, isCalm } from "@/lib/motion";
 import { live, wait, wessel, type XY } from "@/lib/wessel";
 import { narrow } from "@/lib/media";
 
@@ -26,7 +26,7 @@ type Pile = {
 const between = (a: number, b: number) => a + Math.random() * (b - a);
 const pick = (n: number) => Math.floor(Math.random() * n);
 const now = () => performance.now();
-const calm = () => getMotion().calm;
+const calm = isCalm;
 const STEP_MS = 1000 / 60;
 
 // Big ones land at the bottom when tidied, the small ones on top.
@@ -53,6 +53,9 @@ export function Stickers({ items }: { items: Sticker[] }) {
   useEffect(() => {
     tidyRef.current = tidy;
   }, [tidy]);
+  // Restarts the physics loop, which sleeps once the pile lies still.
+  // Everything that moves a sticker calls it.
+  const wakeRef = useRef(() => {});
 
   const size = (i: number) => {
     const e = stickerEls.current[i];
@@ -92,6 +95,7 @@ export function Stickers({ items }: { items: Sticker[] }) {
     b.plugin = { w, h };
     pile.bodies[i] = b;
     pile.matter.Composite.add(pile.engine.world, b);
+    wakeRef.current();
     return b;
   };
 
@@ -171,6 +175,7 @@ export function Stickers({ items }: { items: Sticker[] }) {
       pile.matter.Body.setVelocity(b, { x: 0, y: 0 });
       pile.matter.Body.setAngularVelocity(b, 0);
     });
+    wakeRef.current();
   };
 
   const neat = () => {
@@ -192,6 +197,7 @@ export function Stickers({ items }: { items: Sticker[] }) {
     pile.tidyT = now();
     pile.locked = true;
     setTidy(true);
+    wakeRef.current();
     if (calm()) {
       pile.bodies.forEach((b, i) => {
         pile.matter.Body.setPosition(b!, to[i]);
@@ -219,6 +225,7 @@ export function Stickers({ items }: { items: Sticker[] }) {
         pile.matter.Body.setAngularVelocity(b, between(-0.25, 0.25));
       }
     });
+    wakeRef.current();
     if (calm()) settle();
   };
 
@@ -229,6 +236,7 @@ export function Stickers({ items }: { items: Sticker[] }) {
     const b = board.current;
     if (!b) return;
     let raf = 0;
+    let quiet = 0;
     let seen = false;
     let dead = false;
     let w = innerWidth;
@@ -253,6 +261,11 @@ export function Stickers({ items }: { items: Sticker[] }) {
         });
         if (done) pile.tidyTo = null;
       }
+      // Asleep once nothing has moved for a moment (and no hand holds one).
+      const still = !pile.tidyTo && !pile.grab && pile.bodies.every((body) => !body || body.isStatic || (body.speed < 0.05 && Math.abs(body.angularVelocity) < 0.002));
+      quiet = still ? quiet + 1 : 0;
+      // Other movers (the footer sweep) wait while the pile is still landing.
+      if (b.hasAttribute("data-landing") !== !still) b.toggleAttribute("data-landing", !still);
       // Weighted like a roly-poly: a sticker always rights itself, so
       // none ends up upside down and unreadable.
       pile.bodies.forEach((body) => {
@@ -260,11 +273,14 @@ export function Stickers({ items }: { items: Sticker[] }) {
       });
       pile.matter.Engine.update(pile.engine, STEP_MS);
       draw();
-      raf = requestAnimationFrame(frame);
+      if (quiet < 30) raf = requestAnimationFrame(frame);
+      else b.removeAttribute("data-landing");
     };
     const run = () => {
+      quiet = 0;
       if (!raf && seen && !dead) raf = requestAnimationFrame(frame);
     };
+    wakeRef.current = run;
 
     const start = async () => {
       const matter = await import("matter-js");
@@ -367,6 +383,7 @@ export function Stickers({ items }: { items: Sticker[] }) {
     });
     pile.matter.Composite.add(pile.engine.world, pile.grab);
     setTidy(false);
+    wakeRef.current();
   };
   const letGo = () => {
     const pile = pileRef.current;
@@ -382,6 +399,7 @@ export function Stickers({ items }: { items: Sticker[] }) {
     setTidy(false);
     pile.matter.Body.setVelocity(body, { x: between(-1.5, 1.5), y: -11 });
     pile.matter.Body.setAngularVelocity(body, between(-0.12, 0.12));
+    wakeRef.current();
     if (calm()) settle(120);
   };
 
@@ -399,6 +417,7 @@ export function Stickers({ items }: { items: Sticker[] }) {
     const move = (ev: PointerEvent) => {
       moved = Math.max(moved, Math.hypot(ev.clientX - sx, ev.clientY - sy));
       if (pile.grab) pile.grab.pointA = local(ev.clientX, ev.clientY);
+      wakeRef.current();
       if (calm()) settle(8);
     };
     // A cancel is the page taking the swipe as a scroll: no hop then.
@@ -427,6 +446,7 @@ export function Stickers({ items }: { items: Sticker[] }) {
     setTidy(false);
     pile.matter.Body.setVelocity(body, { x: nudge[0], y: nudge[1] });
     pile.matter.Body.setAngularVelocity(body, nudge[0] * 0.012);
+    wakeRef.current();
     if (calm()) settle(120);
   };
 

@@ -1,7 +1,9 @@
 "use client";
 
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
+import motionTokens from "../../../design/motion-tokens.json";
 import { Arrow } from "@/components/parts/Arrow";
+import { narrow } from "@/lib/media";
 import { getMotion } from "@/lib/motion";
 import { onViewer, type ViewerRequest } from "@/lib/viewer";
 import { Player } from "./Player";
@@ -9,13 +11,14 @@ import { Player } from "./Player";
 // Room the media leaves for the chrome: Close on top, the counter
 // under it, the step buttons at the sides (phones swipe instead).
 const ROOM = { top: 72, bottom: 88, side: 88, sidePhone: 16 };
-const MS = 560;
+// How long the frame takes to drop back into its tile (viewer.css).
+const CLOSE_MS = motionTokens.easing["viewer-close"].ms;
 
 type Box = { x: number; y: number; w: number; h: number };
 
 /** Where items[i] sits on screen: as big as fits, at its own shape. */
 function fit(w: number, h: number): Box {
-  const phone = innerWidth < 900;
+  const phone = narrow();
   const side = phone ? ROOM.sidePhone : ROOM.side;
   const W = innerWidth - side * 2;
   const H = innerHeight - ROOM.top - ROOM.bottom;
@@ -39,6 +42,9 @@ export function Viewer() {
   const [on, setOn] = useState(false);
   const [zoom, setZoom] = useState<{ s: number; x: number; y: number } | null>(null);
   const [box, setBox] = useState<Box | null>(null);
+  // The pressed tile's picture, already decoded: it fills the frame from the
+  // first frame of the flight, under the full picture or the video.
+  const [fromSrc, setFromSrc] = useState<string | null>(null);
   const closing = useRef(false);
 
   const item = req?.items[index];
@@ -52,6 +58,7 @@ export function Viewer() {
         setIndex(r.index);
         // The frame needs its box in the same render, so the open below finds it.
         setBox(fit(r.items[r.index].width, r.items[r.index].height));
+        setFromSrc(r.from?.querySelector("img")?.currentSrc || null);
         setReq(r);
       }),
     [],
@@ -82,6 +89,7 @@ export function Viewer() {
     const f = frame.current;
     if (!req || !d || !f || d.open) return;
     const b = fit(req.items[req.index].width, req.items[req.index].height);
+    delete d.dataset.closing;
     d.showModal();
     document.documentElement.classList.add("viewer-open");
     if (getMotion().calm) {
@@ -103,6 +111,7 @@ export function Viewer() {
     const f = frame.current;
     if (!d?.open || !req || closing.current) return;
     closing.current = true;
+    d.dataset.closing = "";
     setZoom(null);
     setOn(false);
     const tile = req.tileFor?.(index) ?? (index === req.index ? req.from : null);
@@ -117,7 +126,7 @@ export function Viewer() {
         req.onClose?.();
         setReq(null);
       },
-      calm ? 0 : MS,
+      calm ? 0 : CLOSE_MS,
     );
   }, [req, index, box]);
 
@@ -208,6 +217,10 @@ export function Viewer() {
             data-kind={item.kind}
             style={{ left: box.x, top: box.y, width: box.w, height: box.h }}
           >
+            {fromSrc && index === req.index && (
+              // eslint-disable-next-line @next/next/no-img-element -- the tile's own copy, already loaded
+              <img className="vfrom" src={fromSrc} alt="" aria-hidden="true" />
+            )}
             {item.kind === "video" && item.video ? (
               <Player key={`${index}-${item.video}`} src={item.video} poster={item.src} alt={item.alt} sound={item.sound} active={on} />
             ) : (

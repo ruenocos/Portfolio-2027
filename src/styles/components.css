@@ -225,6 +225,15 @@
     box-shadow: inset 0 0 0 1px var(--line);
     pointer-events: none;
   }
+  /* Dark: the ring is lifted off the canvas, so a dark logo tile (Figma)
+     keeps its edge, and Claude's light tile is toned down so it doesn't
+     glow brighter than every other chip. */
+  html[data-mode="dark"] .tool::after {
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--mute) 45%, transparent);
+  }
+  html[data-mode="dark"] .tool[data-tool="claude"] img {
+    filter: brightness(0.82);
+  }
   .tool.empty::after {
     content: none;
   }

@@ -55,6 +55,37 @@
       "ms": 120,
       "distance": "1px",
       "use": "tactile objects sink 1px while pressed. Off when calm (Pause or reduced motion)"
+    },
+    "viewer-open": {
+      "bezier": [
+        0.2,
+        0,
+        0,
+        1
+      ],
+      "ms": 420,
+      "use": "the viewer's frame grows out of the tile you pressed; no overshoot on a near full-screen object"
+    },
+    "viewer-close": {
+      "bezier": [
+        0.4,
+        0,
+        0.2,
+        1
+      ],
+      "ms": 320,
+      "use": "the viewer's frame drops back into its tile"
+    },
+    "wash": {
+      "bezier": [
+        0.2,
+        0,
+        0,
+        1
+      ],
+      "ms": 200,
+      "delayOutMs": 80,
+      "use": "the viewer's canvas wash and chrome fade; on close they wait 80ms so the frame leaves first"
     }
   },
   "entrance": {

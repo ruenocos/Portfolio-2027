@@ -18,3 +18,7 @@ const playsAv1 = () =>
 export const pickVideo = (mp4?: string, av1Copy?: string) => (av1Copy && playsAv1() ? av1Copy : mp4);
 /** Touch first: nothing can hover. */
 export const touch = () => matchMedia("(hover: none)").matches;
+let headerPx = 0;
+/** The sticky header's height (--spacing-header), read once. */
+export const headerHeight = () =>
+  (headerPx ||= parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--spacing-header")) || 90);

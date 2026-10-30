@@ -1,17 +1,19 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import type { Project } from "@/components/parts/ProjectRow";
+import type { Project } from "@/content/types";
 import { ToolFilter } from "@/components/parts/ToolFilter";
 import { useBeat } from "@/components/canvas/useBeat";
-import { SectionLabel } from "@/components/parts/SectionLabel";
+import { Divider } from "@/components/parts/Divider";
 import { getMotion } from "@/lib/motion";
 import { narrow } from "@/lib/media";
 import { live, select, wait, wessel } from "@/lib/wessel";
 import { TOOLS, knownTools, type ToolId } from "@/lib/tools";
 import { WorkRow } from "./WorkRow";
+import motionTokens from "../../../design/motion-tokens.json";
 
-const LEAVE_MS = 200;
+// Rows that go fade over the ui easing (work.css), then the rest close up.
+const LEAVE_MS = motionTokens.easing.ui.ms;
 const rand = (n: number) => Math.floor(Math.random() * n);
 const fits = (p: Project, picked: ToolId[]) => !picked.length || picked.some((t) => p.tools.includes(t));
 
@@ -81,14 +83,8 @@ export function WorkList({ projects }: { projects: Project[] }) {
         </div>
         <div className="side" />
       </section>
-      {/* The little room between filter and list, named like every band. */}
-      <div className="frame wgap" data-row>
-        <div className="side" />
-        <div className="cell bg-dots">
-          <SectionLabel id="h-all" name="All projects" />
-        </div>
-        <div className="side" />
-      </div>
+      {/* The room between filter and list, a divider like every other band. */}
+      <Divider label={{ name: "All projects", id: "h-all" }} />
       <section className="frame" data-row aria-labelledby="h-all">
         <div className="side" />
         <div className="ruled min-w-0">

@@ -1,4 +1,4 @@
-import type { Project } from "@/components/parts/ProjectRow";
+import type { Project } from "@/content/types";
 import { FALLBACK_PROJECTS } from "./projects";
 
 // Everything the home page says and shows. Sanity fills it (the "home"

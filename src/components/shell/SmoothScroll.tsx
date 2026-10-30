@@ -21,11 +21,29 @@ export function SmoothScroll() {
     const lenis = new Lenis({
       lerp,
       wheelMultiplier,
-      autoRaf: true,
+      autoRaf: false,
       anchors: { offset: 0 },
     });
     setLenis(lenis);
+    // Our own frame loop instead of Lenis's, so it sleeps while the page
+    // sits still: it runs from any input until the glide has settled.
+    let frame = 0;
+    let quiet = 0;
+    const step = (time: number) => {
+      lenis.raf(time);
+      quiet = lenis.isScrolling ? 0 : quiet + 1;
+      frame = quiet > 10 ? 0 : requestAnimationFrame(step);
+    };
+    const wake = () => {
+      quiet = 0;
+      if (!frame) frame = requestAnimationFrame(step);
+    };
+    const inputs = ["wheel", "keydown", "pointerdown", "click", "scroll"] as const;
+    inputs.forEach((e) => addEventListener(e, wake, { passive: true, capture: true }));
+    wake();
     return () => {
+      inputs.forEach((e) => removeEventListener(e, wake, { capture: true }));
+      cancelAnimationFrame(frame);
       lenis.destroy();
       setLenis(null);
     };

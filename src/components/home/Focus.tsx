@@ -6,7 +6,7 @@ import { useMotion } from "@/components/useMotion";
 import type { HomeContent, Track } from "@/content/home";
 import { getMotion } from "@/lib/motion";
 import { TOOLS, toolSrc, type ToolId } from "@/lib/tools";
-import { live, wait, wessel, type XY } from "@/lib/wessel";
+import { live, wait, wessel } from "@/lib/wessel";
 import { createDio, type Dio, type DioKind } from "./dioramas";
 import { narrow, touch } from "@/lib/media";
 
@@ -20,10 +20,11 @@ const FRAME: Record<DioKind, { n: number; alt: string }> = {
 const NEED = 0.6;
 // Below 900 the three cards are a swipe deck, one at a time.
 const deck = narrow;
-const ctr = (el: Element, fx = 0.55, fy = 0.6) => (): XY => {
-  const r = el.getBoundingClientRect();
-  return [r.left + r.width * fx, r.top + r.height * fy];
-};
+// While the statement types, Wessel's scene beats wait for it (one mover
+// at a time); it settles when the typing ends, or isn't going to happen.
+let typed: Promise<void> = Promise.resolve();
+const TYPED_WAIT_MS = 4000;
+const afterTyping = () => Promise.race([typed, wait(TYPED_WAIT_MS)]).then(() => wait(200));
 
 /** The statement types itself once, the first time it's well in view. */
 function useTyping(text: string) {
@@ -34,6 +35,8 @@ function useTyping(text: string) {
     const p = el.current;
     if (!p || calm) return setN(null);
     let id = 0;
+    let done = () => {};
+    typed = new Promise<void>((r) => (done = r));
     setN(0);
     const io = new IntersectionObserver(
       ([e]) => {
@@ -44,7 +47,10 @@ function useTyping(text: string) {
           i = Math.min(text.length, i + 1);
           setN(i);
           if (i < text.length) id = window.setTimeout(step, text[i - 1] === "," ? 140 : 26);
-          else setN(null);
+          else {
+            setN(null);
+            done();
+          }
         };
         id = window.setTimeout(step, 200);
       },
@@ -54,6 +60,7 @@ function useTyping(text: string) {
     return () => {
       io.disconnect();
       clearTimeout(id);
+      done();
     };
   }, [text, calm]);
   return [el, n] as const;
@@ -91,12 +98,14 @@ function Card({
     need: NEED,
     async day(g) {
       if (deck()) return;
+      await afterTyping();
+      live(g);
       const s = svg.current!;
       const d = dio()!;
       light(k);
       try {
         if (k === "ux") {
-          await wessel.go(ctr(s, 0.62, 0.42));
+          await wessel.go(wessel.at(s, 0.62, 0.42));
           live(g);
           d.set(true);
           await wait(900);
@@ -108,19 +117,19 @@ function Card({
           d.set(false);
         }
         if (k === "motion") {
-          await wessel.go(ctr(s, 0.18, 0.5), { k: 220 });
+          await wessel.go(wessel.at(s, 0.18, 0.5), { k: 220 });
           live(g);
           wessel.press(true);
           for (let i = 1; i <= 10; i++) {
             d.scrub(i / 10);
-            await wessel.go(ctr(s, 0.18 + i * 0.064, 0.5), { k: 420, timeout: 90 });
+            await wessel.go(wessel.at(s, 0.18 + i * 0.064, 0.5), { k: 420, timeout: 90 });
           }
           wessel.press(false);
           d.scrub(null);
           await wait(300);
         }
         if (k === "ai") {
-          await wessel.go(ctr(s, 0.5, 0.45), { k: 220 });
+          await wessel.go(wessel.at(s, 0.5, 0.45), { k: 220 });
           live(g);
           wessel.press(true);
           d.set(true);
@@ -283,7 +292,7 @@ export function Focus({ focus: c }: { focus: HomeContent["focus"] }) {
       if (!deck()) return;
       const ae = kit.current?.querySelector<HTMLElement>('[data-tool="after-effects"]');
       if (!ae) return;
-      await wessel.go(ctr(ae, 0.5, 0.55), { k: 220 });
+      await wessel.go(wessel.at(ae, 0.5, 0.55), { k: 220 });
       live(g);
       wessel.press(true);
       await wait(140);
