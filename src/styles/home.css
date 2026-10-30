@@ -215,7 +215,7 @@
     gap: 16px;
   }
   .atext .intro p {
-    max-width: 62ch;
+    max-width: 31em;
   }
   .atext h3 {
     max-width: 20ch;

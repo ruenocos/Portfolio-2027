@@ -63,10 +63,14 @@ export function PageSwitch() {
       if (out) return;
       holdWessel();
       const go = () => router.push(url.pathname + url.search + url.hash, { scroll: false });
-      if (getMotion().calm) return go();
-
       const leaving: Leaving = { hash: url.hash, timer: 0 };
       out = leaving;
+      // Calm: no veil, but the new page still opens at its top (arrive).
+      if (getMotion().calm) {
+        leaving.timer = window.setTimeout(arrive, 4000);
+        return go();
+      }
+
       getLenis()?.stop();
       // The veil: a canvas-coloured cover over the content column only, so
       // the header, the dotted sides and Wessel hold still around it.
