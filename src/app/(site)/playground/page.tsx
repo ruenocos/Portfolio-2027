@@ -9,26 +9,20 @@ export const metadata: Metadata = {
   alternates: { canonical: "/playground" },
 };
 
-// Playground: a title row like Work's (Statement title, one hint in Label
-// style), then the board, which fills the rest of the screen under the
-// header. This page has no footer (Contact goes to the home's).
+// Playground: one full-screen canvas under the header, edge to edge, like a
+// Figma file. The title sits on it as a small chip, top left; the zoom pill
+// floats bottom centre. This page has no footer (Contact goes to the home's).
 export default async function PlaygroundPage() {
   const posts = await getPosts(await getDraftFetchOptions());
   return (
-    <section className="frame" data-row aria-labelledby="pg-h">
-      <div className="side" />
-      <div className="pgcol">
-        <div className="cell whero pghead bg-dots">
-          <h1 id="pg-h" className="text-statement" data-enter>
-            Playground
-          </h1>
-          <p className="text-label text-mute" data-enter>
-            Drag the board. Tap a tile to open it.
-          </p>
-        </div>
-        <Board posts={posts} />
+    <section className="pgfull" aria-labelledby="pg-h">
+      <div className="pgchip" data-enter>
+        <h1 id="pg-h" className="text-small">
+          Playground
+        </h1>
+        <p className="text-micro text-mute">Drag around, pinch to zoom, tap to open.</p>
       </div>
-      <div className="side" />
+      <Board posts={posts} />
     </section>
   );
 }

@@ -1,35 +1,90 @@
-/* Playground: a title row, then the looping masonry board. It reads like a
-   Figma canvas: the tile you're over in grape (yours), and only Wessel
-   selects. */
+/* Playground: one full-screen canvas, the looping masonry board. It reads
+   like a Figma file: a title chip, a zoom pill, the tile you're over in
+   grape (yours), and only Wessel selects. */
 
 @layer components {
-  /* Title row + board fill the screen under the header, ruled by a hairline. */
-  .pgcol {
+  /* The board fills the screen under the header, edge to edge. */
+  .pgfull {
+    position: relative;
     display: flex;
     flex-direction: column;
-    gap: var(--spacing-hairline);
-    min-width: 0;
-    height: calc(100svh - var(--spacing-header) - 2px);
-    min-height: 640px;
-    background: var(--line);
-  }
-  .pghead {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: last baseline;
-    justify-content: space-between;
-    gap: 8px 24px;
+    height: calc(100svh - var(--spacing-header));
+    min-height: 480px;
   }
   .pgcv {
     position: relative;
     flex: 1;
-    min-height: 420px;
+    min-height: 0;
     overflow: hidden;
     cursor: grab;
     touch-action: none;
     user-select: none;
     outline: none;
+    /* Canvas dots: the board moves and scales them with the tiles. */
+    background-color: var(--canvas);
+    background-image: radial-gradient(circle, var(--dot) 1.1px, transparent 1.2px);
+    background-size: calc(var(--spacing-dot-step) * var(--z, 1)) calc(var(--spacing-dot-step) * var(--z, 1));
+  }
+  .pgcv .world {
+    position: absolute;
+    inset: 0;
+    transform-origin: 0 0;
+  }
+
+  /* The file chip, top left, and the zoom pill, bottom centre: canvas
+     objects that sit over the board. */
+  .pgchip,
+  .pgzoom {
+    position: absolute;
+    z-index: 7;
     background: var(--canvas);
+    border: 1px solid var(--line);
+    box-shadow: var(--shadow-outline);
+  }
+  .pgchip {
+    top: 16px;
+    left: var(--spacing-inset);
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+    padding: 8px 14px;
+    border-radius: 12px;
+    pointer-events: none;
+  }
+  .pgchip > * {
+    margin: 0;
+  }
+  .pgchip h1 {
+    font-weight: 500;
+  }
+  .pgzoom {
+    left: 50%;
+    bottom: 20px;
+    translate: -50% 0;
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    padding: 4px;
+    border-radius: var(--radius-pill);
+  }
+  .pgzl {
+    min-width: 56px;
+    height: 36px;
+    padding: 0 8px;
+    border: 0;
+    border-radius: var(--radius-pill);
+    background: transparent;
+    color: var(--ink);
+    font-variant-numeric: tabular-nums;
+    cursor: pointer;
+  }
+  .pgzl:hover {
+    background: var(--fill);
+  }
+  .pgzl:focus-visible,
+  .pgzoom .pbtn:focus-visible {
+    outline: 2px solid var(--grape);
+    outline-offset: 2px;
   }
   .pgcv[data-drag] {
     cursor: grabbing;
@@ -78,8 +133,7 @@
     scale: 0.95;
     transition-delay: 0ms;
   }
-  .pgcv .pi :is(img, video),
-  .pgcv .lbm :is(img, video) {
+  .pgcv .pi :is(img, video) {
     display: block;
     width: 100%;
     height: 100%;
@@ -118,55 +172,13 @@
   html[data-live] .pgcv .pi > .idea {
     display: none;
   }
-  .pgcv :is(.pi, .lbm) > .mock {
+  .pgcv .pi > .mock {
     position: absolute;
     left: 12px;
     top: 12px;
     background: var(--canvas);
   }
 
-  /* An open post: lifted over a canvas wash (no blur: the system has none). */
-  .pgcv .lb {
-    position: absolute;
-    inset: 0;
-    z-index: 10;
-    cursor: zoom-out;
-    background: color-mix(in srgb, var(--canvas) 88%, transparent);
-    opacity: 0;
-    transition: opacity 300ms var(--ease-ui);
-  }
-  .pgcv .lb[data-on] {
-    opacity: 1;
-  }
-  .pgcv .lbm {
-    position: absolute;
-    left: 0;
-    top: 0;
-    transform-origin: 0 0;
-    overflow: hidden;
-    background: var(--fill);
-    transition:
-      transform var(--dur-spring) var(--ease-spring),
-      border-radius var(--dur-spring) var(--ease-spring);
-  }
-  /* Its caption sits right under the opened media (the board places it). */
-  .pgcv .lbc {
-    position: absolute;
-    margin: 0;
-    color: var(--ink);
-    opacity: 0;
-    transition: opacity 300ms var(--ease-ui);
-  }
-  .pgcv .lb[data-on] .lbc {
-    opacity: 1;
-    transition-delay: 240ms;
-  }
-  .pgcv .lbx {
-    position: absolute;
-    right: var(--spacing-inset);
-    top: 20px;
-    z-index: 11;
-  }
   .pgsel {
     left: 0;
     top: 0;
@@ -182,22 +194,20 @@
   }
 
   @media (width < 900px) {
-    .pghead {
-      flex-direction: column;
-      align-items: flex-start;
-    }
-    .pgcol {
-      min-height: 560px;
-    }
-    .pgcv .pi,
-    .pgcv .lbm {
+    .pgcv .pi {
       border-radius: 16px;
+    }
+    .pgchip {
+      top: 12px;
+      flex-direction: column;
+      gap: 0;
+      padding: 6px 12px;
     }
     .pgsel {
       display: none;
     }
   }
-  html[data-motion="calm"] .pgcv :is(.pi, .lbm, .lb, .lbc) {
+  html[data-motion="calm"] .pgcv .pi {
     transition: opacity 200ms var(--ease-ui);
   }
   html[data-motion="calm"] .pgcv[data-moving] .post.in .pi {

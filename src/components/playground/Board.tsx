@@ -9,6 +9,7 @@ import { live, wait, wessel, type XY } from "@/lib/wessel";
 import { clamp, easeInOutCubic } from "@/lib/math";
 import { narrow, pickVideo } from "@/lib/media";
 import { SIZES, srcSet } from "@/lib/image";
+import { openViewer, type ViewerItem } from "@/lib/viewer";
 
 type Item = {
   el: HTMLElement;
@@ -139,6 +140,7 @@ export function Board({ posts }: { posts: Post[] }) {
   });
   const worldRef = useRef<HTMLDivElement>(null);
   const selRef = useRef<HTMLSpanElement>(null);
+  const zoomRef = useRef<HTMLDivElement>(null);
   const { calm: still } = useMotion();
   const mode = useRef({ still });
   useEffect(() => {
@@ -150,6 +152,8 @@ export function Board({ posts }: { posts: Post[] }) {
     const world = worldRef.current!;
     const wsel = selRef.current!;
     const szp = wsel.querySelector<HTMLElement>(".szp")!;
+    const zoomBar = zoomRef.current;
+    const zoomLabel = zoomBar?.querySelector<HTMLElement>("[data-z='0'] span") ?? null;
     let colW = 300;
     let gap = 24;
     let worldW = 0;
@@ -166,8 +170,8 @@ export function Board({ posts }: { posts: Post[] }) {
     let mptr: XY | null = null;
     let first = true;
     let raf = 0;
-    type Open = { item: Item; lightbox: HTMLElement; media: HTMLElement; scale: number; radius: number; closeButton: HTMLButtonElement; closing?: boolean };
-    let opened: Open | null = null;
+    // A post open in the shared viewer: the board holds still under it.
+    let opened = false;
     let hovered: Item | null = null;
     const timers = new Set<number>();
     const later = (fn: () => void, ms: number) => {
@@ -176,6 +180,36 @@ export function Board({ posts }: { posts: Post[] }) {
         fn();
       }, ms);
       timers.add(id);
+    };
+
+    // Zoom: the world scales from its top-left corner and the pan stays in
+    // board units, so every measure of the view divides the screen by z.
+    const ZMIN = 0.5;
+    const ZMAX = 2;
+    const STEPS = [0.5, 0.75, 1, 1.5, 2];
+    let z = 1;
+    let tz = 1;
+    let zAt: XY | null = null;
+    const vw = () => boardEl.clientWidth / z;
+    const vh = () => boardEl.clientHeight / z;
+    // Keeps the board point under `at` (screen px in the board) in place.
+    const zoomTo = (nz: number, at: XY | null) => {
+      const [px, py] = at ?? [boardEl.clientWidth / 2, boardEl.clientHeight / 2];
+      const k = 1 / nz - 1 / z;
+      panX += px * k;
+      panY += py * k;
+      tx += px * k;
+      ty += py * k;
+      z = nz;
+      world.style.transform = z === 1 ? "" : `scale(${z})`;
+      boardEl.style.setProperty("--z", String(z));
+      if (zoomLabel) zoomLabel.textContent = `${Math.round(z * 100)}%`;
+    };
+    // The first row starts under the title chip, not behind it.
+    const TOP = narrow() ? 56 : 64;
+    const zoomStep = (d: number) => {
+      tz = d > 0 ? (STEPS.find((s) => s > tz + 0.01) ?? ZMAX) : ([...STEPS].reverse().find((s) => s < tz - 0.01) ?? ZMIN);
+      zAt = null;
     };
 
     // The row gap (same as the column gap: no frame names) and the left inset
@@ -190,8 +224,8 @@ export function Board({ posts }: { posts: Post[] }) {
       cols = [];
       hovered = null;
       const isPhone = !!narrow();
-      const viewW = boardEl.clientWidth;
-      const viewH = boardEl.clientHeight;
+      const viewW = vw();
+      const viewH = vh();
       gap = isPhone ? 12 : 24;
       gapY = gap;
       const fit = Math.max(2, Math.round((viewW - gap) / ((isPhone ? 170 : 300) + gap)));
@@ -280,7 +314,7 @@ export function Board({ posts }: { posts: Post[] }) {
     const drive = (): XY | null => {
       if (!target || !wesOn()) return null;
       const r = boardEl.getBoundingClientRect();
-      return [r.left + target[0], r.top + target[1]];
+      return [r.left + target[0] * z, r.top + target[1] * z];
     };
     const steer = (x: number, y: number, k = 180) => {
       target = [x, y];
@@ -308,9 +342,9 @@ export function Board({ posts }: { posts: Post[] }) {
     };
     const sel = (item: Item | null) => {
       if (!item) return wsel.removeAttribute("data-on");
-      wsel.style.transform = `translate(${item.x + item.lx - 4}px,${item.yy + item.ly - 4}px)`;
-      wsel.style.width = `${colW + 8}px`;
-      wsel.style.height = `${item.h + 8}px`;
+      wsel.style.transform = `translate(${(item.x + item.lx) * z - 4}px,${(item.yy + item.ly) * z - 4}px)`;
+      wsel.style.width = `${colW * z + 8}px`;
+      wsel.style.height = `${item.h * z + 8}px`;
       szp.textContent = `${colW} × ${item.h}`;
       wsel.dataset.on = "";
     };
@@ -318,8 +352,8 @@ export function Board({ posts }: { posts: Post[] }) {
     hi.current = {
       pick: () => {
         if (!wesOn() || opened || dragging) return null;
-        const viewW = boardEl.clientWidth;
-        const viewH = boardEl.clientHeight;
+        const viewW = vw();
+        const viewH = vh();
         let best: Item | null = null;
         let bd = Infinity;
         // A real piece, whole on screen, near the middle; not the one you're on.
@@ -340,7 +374,7 @@ export function Board({ posts }: { posts: Post[] }) {
       at: (item) => {
         if (job.stage !== "hello" || job.item !== item || !wesOn()) return null;
         const r = boardEl.getBoundingClientRect();
-        return [r.left + item.x + item.lx + colW * 0.72, r.top + item.yy + item.ly + item.h * 0.8];
+        return [r.left + (item.x + item.lx + colW * 0.72) * z, r.top + (item.yy + item.ly + item.h * 0.8) * z];
       },
       show: () => (job.shown = job.stage === "hello"),
       end: () => {
@@ -453,6 +487,7 @@ export function Board({ posts }: { posts: Post[] }) {
       const ox = panX;
       const oy = panY;
       const quiet = calm();
+      if (tz !== z) zoomTo(quiet || Math.abs(tz - z) < 0.002 ? tz : z + (tz - z) * Math.min(1, (0.2 * dt) / 16), zAt);
       if (!dragging && !opened) {
         if (Math.abs(tx - panX) + Math.abs(ty - panY) > 0.3) {
           // Smooth wheel.
@@ -469,15 +504,16 @@ export function Board({ posts }: { posts: Post[] }) {
         } else {
           // At rest the columns settle back on the gutter grid, so no tile is
           // cut at the sides. No idle drift: the board holds its composition.
-          const sx = grid(panX);
+          // Only at 100%: zoomed, the gutters belong to another width.
+          const sx = z === 1 ? grid(panX) : panX;
           if (Math.abs(sx - panX) > 0.3) tx = sx;
         }
       }
       // A touch of squash while it moves fast; it springs back as it settles.
       if (dragging || Math.hypot(panX - ox, panY - oy) > (2.5 * dt) / 16) movingTill = t + 140;
       boardEl.toggleAttribute("data-moving", t < movingTill && !quiet);
-      const viewW = boardEl.clientWidth;
-      const viewH = boardEl.clientHeight;
+      const viewW = vw();
+      const viewH = vh();
       const lean = mptr && t > movingTill && !opened && !quiet;
       // The tile under your pointer, worked out here: the board moves under a
       // still mouse too (wheel, drift), and CSS :hover only catches up on the
@@ -531,121 +567,78 @@ export function Board({ posts }: { posts: Post[] }) {
         // Your cursor's tag reads the title (or "You" again).
         dispatchEvent(new Event("wsl:look"));
       }
+      // The canvas dots move and scale with the board, like Figma's.
+      boardEl.style.backgroundPosition = `${(panX * z).toFixed(1)}px ${(panY * z).toFixed(1)}px`;
       wTick(t, viewW, viewH);
       raf = requestAnimationFrame(frame);
     };
 
-    // ---------- open a post: it lifts out and springs to the middle ----------
+    // ---------- open a post in the shared viewer ----------
+    // It grows out of its tile; ← → step through every piece once.
     const find = (f: Element) => {
       for (const c of cols) for (const item of c.items) if (item.el === f) return item;
     };
+    const pieces = posts.filter((p) => !p.mock && (p.src || p.video));
+    const items: ViewerItem[] = pieces.map((p) => ({
+      kind: p.video ? "video" : "image",
+      src: p.src,
+      srcSet: p.src ? srcSet(p.src) : undefined,
+      video: p.video ? pickVideo(p.video, p.videoAv1) : undefined,
+      alt: p.title,
+      width: 1200,
+      height: Math.round(1200 / p.ar),
+    }));
+    // A piece can show more than once: it flies back to the copy nearest the middle.
+    const tileOf = (post: Post) => {
+      let best: Item | null = null;
+      let bd = Infinity;
+      for (const c of cols)
+        for (const item of c.items) {
+          if (item.post !== post || !item.visible) continue;
+          const d = Math.hypot(item.x + colW / 2 - vw() / 2, item.yy + item.h / 2 - vh() / 2);
+          if (d < bd) {
+            bd = d;
+            best = item;
+          }
+        }
+      return (best as Item | null)?.tile ?? null;
+    };
     const openPost = (f: Element) => {
       const item = find(f);
-      if (!item || opened) return;
-      const viewW = boardEl.clientWidth;
-      const viewH = boardEl.clientHeight;
-      const isPhone = !!narrow();
-      // Room under the media for its caption, so the pair sits centred.
-      const CAP = 40;
-      const scale = Math.min((viewW * (isPhone ? 0.9 : 0.8)) / colW, (viewH * (isPhone ? 0.7 : 0.8) - CAP) / item.h);
-      const w = colW * scale;
-      const h = item.h * scale;
-      const top = (viewH - h - CAP) / 2;
-      const lightbox = document.createElement("div");
-      lightbox.className = "lb";
-      lightbox.setAttribute("role", "dialog");
-      lightbox.setAttribute("aria-modal", "true");
-      lightbox.setAttribute("aria-label", item.post.title);
-      const media = document.createElement("div");
-      media.className = "lbm";
-      if (item.post.tint) media.dataset.tint = item.post.tint;
-      media.style.width = `${w}px`;
-      media.style.height = `${h}px`;
-      if (item.post.video) {
-        const video = document.createElement("video");
-        Object.assign(video, { muted: true, loop: true, playsInline: true });
-        video.src = pickVideo(item.post.video, item.post.videoAv1)!;
-        video.currentTime = item.video?.currentTime ?? 0;
-        if (!calm()) video.play().catch(() => {});
-        media.appendChild(video);
-      } else if (item.post.src) {
-        const i = document.createElement("img");
-        i.src = item.post.src;
-        i.alt = "";
-        i.draggable = false;
-        media.appendChild(i);
-      }
-      if (item.post.mock) {
-        const t = document.createElement("span");
-        t.className = "mock text-micro-caps";
-        t.dataset.mock = "";
-        t.textContent = "mock";
-        media.appendChild(t);
-      }
-      const cap = document.createElement("p");
-      cap.className = "lbc text-label";
-      cap.textContent = item.post.title;
-      // Directly under the opened media, on its left edge.
-      Object.assign(cap.style, { left: `${(viewW - w) / 2}px`, top: `${top + h + 12}px`, width: `${w}px` });
-      if (item.post.mock) cap.dataset.mock = "";
-      const closeButton = document.createElement("button");
-      closeButton.type = "button";
-      closeButton.className = "lbx gpill text-micro-caps";
-      closeButton.dataset.size = "tap";
-      closeButton.textContent = "Close";
-      lightbox.append(media, cap, closeButton);
-      boardEl.appendChild(lightbox);
-      const radius = isPhone ? 16 : 24;
-      media.style.borderRadius = `${radius / scale}px`;
-      media.style.transform = `translate(${item.x + item.lx}px,${item.yy + item.ly}px) scale(${1 / scale})`;
-      item.tile.style.visibility = "hidden";
-      opened = { item, lightbox, media, scale, radius, closeButton };
-      pause();
-      requestAnimationFrame(() =>
-        requestAnimationFrame(() => {
-          lightbox.dataset.on = "";
-          media.style.transform = `translate(${(viewW - w) / 2}px,${top}px) scale(1)`;
-          media.style.borderRadius = `${radius}px`;
-          closeButton.focus({ preventScroll: true });
-        }),
-      );
-      lightbox.addEventListener("pointerdown", (e) => {
-        e.stopPropagation();
-        if (e.target === lightbox || e.target === closeButton) closePost();
-      });
-      closeButton.addEventListener("keydown", (e) => {
-        // One control in the dialog: Tab stays on it.
-        if (e.key === "Tab") e.preventDefault();
-        if (e.key === "Enter" || e.key === " ") {
-          e.preventDefault();
-          closePost();
-        }
-      });
-    };
-    const closePost = () => {
-      const o = opened;
-      if (!o || o.closing) return;
-      o.closing = true;
-      delete o.lightbox.dataset.on;
-      o.media.style.transform = `translate(${o.item.x + o.item.lx}px,${o.item.yy + o.item.ly}px) scale(${1 / o.scale})`;
-      o.media.style.borderRadius = `${o.radius / o.scale}px`;
-      later(
-        () => {
-          o.item.tile.style.visibility = "";
-          o.lightbox.remove();
-          opened = null;
+      const index = item ? pieces.indexOf(item.post) : -1;
+      if (!item || opened || index < 0) return;
+      opened = openViewer({
+        items,
+        index,
+        from: item.tile,
+        tileFor: (i) => tileOf(pieces[i]),
+        onClose: () => {
+          opened = false;
           boardEl.focus({ preventScroll: true });
         },
-        calm() ? 0 : 560,
-      );
+      });
+      if (opened) pause();
     };
 
     // ---------- input ----------
     const poke = () => {
       pause();
     };
+    // Two fingers pinch to zoom around their middle.
+    const pts = new Map<number, XY>();
+    let pinch: { d: number; z: number } | null = null;
+    const spread = () => {
+      const [a, b] = [...pts.values()];
+      return { d: Math.hypot(a[0] - b[0], a[1] - b[1]), mid: [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2] as XY };
+    };
     const down = (e: PointerEvent) => {
       if (opened || e.button > 0) return;
+      pts.set(e.pointerId, [e.clientX, e.clientY]);
+      if (pts.size === 2) {
+        pinch = { d: spread().d, z: tz };
+        return;
+      }
+      if (pts.size > 2) return;
       boardEl.setPointerCapture(e.pointerId);
       dragging = true;
       boardEl.dataset.drag = "";
@@ -659,22 +652,42 @@ export function Board({ posts }: { posts: Post[] }) {
       let moved = 0;
       const t0 = lt;
       const mv = (ev: PointerEvent) => {
+        if (pts.has(ev.pointerId)) pts.set(ev.pointerId, [ev.clientX, ev.clientY]);
+        if (pinch && pts.size === 2) {
+          const { d, mid } = spread();
+          const r = boardEl.getBoundingClientRect();
+          tz = clamp((pinch.z * d) / Math.max(1, pinch.d), ZMIN, ZMAX);
+          zAt = [mid[0] - r.left, mid[1] - r.top];
+          moved = Infinity;
+          return;
+        }
+        if (ev.pointerId !== e.pointerId) return;
         const now = performance.now();
         const dx = ev.clientX - lx;
         const dy = ev.clientY - ly;
         moved += Math.abs(dx) + Math.abs(dy);
-        panX += dx;
-        panY += dy;
+        panX += dx / z;
+        panY += dy / z;
         tx = panX;
         ty = panY;
         const k = 16 / Math.max(1, now - lt);
-        vx = dx * k;
-        vy = dy * k;
+        vx = (dx / z) * k;
+        vy = (dy / z) * k;
         lx = ev.clientX;
         ly = ev.clientY;
         lt = now;
       };
       const up = (ev: PointerEvent) => {
+        pts.delete(ev.pointerId);
+        if (pts.size < 2) pinch = null;
+        if (pts.size) {
+          // One finger left after a pinch: it carries on panning from here.
+          const [p] = [...pts.values()];
+          lx = p[0];
+          ly = p[1];
+          if (ev.pointerId === e.pointerId) e = new PointerEvent("pointerdown", { pointerId: [...pts.keys()][0] });
+          return;
+        }
         dragging = false;
         delete boardEl.dataset.drag;
         if (performance.now() - lt > 80) vx = vy = 0;
@@ -694,11 +707,16 @@ export function Board({ posts }: { posts: Post[] }) {
     const wheel = (e: WheelEvent) => {
       e.preventDefault();
       e.stopPropagation();
-      if (opened) {
-        if (Math.abs(e.deltaY) + Math.abs(e.deltaX) > 4) closePost();
+      if (opened) return;
+      if (e.ctrlKey || e.metaKey) {
+        // A trackpad pinch (or ⌘/Ctrl + wheel) zooms around the pointer.
+        const r = boardEl.getBoundingClientRect();
+        tz = clamp(tz * Math.exp(-e.deltaY * (e.deltaMode === 1 ? 0.05 : 0.01)), ZMIN, ZMAX);
+        zAt = [e.clientX - r.left, e.clientY - r.top];
+        poke();
         return;
       }
-      const m = e.deltaMode === 1 ? 32 : 1;
+      const m = (e.deltaMode === 1 ? 32 : 1) / z;
       if (Math.abs(tx - panX) + Math.abs(ty - panY) < 0.3) {
         tx = panX;
         ty = panY;
@@ -710,8 +728,8 @@ export function Board({ posts }: { posts: Post[] }) {
     };
     // The post nearest the middle: the one Enter opens.
     const middle = () => {
-      const viewW = boardEl.clientWidth;
-      const viewH = boardEl.clientHeight;
+      const viewW = vw();
+      const viewH = vh();
       let best: Item | null = null;
       let bd = Infinity;
       cols.forEach((c) =>
@@ -737,8 +755,15 @@ export function Board({ posts }: { posts: Post[] }) {
       }, 500);
     };
     const key = (e: KeyboardEvent) => {
-      if (e.key === "Escape" && opened) return closePost();
       if (opened || e.target !== boardEl) return;
+      const zk = ({ "+": 1, "=": 1, "-": -1, _: -1 } as Record<string, number>)[e.key];
+      if (zk || e.key === "0") {
+        e.preventDefault();
+        if (zk) zoomStep(zk);
+        else [tz, zAt] = [1, null];
+        poke();
+        return;
+      }
       if (e.key === "Enter" || e.key === " ") {
         e.preventDefault();
         const item = middle();
@@ -763,7 +788,7 @@ export function Board({ posts }: { posts: Post[] }) {
     const hover = (e: PointerEvent) => {
       if (e.pointerType !== "mouse") return;
       const r = boardEl.getBoundingClientRect();
-      mptr = [e.clientX - r.left, e.clientY - r.top];
+      mptr = [(e.clientX - r.left) / z, (e.clientY - r.top) / z];
     };
     const leave = () => (mptr = null);
     let rz = 0;
@@ -775,22 +800,30 @@ export function Board({ posts }: { posts: Post[] }) {
       rz = window.setTimeout(() => {
         if (boardEl.clientWidth === rw) return;
         rw = boardEl.clientWidth;
-        if (opened) {
-          opened.item.tile.style.visibility = "";
-          opened.lightbox.remove();
-          opened = null;
-        }
         job.stage = "rest";
         job.item = null;
+        z = tz = 1;
+        zoomTo(1, null);
         build();
         panX = tx = offsetX;
-        panY = ty = gapY;
+        panY = ty = gapY + TOP;
       }, 200);
+    };
+
+    // The zoom pill: − and + step, the percentage goes back to 100%.
+    const zoomClick = (e: MouseEvent) => {
+      const b = (e.target as Element).closest<HTMLElement>("[data-z]");
+      if (!b || opened) return;
+      const d = Number(b.dataset.z);
+      if (d) zoomStep(d);
+      else [tz, zAt] = [1, null];
+      poke();
     };
 
     build();
     panX = tx = offsetX;
-    panY = ty = gapY;
+    panY = ty = gapY + TOP;
+    zoomBar?.addEventListener("click", zoomClick);
     boardEl.addEventListener("pointerdown", down);
     boardEl.addEventListener("wheel", wheel, { passive: false });
     addEventListener("keydown", key);
@@ -807,11 +840,6 @@ export function Board({ posts }: { posts: Post[] }) {
           else item.video.pause();
         }),
       );
-      const lv = opened?.media.querySelector("video");
-      if (lv) {
-        if (q) lv.pause();
-        else lv.play().catch(() => {});
-      }
     });
     raf = requestAnimationFrame((t) => {
       last = t;
@@ -823,6 +851,7 @@ export function Board({ posts }: { posts: Post[] }) {
       cancelAnimationFrame(raf);
       clearTimeout(rz);
       timers.forEach(clearTimeout);
+      zoomBar?.removeEventListener("click", zoomClick);
       boardEl.removeEventListener("pointerdown", down);
       boardEl.removeEventListener("wheel", wheel);
       removeEventListener("keydown", key);
@@ -832,29 +861,45 @@ export function Board({ posts }: { posts: Post[] }) {
       if (driving) wessel.free();
       hi.current = null;
       world.textContent = "";
-      boardEl.querySelector(".lb")?.remove();
     };
   }, [posts, cvRef]);
 
   return (
-    <div
-      ref={cvRef}
-      className="pgcv"
-      data-lenis-prevent
-      tabIndex={0}
-      role="region"
-      aria-roledescription="board"
-      aria-label="Playground board. Drag, scroll or use the arrow keys to move around; it loops back to the start. Enter opens the post in the middle."
-      onFocus={() => announce("")}
-    >
-      <div ref={worldRef} className="world" aria-hidden="true" />
-      <span ref={selRef} className="sel pgsel" aria-hidden="true">
-        <i />
-        <i />
-        <i />
-        <i />
-        <span className="szp text-micro" />
-      </span>
-    </div>
+    <>
+      <div
+        ref={cvRef}
+        className="pgcv"
+        data-lenis-prevent
+        tabIndex={0}
+        role="region"
+        aria-roledescription="board"
+        aria-label="Playground board. Drag, scroll or use the arrow keys to move around; it loops back to the start. Plus and minus zoom, 0 goes back to 100%. Enter opens the post in the middle."
+        onFocus={() => announce("")}
+      >
+        <div ref={worldRef} className="world" aria-hidden="true" />
+        <span ref={selRef} className="sel pgsel" aria-hidden="true">
+          <i />
+          <i />
+          <i />
+          <i />
+          <span className="szp text-micro" />
+        </span>
+      </div>
+      <div ref={zoomRef} className="pgzoom" role="toolbar" aria-label="Zoom">
+        <button type="button" className="pbtn ghost" data-z="-1" aria-label="Zoom out">
+          <svg viewBox="0 0 16 16" aria-hidden="true">
+            <path d="M3.5 8h9" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+          </svg>
+        </button>
+        <button type="button" className="pgzl text-micro" data-z="0" aria-label="Zoom to 100%">
+          <span>100%</span>
+        </button>
+        <button type="button" className="pbtn ghost" data-z="1" aria-label="Zoom in">
+          <svg viewBox="0 0 16 16" aria-hidden="true">
+            <path d="M3.5 8h9M8 3.5v9" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+          </svg>
+        </button>
+      </div>
+    </>
   );
 }
