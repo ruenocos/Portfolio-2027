@@ -336,15 +336,15 @@
     flex-direction: column;
     gap: 28px;
   }
-  /* A first guess at the address's size (its length times a wide letter);
-     FooterHello measures and fits it to its share of the row. */
+  /* The address fills the row. This is the first guess (its length times
+     a wide letter); FooterHello measures and fits it exactly. */
   .big {
     align-self: flex-start;
     max-width: 100%;
     min-height: var(--spacing-tap);
     display: flex;
     align-items: center;
-    font: 500 min(170px, 100cqw * 0.8 / (var(--n) * 0.52)) / 1.02 var(--font-display);
+    font: 500 min(170px, 100cqw / (var(--n) * 0.52)) / 1.02 var(--font-display);
     letter-spacing: -0.03em;
     white-space: nowrap;
     padding-block: 0.08em 0.14em;

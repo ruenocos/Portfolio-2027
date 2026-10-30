@@ -17,9 +17,6 @@ import { isBusy, live, wait, wessel, type XY } from "@/lib/wessel";
 // lean, the underline is just there.
 
 const REACH_MIN = 70;
-/** How much of the row the address spans: 65% on a wide screen, easing up
- *  to the full row on a phone so it never gets small there. */
-const fill = (vw: number) => Math.min(1, Math.max(0.65, 1 - ((vw - 480) / 520) * 0.35));
 // His cursor + name tag, about this big to the right of and below his tip.
 const CUR_H = 44;
 
@@ -57,15 +54,14 @@ function Hello({ email }: { email: string }) {
     const k = letters.map(() => 0);
     let mid: number[] = [];
     let h = 0;
-    // Fit the address to its share of the row. The face's optical size makes small
+    // Fit the address to the row. The face's optical size makes small
     // sizes wider, so no single ratio fits: measure and scale, twice.
     const a = box.parentElement!;
     const cell = a.parentElement!;
     let room = 0;
     const measure = (force = false) => {
       const cs = getComputedStyle(cell);
-      const row = cell.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
-      const w = row * fill(innerWidth);
+      const w = cell.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
       if (w !== room || force) {
         room = w;
         for (let i = 0; i < 2; i++) {
