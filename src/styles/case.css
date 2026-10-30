@@ -117,11 +117,11 @@
     overflow-wrap: break-word;
     hyphens: manual;
   }
-  /* Running text under about 65 characters a line (62ch); the takeaway,
+  /* Running text under about 65 characters a full line (31em in this face); the takeaway,
      several lines of Accent, gets a shorter measure and room to breathe:
      at the Accent's own 1.05 its ascenders and descenders nearly touch. */
   .sc .sl {
-    max-width: 62ch;
+    max-width: 31em;
   }
   .sc .sl.text-accent {
     max-width: 18em;
