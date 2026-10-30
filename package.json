@@ -10,6 +10,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
+    "typegen": "sanity schema extract --path=src/sanity/schema.json --force && sanity typegen generate",
     "typecheck": "next typegen && tsc --noEmit"
   },
   "dependencies": {

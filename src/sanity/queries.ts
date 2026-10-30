@@ -5,14 +5,16 @@ import { defineQuery } from "next-sanity";
 const pic = `{ asset, crop, hotspot }`;
 // A loop's lighter copies (scripts/video-copies.mjs), only while they were
 // made from the file that's there now.
-const copy = (video: string, kind: string) =>
-  `select(${video}Copies.from == ${video}.asset._ref => ${video}Copies.${kind}.asset->url)`;
+// The helpers keep their exact text as a type (`as const`), so each query
+// stays a literal string and finds its generated result type.
+const copy = <V extends string, K extends string>(video: V, kind: K) =>
+  `select(${video}Copies.from == ${video}.asset._ref => ${video}Copies.${kind}.asset->url)` as const;
 
 // A project shows only once it has a case: a slug and a written section.
 // `at` reaches the project through a reference (featured[]).
-const caseOf = (at = "") =>
-  `defined(${at}slug.current) && count(${at}sections[defined(name) && defined(heading)]) > 0`;
-const hasCase = caseOf();
+const caseOf = <A extends string>(at: A) =>
+  `defined(${at}slug.current) && count(${at}sections[defined(name) && defined(heading)]) > 0` as const;
+const hasCase = caseOf("");
 
 const projectRow = `{
   _createdAt, title, lang, summary, timeline, role, tools, note, label,
@@ -22,10 +24,10 @@ const projectRow = `{
   "videoAv1": ${copy("video", "av1")},
   "peek": ${copy("video", "small")},
   "peekAv1": ${copy("video", "smallAv1")}
-}`;
+}` as const;
 
 export const HOME_QUERY = defineQuery(`{
-  "home": *[_id == "home"][0]{
+  "home": *[_type == "home" && _id == "home"][0]{
     basedIn, role,
     "reel": { "loop": reel.loop.asset->url, "full": reel.full.asset->url, "poster": reel.poster.asset->url },
     aboutOpener, aboutNext,
@@ -50,7 +52,7 @@ export const CASE_QUERY = defineQuery(`*[_type == "project" && slug.current == $
 }`);
 export const CASE_SLUGS_QUERY = defineQuery(`*[_type == "project" && ${hasCase}].slug.current`);
 
-export const ABOUT_QUERY = defineQuery(`*[_id == "about"][0]{
+export const ABOUT_QUERY = defineQuery(`*[_type == "about" && _id == "about"][0]{
   hello, lead,
   "photos": photos[]{ "src": @${pic}, alt },
   facts[]{ label, value, sub },
