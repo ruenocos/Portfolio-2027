@@ -1,9 +1,9 @@
 import Link from "next/link";
 import { Arrow } from "@/components/parts/Arrow";
-import { CopyEmail } from "./CopyEmail";
 import { FooterAir } from "./FooterAir";
 import { FooterMoment } from "./FooterMoment";
 import { Hop } from "./Hop";
+import { MailLink } from "./MailLink";
 import { EMAIL, LINKEDIN, NAV } from "./nav";
 import { Row } from "./Row";
 
@@ -24,7 +24,7 @@ export function Footer() {
           {/* Off home, Wessel does one small job on the email here. */}
           <FooterMoment>
             <h3 className="text-lead">Email</h3>
-            <CopyEmail email={EMAIL} />
+            <MailLink email={EMAIL} />
           </FooterMoment>
           <div className="cell">
             <h3 className="text-lead">Elsewhere</h3>

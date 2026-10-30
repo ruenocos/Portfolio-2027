@@ -64,8 +64,8 @@ function Moment({ kind, children }: { kind: Kind; children: React.ReactNode }) {
         await wait(100);
         live(g);
       }
-      // Never on something you're using: hovering, focused or just copied.
-      if (!clear(a) || a.matches(":hover, :focus-visible, [data-copied]")) return;
+      // Never on something you're using: hovering or focused.
+      if (!clear(a) || a.matches(":hover, :focus-visible")) return;
       const at = spot(a);
       if (!at) return;
       // Parking under it and coming from above: round the address by the

@@ -62,6 +62,7 @@ function toProject(r: Row, i: number): Project {
       poster: pic(r.poster, 1040, PORTRAIT),
       video: r.video ?? undefined,
       videoAv1: r.videoAv1 ?? undefined,
+      focus: r.videoFocus ?? undefined,
       peek: r.peek ?? undefined,
       peekAv1: r.peekAv1 ?? undefined,
     },

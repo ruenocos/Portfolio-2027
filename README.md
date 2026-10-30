@@ -12,7 +12,7 @@ npm run dev
 ```
 
 - http://localhost:3000 — the site
-- http://localhost:3000/system — every token in light and dark (not indexed)
+- http://localhost:3000/system — every token in light and dark (local and previews only; the live site 404s it)
 - http://localhost:3000/studio — Sanity Studio
 
 ## Design tokens

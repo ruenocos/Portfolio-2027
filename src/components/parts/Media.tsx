@@ -71,10 +71,13 @@ type MediaSrc = {
   sizes?: string;
   /** The page's first picture (its LCP): fetched at once, not lazily. */
   priority?: boolean;
+  /** Where the loop is cropped around (CSS object-position). The poster
+   *  needs none: Sanity already crops it around its hotspot. */
+  focus?: string;
 };
 
 /** The picture inside a media frame: poster, plus a loop if there is one. */
-export function MediaFill({ poster, video, videoAv1, alt = "", rate, sizes = SIZES.project, priority }: MediaSrc & { rate?: number }) {
+export function MediaFill({ poster, video, videoAv1, alt = "", rate, sizes = SIZES.project, priority, focus }: MediaSrc & { rate?: number }) {
   const [ref, on] = useInViewVideo(rate);
   const [err, setErr] = useState(false);
   return (
@@ -95,7 +98,7 @@ export function MediaFill({ poster, video, videoAv1, alt = "", rate, sizes = SIZ
         />
       )}
       {/* No poster on the video: the img behind it is the poster, at the right size. */}
-      {video && <video ref={ref} data-src={video} data-av1={videoAv1} muted loop playsInline preload="none" data-on={on} aria-hidden="true" />}
+      {video && <video ref={ref} data-src={video} data-av1={videoAv1} muted loop playsInline preload="none" data-on={on} aria-hidden="true" style={focus ? { objectPosition: focus } : undefined} />}
     </span>
   );
 }

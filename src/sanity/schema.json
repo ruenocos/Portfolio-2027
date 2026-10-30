@@ -597,6 +597,51 @@
         },
         "optional": true
       },
+      "videoFocus": {
+        "type": "objectAttribute",
+        "value": {
+          "type": "union",
+          "of": [
+            {
+              "type": "string",
+              "value": "left top"
+            },
+            {
+              "type": "string",
+              "value": "center top"
+            },
+            {
+              "type": "string",
+              "value": "right top"
+            },
+            {
+              "type": "string",
+              "value": "left center"
+            },
+            {
+              "type": "string",
+              "value": "center"
+            },
+            {
+              "type": "string",
+              "value": "right center"
+            },
+            {
+              "type": "string",
+              "value": "left bottom"
+            },
+            {
+              "type": "string",
+              "value": "center bottom"
+            },
+            {
+              "type": "string",
+              "value": "right bottom"
+            }
+          ]
+        },
+        "optional": true
+      },
       "videoCopies": {
         "type": "objectAttribute",
         "value": {

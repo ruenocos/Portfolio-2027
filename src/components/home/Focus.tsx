@@ -333,7 +333,7 @@ export function Focus({ focus: c }: { focus: HomeContent["focus"] }) {
                       onBlur={() => chip(k, false)}
                     >
                       {/* eslint-disable-next-line @next/next/no-img-element -- brand SVGs, served as they are */}
-                      <img src={toolSrc(id)} alt="" width={56} height={56} />
+                      <img src={toolSrc(id)} alt="" width={56} height={56} loading="lazy" />
                     </button>
                   </li>
                 );

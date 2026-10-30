@@ -21,6 +21,7 @@ const projectRow = `{
   "slug": slug.current,
   "poster": poster${pic},
   "video": video.asset->url,
+  videoFocus,
   "videoAv1": ${copy("video", "av1")},
   "peek": ${copy("video", "small")},
   "peekAv1": ${copy("video", "smallAv1")}

@@ -41,7 +41,7 @@ export function ToolFilter({
               onClick={() => set(on ? picked.filter((p) => p !== id) : single ? [id] : [...picked, id])}
             >
               {/* eslint-disable-next-line @next/next/no-img-element -- brand SVGs, served as they are */}
-              <img src={toolSrc(id)} alt="" width={56} height={56} />
+              <img src={toolSrc(id)} alt="" width={56} height={56} loading="lazy" />
             </button>
           );
         })}
