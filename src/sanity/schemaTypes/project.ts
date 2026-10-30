@@ -191,7 +191,8 @@ export const project = defineType({
         copiesField,
         defineField({ name: "poster", type: "image" }),
         defineField({ name: "alt", type: "string", description: "What the loop shows, for screen readers." }),
-        defineField({ name: "caption", type: "string" }),
+        // Media carries itself, no captions. Hidden, not removed: older entries still hold one.
+        defineField({ name: "caption", type: "string", hidden: true }),
       ],
     }),
     defineField({
@@ -214,7 +215,7 @@ export const project = defineType({
               description: "The first way to add a picture. Media rows below do more (loops, 2 or 3 across, before/after).",
               fields: [
                 defineField({ name: "alt", type: "string", validation: (rule) => rule.required() }),
-                defineField({ name: "caption", type: "string" }),
+                defineField({ name: "caption", type: "string", hidden: true }),
               ],
             }),
             defineField({
