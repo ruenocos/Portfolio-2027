@@ -352,6 +352,8 @@ function start() {
     H = innerHeight;
     maxScroll = root.scrollHeight - H;
     // Text: outermost blocks first, so a block and its paragraphs never both reveal.
+    // All blocks are measured before any is painted: one layout, not one per block.
+    const fresh: Text[] = [];
     main.querySelectorAll<HTMLElement>(TEXT).forEach((el) => {
       if (texts.has(el) || passed.has(el)) return;
       const inside = [...texts.keys()].some((t) => t.contains(el) || el.contains(t));
@@ -363,9 +365,10 @@ function start() {
       const t: Text = { el, lines: [], peak: [], top: 0, last: "-" };
       texts.set(el, t);
       measure(t);
-      paint(t, scrollY); // dimmed while still off screen, never in view
+      fresh.push(t);
       resized.observe(el);
     });
+    fresh.forEach((t) => paint(t, scrollY)); // dimmed while still off screen, never in view
     // Pictures: one entrance on the frame (or its group), depth inside it.
     // Wessel's own objects keep their motion, but their images still load
     // ahead and show only once decoded, like every other picture.

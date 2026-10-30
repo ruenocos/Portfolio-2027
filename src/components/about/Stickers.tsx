@@ -28,6 +28,9 @@ const pick = (n: number) => Math.floor(Math.random() * n);
 const now = () => performance.now();
 const calm = isCalm;
 const STEP_MS = 1000 / 60;
+// Below these (px and radians per step) a sticker reads as at rest.
+const STILL_SPEED = 0.15;
+const STILL_SPIN = 0.01;
 
 // Big ones land at the bottom when tidied, the small ones on top.
 const SIZES = ["l", "m", "s"] as const;
@@ -261,8 +264,10 @@ export function Stickers({ items }: { items: Sticker[] }) {
         });
         if (done) pile.tidyTo = null;
       }
-      // Asleep once nothing has moved for a moment (and no hand holds one).
-      const still = !pile.tidyTo && !pile.grab && pile.bodies.every((body) => !body || body.isStatic || (body.speed < 0.05 && Math.abs(body.angularVelocity) < 0.002));
+      // Asleep once nothing visibly moves (and no hand holds one). The
+      // righting torque keeps a tilted sticker rocking by fractions of a
+      // pixel against its neighbours, so "still" allows for that.
+      const still = !pile.tidyTo && !pile.grab && pile.bodies.every((body) => !body || body.isStatic || (body.speed < STILL_SPEED && Math.abs(body.angularVelocity) < STILL_SPIN));
       quiet = still ? quiet + 1 : 0;
       // Other movers (the footer sweep) wait while the pile is still landing.
       if (b.hasAttribute("data-landing") !== !still) b.toggleAttribute("data-landing", !still);

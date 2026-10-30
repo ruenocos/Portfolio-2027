@@ -239,6 +239,9 @@ function drawAi({ springs: n, on }: Scene) {
 }
 
 const DRAW = { ux: drawUx, motion: drawMotion, ai: drawAi };
+// The motion scene's loop: travel for the first 70%, then rest.
+const LOOP_S = 3.4;
+const TRAVEL = 0.7;
 
 export type Dio = {
   /** Hover state: lifts, scrubs or duplicates. */
@@ -263,23 +266,38 @@ export function createDio(kind: DioKind, svg: SVGSVGElement): Dio {
     }, ms);
     timers.add(id);
   };
-  const render = () => (svg.innerHTML = DRAW[kind](S));
+  const render = () => (svg.innerHTML = shown = DRAW[kind](S));
 
   let visible = false;
   let raf = 0;
   let last = 0;
+  let shown = "";
+  let resting = 0;
   const frame = (n: number) => {
     const dt = last ? Math.min(0.033, (n - last) / 1000) : 0.016;
     last = n;
     S.springs.forEach((s) => s.step(dt));
+    const busy = S.springs.some((s) => s.busy());
     // The motion scene loops by itself (3.4s: travel, then a rest at the end).
     const loops = kind === "motion" && !S.scrub && !calm();
+    let rest = 0;
     if (loops) {
-      const c = ((n / 1000) % 3.4) / 3.4;
-      S.t = c < 0.7 ? c / 0.7 : 1;
+      const c = ((n / 1000) % LOOP_S) / LOOP_S;
+      S.t = c < TRAVEL ? c / TRAVEL : 1;
+      if (c >= TRAVEL) rest = (1 - c) * LOOP_S * 1000;
     }
-    render();
-    raf = visible && (loops || S.springs.some((s) => s.busy())) ? requestAnimationFrame(frame) : 0;
+    // Only a changed scene is written; the rest at the end of the loop
+    // sleeps on a timer instead of redrawing the same frame.
+    const scene = DRAW[kind](S);
+    if (scene !== shown) svg.innerHTML = shown = scene;
+    if (rest && !busy) {
+      raf = 0;
+      last = 0;
+      clearTimeout(resting);
+      resting = window.setTimeout(kick, rest);
+      return;
+    }
+    raf = visible && (loops || busy) ? requestAnimationFrame(frame) : 0;
     if (!raf) last = 0;
   };
   const kick = () => {
@@ -330,6 +348,7 @@ export function createDio(kind: DioKind, svg: SVGSVGElement): Dio {
     destroy() {
       io.disconnect();
       cancelAnimationFrame(raf);
+      clearTimeout(resting);
       timers.forEach(clearTimeout);
     },
   };
