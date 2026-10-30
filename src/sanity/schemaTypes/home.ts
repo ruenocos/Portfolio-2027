@@ -46,7 +46,8 @@ export const home = defineType({
       ],
     }),
     defineField({ name: "aboutOpener", title: "Opener", type: "text", rows: 2, group: "about", placeholder: f.about.opener }),
-    defineField({ name: "aboutNext", title: "What's next", type: "text", rows: 2, group: "about", placeholder: f.about.next }),
+    // Named aboutNext from when it was one "what's next" line; renaming would strand the stored text.
+    defineField({ name: "aboutNext", title: "Intro", type: "text", rows: 6, group: "about", placeholder: f.about.intro, description: "Who you are, in short paragraphs. Leave a blank line between them." }),
     defineField({ name: "photos", type: "array", group: "about", of: [photo], description: "The deck, top photo first. Portrait 3:4: set the focal point so faces stay in frame." }),
     defineField({
       name: "featured",

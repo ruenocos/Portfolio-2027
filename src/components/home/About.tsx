@@ -56,7 +56,13 @@ export function About({ about: c }: { about: HomeContent["about"] }) {
       <div ref={cell} className="cell about">
         <div className="atext" data-enter>
           <h3 className="text-headline">{c.opener}</h3>
-          <p className="text-body text-mute">{c.next}</p>
+          <div className="intro">
+            {c.intro.split(/\n\s*\n/).map((p) => (
+              <p key={p} className="text-body text-mute">
+                {p}
+              </p>
+            ))}
+          </div>
           <TextLink href="/about" label="More about me" arrow="right" />
         </div>
         {/* The button's name says which photo is on top, so the alt texts are read. */}
