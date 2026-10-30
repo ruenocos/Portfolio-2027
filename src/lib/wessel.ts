@@ -11,9 +11,12 @@
 //   on a fast scroll he waits a breath, on a flick past he skips and the
 //   beat replays when you come back
 // - between beats he parks where he worked, then drifts after you a beat
-//   behind (the page drags him at 55%; on touch he rides the page while
-//   your finger scrolls and catches up after) and re-enters from the edge he left
-// - he travels like a hand on a mouse: speeds up, tops out, the spring lands him
+//   behind: he rides inside a band of the screen (the page drags him at 55%;
+//   on touch he rides the page while your finger scrolls and catches up
+//   after) and re-enters from the edge he left
+// - he travels like a hand on a mouse: each move is a planned trip on a
+//   slightly round curve, timed by its distance; the spring lands him
+// - at rest he drifts a pixel or so (CSS only, while his loop sleeps)
 // - on the way back up he looks over what he made in each section you pass
 //   (a dashed box, no size pill), then parks where he left it; once per trip
 // - calm (Pause motion or reduced motion): no travel, end states only
@@ -21,11 +24,12 @@
 import motionTokens from "../../design/motion-tokens.json";
 import { isCalm, subscribeMotion } from "./motion";
 import { smileySvg } from "./smiley";
-import { clamp, easeInOutCubic, lerp } from "./math";
+import { bezierAt, clamp, easeInOutCubic, lerp, minJerk } from "./math";
 import { headerHeight, narrow, touch } from "./media";
 
 const { wessel: wesselMotion } = motionTokens;
 const springs = wesselMotion.spring;
+const trips = wesselMotion.trip;
 
 export type XY = [number, number];
 type Target = XY | (() => XY | null);
@@ -217,11 +221,17 @@ const cursor = {
   speed: 0,
   /** Tag on the left of the pointer, so a parked Wessel covers his own work, not the next column. */
   lean: false,
+  /** The move he's on, while it's still on its curve. end is where it goes (screen px). */
+  trip: null as { end: XY } | null,
+  /** Following: his height on screen, kept inside the follow band. */
+  leashY: null as number | null,
 };
 
 // Scroll speed: scrollSpeed now, scrollPeak the recent peak (decays fast).
 // scrollDirection: which way you last scrolled (1 down, -1 up).
 let lastScrollY = 0;
+/** How far the page scrolled this frame (px). */
+let frameScrolled = 0;
 let scrollSpeed = 0;
 let scrollPeak = 0;
 let scrollDirection = 1;
@@ -234,6 +244,7 @@ const SLEEP_AFTER = 12;
 /** Restarts his frame loop after it slept. Called by every move, scroll and resize. */
 function wake() {
   quietFrames = 0;
+  resting(false);
   if (raf || !cursor.el) return;
   tick.last = 0;
   raf = requestAnimationFrame(tick);
@@ -267,12 +278,21 @@ function home(): XY {
     const bottom = screenHeight() - 40;
     const slack = cursor.parked ? 0 : PARK_SLACK;
     cursor.parked = y > top + slack && y < bottom - slack;
-    if (cursor.parked) return offText([cursor.anchor[0] - scrollX, y], `p${cursor.anchor[0]},${cursor.anchor[1]},${innerWidth}`);
-    // …and once that has scrolled away he wanders after you, a beat behind.
-    const slot = y <= top ? 0.22 : 0.78;
-    return offText([cursor.anchor[0] - scrollX, screenHeight() * slot], `f${slot},${scrollY | 0},${innerWidth}`);
+    if (cursor.parked) {
+      cursor.leashY = null;
+      return offText([cursor.anchor[0] - scrollX, y], `p${cursor.anchor[0]},${cursor.anchor[1]},${innerWidth}`);
+    }
+    // …and once that has scrolled away he wanders after you, a beat behind:
+    // the page carries him (at the follow drag) until he meets the edge of
+    // the band, then he trails from there. No fixed spots to jump between.
+    const { band, drag } = wesselMotion.follow;
+    const bandTop = Math.max(top, screenHeight() * band.top);
+    const bandBottom = Math.min(bottom, screenHeight() * band.bottom);
+    cursor.leashY = clamp((cursor.leashY ?? cursor.y) - frameScrolled * drag, bandTop, bandBottom);
+    return offText([cursor.anchor[0] - scrollX, cursor.leashY], `f${cursor.leashY | 0},${scrollY | 0},${innerWidth}`);
   }
   cursor.parked = false;
+  cursor.leashY = null;
   return offText([innerWidth - (narrow() ? 64 : 120), screenHeight() * 0.74], `r${scrollY | 0},${innerWidth}`);
 }
 
@@ -384,7 +404,7 @@ function draw(el: HTMLElement) {
 // ---------- ?wessel=debug ----------
 // Logs his state every frame (scripts/check-wessel.mjs reads it) and marks
 // his target on screen, so you can see why he moves. Never on by default.
-type Frame = { t: number; x: number; y: number; tx: number; ty: number; sy: number; mode: string; out: boolean };
+type Frame = { t: number; x: number; y: number; tx: number; ty: number; sy: number; mode: string; out: boolean; trip: boolean };
 const debug =
   typeof window !== "undefined" && /[?&]wessel=debug\b/.test(location.search)
     ? { frames: [] as Frame[], ticks: 0, dot: null as HTMLElement | null }
@@ -394,7 +414,7 @@ function logFrame(t: number, tx: number, ty: number, mode: string) {
   if (!debug || !cursor.el) return;
   debug.ticks++;
   const out = cursor.el.dataset.hide === "true" || cursor.el.dataset.tuck === "true" || !cursor.el.offsetParent;
-  if (debug.frames.length < 50000) debug.frames.push({ t, x: cursor.x, y: cursor.y, tx, ty, sy: scrollY, mode, out });
+  if (debug.frames.length < 50000) debug.frames.push({ t, x: cursor.x, y: cursor.y, tx, ty, sy: scrollY, mode, out, trip: !!cursor.trip });
   if (!debug.dot) {
     debug.dot = document.createElement("div");
     debug.dot.style.cssText =
@@ -413,7 +433,7 @@ function tick(frameTime: number) {
   }
   const dt = Math.min(0.033, (frameTime - (tick.last || frameTime)) / 1000) || 0.016;
   tick.last = frameTime;
-  const scrolled = scrollY - lastScrollY;
+  const scrolled = (frameScrolled = scrollY - lastScrollY);
   lastScrollY = scrollY;
   if (Math.abs(scrolled) > 0.5) {
     scrollDirection = Math.sign(scrolled);
@@ -429,17 +449,22 @@ function tick(frameTime: number) {
   // A job that scrolls away: he reaches for it from the edge instead of leaving
   // (easing into the edge, so he doesn't press flat against it).
   // Never on the sticky header: his target stays below it.
-  if (target) target = [target[0], softClamp(target[1], header() + 24, screenHeight() - 40)];
+  // (A trip clamps its own end: its curve may start off screen.)
+  if (target && !cursor.trip) target = [target[0], softClamp(target[1], header() + 24, screenHeight() - 40)];
   restPending = false;
   if (target) {
     fold(false);
     rest.key = "";
+    cursor.leashY = null;
   } else target = home();
   const [tx, ty] = target;
   const parked = !driving && cursor.parked;
   // Where his job last pointed him, in page coordinates: if he's let go
   // before he's there (a step timed out), that's still where he parks.
-  if (driving) cursor.aim = [tx + scrollX, ty + scrollY];
+  if (driving) {
+    const [ax, ay] = cursor.trip?.end ?? target;
+    cursor.aim = [ax + scrollX, ay + scrollY];
+  }
 
   // The page drags him a little; he resists and catches up. Not when his
   // job holds still on screen while you scroll (a sticky panel): then he
@@ -455,7 +480,9 @@ function tick(frameTime: number) {
   const fingerScroll = onTouch && frameTime - lastScrollAt < wesselMotion.follow.touchSettleMs;
   const riding = !driving && !parked && fingerScroll;
   const drag = driving || parked || riding ? 1 : wesselMotion.follow.drag;
-  if (!still && !pinned && !holding) cursor.y -= scrolled * drag;
+  // On a trip the curve alone places him: carried by the page and pulled
+  // back by the trip's stiff spring, a fast scroll would jolt him.
+  if (!still && !pinned && !holding && !cursor.trip) cursor.y -= scrolled * drag;
   const settled = cursor.distance < 0.5 && cursor.speed < 4;
   if (still || holding || (parked && settled)) {
     // At rest on his spot: he holds it exactly (the page carries him).
@@ -515,8 +542,57 @@ function tick(frameTime: number) {
   const quiet = (!driving || (targetStill && !busy)) && !restPending && !riding && Math.abs(scrolled) < 0.5 && cursor.distance < 0.5 && cursor.speed < 4;
   quietFrames = quiet ? quietFrames + 1 : 0;
   raf = quietFrames > SLEEP_AFTER ? 0 : requestAnimationFrame(tick);
+  // Asleep: the CSS drift takes over (components.css), never in calm.
+  if (!raf && !still) resting(true);
+}
+
+function resting(on: boolean) {
+  if (cursor.el && (cursor.el.dataset.rest === "true") !== on) cursor.el.dataset.rest = String(on);
 }
 tick.last = 0;
+
+/** Turns a move into a planned trip: he follows a slightly round curve from
+ *  where he is to the target, timed by its distance, then his spring (k)
+ *  lands him. The curve starts where he is on screen; its end tracks the target. */
+function plan(to: () => XY | null, k: number) {
+  const end = to();
+  if (!end) return;
+  const distance = Math.hypot(end[0] - cursor.x, end[1] - cursor.y);
+  if (distance < trips.from) return;
+  // A softer spring asked for a slower move; a stiffer one a quicker move.
+  const ms =
+    clamp(trips.baseMs + trips.perDoublingMs * Math.log2(distance / trips.from + 1), trips.minMs, trips.maxMs) *
+    clamp(Math.sqrt(springs.beat.k / k), 0.7, 1.4);
+  const a: XY = [cursor.x, cursor.y];
+  const t0 = performance.now();
+  const angle = (trips.arcDeg * Math.PI) / 180;
+  const along = Math.cos(angle) / 3;
+  const across = Math.sin(angle) / 3;
+  const trip = { end };
+  cursor.trip = trip;
+  cursor.spring = { k: trips.k, z: trips.z };
+  cursor.drive = () => {
+    const t1 = to();
+    if (!t1) return null;
+    const e: XY = [t1[0], softClamp(t1[1], header() + 24, screenHeight() - 40)];
+    trip.end = e;
+    const t = (performance.now() - t0) / ms;
+    if (t >= 1 || cursor.trip !== trip || calm()) {
+      if (cursor.trip === trip) {
+        cursor.trip = null;
+        cursor.spring = { k, z: springs.beat.z };
+      }
+      return e;
+    }
+    // Both handles a third of the way along, turned the same way off the
+    // line: the path swings out a little and comes in straight.
+    const dx = e[0] - a[0];
+    const dy = e[1] - a[1];
+    const h1 = [a[0] + dx * along + dy * across, a[1] + dy * along - dx * across];
+    const h2 = [e[0] - dx * along + dy * across, e[1] - dy * along - dx * across];
+    return bezierAt(minJerk(Math.max(0, t)), a, h1, h2, e);
+  };
+}
 
 export const wessel = {
   /** Point at part of an element (fx, fy are fractions of its box). */
@@ -531,9 +607,11 @@ export const wessel = {
   go(target: Target, { k = springs.beat.k, timeout = 700, lean = false } = {}) {
     wake();
     cursor.lean = lean;
-    cursor.drive = typeof target === "function" ? target : () => target;
+    const to = typeof target === "function" ? target : () => target;
+    cursor.drive = to;
     cursor.spring = { k, z: springs.beat.z };
-    const t = cursor.drive();
+    cursor.trip = null;
+    const t = to();
     // Lost off screen: he comes back in from the edge he left by, at the
     // spot along it where he went out (never somewhere new).
     if (t && !calm() && cursor.shown && (cursor.y < -60 || cursor.y > screenHeight() + 60)) {
@@ -541,10 +619,11 @@ export const wessel = {
       cursor.x = clamp(cursor.x, 20, innerWidth - 20);
       cursor.vx = cursor.vy = 0;
     }
+    if (t && !calm() && k < 1000) plan(to, k);
     return new Promise<void>((res) => {
       const t0 = performance.now();
       const check = () => {
-        if (calm() || (cursor.distance < 2 && cursor.speed < 14) || performance.now() - t0 > timeout) res();
+        if (calm() || (!cursor.trip && cursor.distance < 2 && cursor.speed < 14) || performance.now() - t0 > timeout) res();
         else requestAnimationFrame(check);
       };
       requestAnimationFrame(check);
@@ -560,6 +639,7 @@ export const wessel = {
       // toss) would otherwise be pulled back to the drag's end every frame.
       let ended = false;
       wake();
+      cursor.trip = null;
       cursor.spring = { k: 1400, z: springs.beat.z };
       cursor.drive = () => {
         const e = easeInOutCubic(calm() ? 1 : clamp((performance.now() - t0) / ms));
@@ -581,6 +661,7 @@ export const wessel = {
   free() {
     wake();
     cursor.drive = null;
+    cursor.trip = null;
     cursor.lean = false;
     wessel.press(false);
     cursor.hold = null;
@@ -698,6 +779,7 @@ export function newPage() {
 function newGeneration() {
   generation++;
   cursor.drive = null;
+  cursor.trip = null;
   cursor.aim = null;
   wessel.press(false);
   selections.clear();

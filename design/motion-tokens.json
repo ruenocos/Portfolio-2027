@@ -165,7 +165,28 @@
     "follow": {
       "drag": 0.55,
       "touchSettleMs": 140,
-      "springBoost": "k * min(2.6, 1 + v/1200)"
+      "springBoost": "k * min(2.6, 1 + v/1200)",
+      "band": {
+        "$description": "2026-10-30: following, he rides with the page inside this band of the screen and trails from its edge (replaces the 22% / 78% slots).",
+        "top": 0.25,
+        "bottom": 0.7
+      }
+    },
+    "trip": {
+      "$description": "2026-10-30 (board NQnv3E…): every move is a planned trip. Time from Fitts's law, ms = base + perDoubling * log2(distance / from + 1), kept between minMs and maxMs and scaled by sqrt(beat k / the move's k). Speed is minimum-jerk along a cubic bezier whose handles are a third of the trip long, turned arcDeg off the straight line to the same side. A stiff spring (k, z) follows the path; the move's own spring lands him. Moves under from px, drags and snaps (k >= 1000) stay plain springs.",
+      "from": 24,
+      "baseMs": 120,
+      "perDoublingMs": 90,
+      "minMs": 180,
+      "maxMs": 900,
+      "arcDeg": 20,
+      "k": 2400,
+      "z": 0.9
+    },
+    "drift": {
+      "$description": "2026-10-30 (Wons picked tiny drift only): while his loop sleeps he drifts at most px over a slow loop, CSS only (the translate property), so a resting Wessel costs no frames. None in calm.",
+      "px": 1.5,
+      "loopMs": 4200
     },
     "entranceHoldMs": 300,
     "pinTypeMsPerChar": 85,
