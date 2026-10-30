@@ -493,7 +493,7 @@ export function Stickers({ items }: { items: Sticker[] }) {
   return (
     <section ref={beat} className="frame" data-row aria-label="Off screen">
       <div className="side" />
-      <div ref={board} className="cell board bg-dots">
+      <div ref={board} className="cell board">
         <div className="btop">
           <p id="stk-help" className="sr-only">Stickers you can throw around. Arrow keys push the one in focus, Enter makes it hop.</p>
           <button ref={tidyButton} type="button" className="tidy text-small" aria-pressed={tidy} onClick={toggle}>
