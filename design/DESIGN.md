@@ -58,13 +58,13 @@ Fonts: **Bricolage Grotesque** (display + text; opsz 12–96), **Geist Mono** (l
 
 | Style | Spec | Used for |
 |---|---|---|
-| Display | Bricolage 800 · 192px · lh .92 · ls -4% | the name only: hero WESSEL [reel] OUD and the bookend |
+| Display | Bricolage 800 · 192px · lh .92 · ls -4% | the name only: hero WESSEL [reel] OUD |
 | Statement | Bricolage 500 · 64px (48 mobile) · lh 1.05 · ls -2% | "All work" |
 | Headline | Bricolage 500 · 48px (40 mobile) · lh 1.05 · ls -2% | About title, Focus statement |
-| Email | Bricolage 500 · 32px (fluid to 24 mobile) · lh 1.1 · grape 2px underline | the email address only |
+| Email | Bricolage 500 · fitted to the row's width (max 170px) · lh 1.02 · ls -3% · grape 3px underline | the footer's email address only |
 | Accent | Instrument Serif Italic · 40px (32 mobile) · lh 1.05 | **Wessel's voice, nothing else** (Wons 2026-10-27): the hero role line, pull quotes, and the one-line takeaway per case. Always a whole line, never single words inside a sans sentence, never titles, values or headings. |
 | Title | Bricolage 500 · 32px · lh 1.125 · −1% | project titles in rows and cards; 24px mobile |
-| Lead | Bricolage 400 · 20px/32 | cell labels (Email, Elsewhere), short leads |
+| Lead | Bricolage 400 · 20px/32 | cell labels, short leads |
 | Body | Bricolage 400 · 16px/24 | running text |
 | Small | Bricolage 400 · 14px/20 | comment-pin bubbles, legal bar |
 | Link | Bricolage 500 · 16px/20 · sentence case | text links, buttons and pills you press (Contact, Copy email, Show all) |
@@ -76,7 +76,7 @@ Fonts: **Bricolage Grotesque** (display + text; opsz 12–96), **Geist Mono** (l
 
 Rules:
 - **Scale: major third (×1.25), snapped to 4px** (Wons 2026-10-27): 12 · 16 · 20 · 24 · 32 · 40 · 48 · 64. The name (192), Micro 11, Cursor tag 13, Small 14 and Wordmark 28 sit outside it as marks. No new sizes or styles without Wons.
-- Mobile: every heading drops one step (Statement 48, Headline 40, Accent 32, Title 24). Display scales with width (51px at 390), Email is fluid to 24. Weights never change between breakpoints.
+- Mobile: every heading drops one step (Statement 48, Headline 40, Accent 32, Title 24). Display scales with width (51px at 390), Email always fills its row. Weights never change between breakpoints.
 - The name rows are aligned on **glyph ink**, not text boxes. The middle object (reel or smiley) is centred between the glyphs and on glyph height.
 - Headings use `text-wrap: balance`. Running text stays under about 65 characters per line.
 - Voice: first person "I", dry and precise, a little wry. The ban list is in `copy/home-copy_v01.md`.
@@ -85,7 +85,7 @@ Rules:
 
 - **Frame:** every row is 3 columns: side `max(96px, (100vw − 1600px)/2)`, content, side. Side columns carry the dot grid. Content max width is 1600px.
 - **Ruled cells:** cells sit on a `line` background with `gap: 1px`, so siblings share single hairlines. No shadows on cells and no card borders. Cells are square-cornered (radius 0).
-- **Dot grid:** 1.1px dots every 16px, in `dot`. It sits on the side columns, the hero, the dividers and the bookend.
+- **Dot grid:** 1.1px dots every 16px, in `dot`. It sits on the side columns, the hero, the dividers and the footer's hello.
 - **Insets and rhythm:** content inset is 40px desktop and 20px mobile. Sections use 96px vertical padding (40 mobile). Section dividers are 128px rows (72 mobile; the tall ones are 168, 96 mobile). Tightened from 168/240 on 2026-10-28: the air read as unfinished, with the label at bottom-left (inset 40, 20px from the bottom; mobile inset 20, 16px from the bottom).
 - **Section labels:** `{ About }` in Label style, ink. Only the braces are tangerine (`tang-ink`). No counter (dropped 2026-10-27).
 - **Round things inside the square frame:** media radius 24 (`--rm`), pills 999, handles round, chips are circles.
@@ -95,7 +95,7 @@ Rules:
 - **Breakpoint:** one main switch at 900px (stack to one column, 20px insets), plus 600px for small tweaks. Use `hover:none` for touch behaviour.
 - **Tap targets:** at least 44px. Grow the hit box, not the visible thing (`::before` inset, padding with negative margin, or a JS hit-slop when Wessel measures the element, like the reel).
 - **Tablet (600–900):** project rows go text | media (two columns); Focus stays one card per row.
-- **Long data:** titles and the email wrap (`overflow-wrap`), tool rows wrap, an empty Tools block hides. Set `lang` on Dutch titles in the build so `hyphens:auto` works.
+- **Long data:** titles wrap (`overflow-wrap`), the email never wraps (it's fitted to the row), tool rows wrap, an empty Tools block hides. Set `lang` on Dutch titles in the build so `hyphens:auto` works.
 
 ### Pages
 | Page | Status |
@@ -103,11 +103,11 @@ Rules:
 | Home | Locked (this file). |
 | About | Direction picked 2026-10-27: **A1 Version history** (board `references/about-contact/`). Not built. Needs years for Mediacollege, motion and WP Masters. |
 | Case study | Row order since 2026-10-27: crumb → opening (title | lead) → **header video** → facts → read. (Wons 2026-10-27: video under the title.) De Saak v01 built: `web/hifi/case/case-desaak_v01.html`, spec `web/case-study-spec_v02.md`. Title = Statement (64 / 48 mobile), facts = Lead, section headings = Headline; the case takeaway line = Accent. |
-| Contact | **No page.** Every contact link (header "Contact ↓", CTAs) scrolls to the home footer. |
+| Contact | **No page.** Every contact link (header "Contact ↓", CTAs) scrolls to the footer's hello (`#contact`), the same on every page. |
 | All work | Linked from the archive hand. Not designed yet. |
 
 ### Page order (home)
-Header (sticky, 90px) → Hero → `{ About }` → About (story + photo deck) → `{ Selected work }` → 3 project rows → `{ Focus }` → Focus (statement + Daily kit | 3 dioramas) → `{ See more }` → Archive hand + "All work" → Bookend (Wessel ☺ Oud) + Email / Elsewhere / More → legal bar.
+Header (sticky, 90px) → Hero → `{ About }` → About (story + photo deck) → `{ Selected work }` → 3 project rows → `{ Focus }` → Focus (statement + Daily kit | 3 dioramas) → `{ See more }` → Archive hand + "All work" → footer: hello (`{ Contact }` + email) → links (Work, About, Playground, LinkedIn · Back to top) → legal bar.
 
 ## 6. Components
 
@@ -122,8 +122,7 @@ Header (sticky, 90px) → Hero → `{ About }` → About (story + photo deck) �
 | **Focus** | Left: sticky statement (Headline, no accent words) + Daily kit (56px tool chips). Right: 3 iso dioramas (UX, Motion, AI). Hovering a card ↔ its chips light up (grape title + chip rings), both ways. Never cut this interplay. Wessel's day beat on a card also applies its hover, so you see that you can hover. Mobile: statement, then Daily kit, then one card per row; tap = hover. |
 | **About** | Story text left + shuffle deck of 3 photos right (click, or Wessel once by day, tucks the top photo behind). |
 | **Archive** | A fanned hand of cards resting at .82 scale, with "All work" in Statement (no arrow; pointing at the hand hops and colours it, like every clickable text). |
-| **Bookend** | The name again in Display with the smiley in the middle. It starts empty and Wessel copy-pastes it in (⌘C from the header wordmark, then ⌘V three times). Hidden until pasted, with a 3s fallback. |
-| **Contact** | Email style with a grape underline (`mailto`) + "Copy email" pill (copy feedback in Wessel's voice) · LinkedIn · More links. |
+| **Footer** | The same on every page (home included). Hello band: `{ Contact }` label and the email (`mailto`) across the full width. Its letters lift 0.16em and turn grape toward a pointer (yours, or Wessel's). Once per page view Wessel sweeps across it, the grape underline draws in, and he parks under the end; if your pointer reaches the address first he skips the sweep. Parked, he waves up to 3 times; wave back (4 quick turns near him) or click/tap/Enter him for a high five (tang then grape rings). Calm: no sweep, no lean, underline shown. Below: Work · About · Playground · LinkedIn (letter hop, no arrows) left, Back to top ↑ right, then the legal bar. |
 | **Cursor tag** | Figma-style pointer (rounded arrowhead, 23px, 1.75 outline in canvas colour) + pill tag with a square corner toward the tip, about 6px clear of the arrow's notch. Wessel = tangerine, You = grape. |
 | **Comment pin** | Round avatar (smiley) + bubble, radius 4/16/16/16, Small style, canvas fill + line border + soft shadow. Pops in on a spring, text types at 85ms per character, shrinks to a dot when done. **One pin visible at a time.** |
 | **Selection** | 1.5px tangerine box + 4 round handles + Micro size pill below ("203 × 116"). Only Wessel makes them. |

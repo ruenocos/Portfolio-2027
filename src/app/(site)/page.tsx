@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { About } from "@/components/home/About";
 import { Archive } from "@/components/home/Archive";
-import { Bookend } from "@/components/home/Bookend";
 import { Focus } from "@/components/home/Focus";
 import { Hero } from "@/components/home/Hero";
 import { Divider } from "@/components/parts/Divider";
@@ -17,7 +16,7 @@ export const metadata: Metadata = {
 };
 
 // Home (DESIGN.md §5 page order): hero → About → Selected work → Focus →
-// See more → bookend, then the shell's footer.
+// See more, then the shell's footer.
 export default async function Home() {
   const c = await getHome(await getDraftFetchOptions());
   return (
@@ -31,7 +30,6 @@ export default async function Home() {
       <Focus focus={c.focus} />
       <Divider label={{ name: "See more" }} />
       <Archive cards={c.archive} />
-      <Bookend />
     </>
   );
 }

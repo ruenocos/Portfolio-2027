@@ -1,58 +1,40 @@
 import Link from "next/link";
 import { Arrow } from "@/components/parts/Arrow";
-import { FooterAir } from "./FooterAir";
-import { FooterMoment } from "./FooterMoment";
+import { FooterHello } from "./FooterHello";
 import { Hop } from "./Hop";
-import { MailLink } from "./MailLink";
 import { EMAIL, LINKEDIN, NAV } from "./nav";
 import { Row } from "./Row";
 
-// Every "Contact ↓" lands here (#contact). There is no contact page.
-// On home the bookend sits right above it, in place of the spacer.
+// The same footer on every page. Every "Contact ↓" lands on the hello
+// (#contact). There is no contact page.
 // One <footer>, so screen readers get the page's contentinfo landmark.
 export function Footer() {
   return (
     <footer className="site-foot">
-      {/* Named like every other band, so "Contact ↓" lands on a label. */}
-      <FooterAir />
-      <section id="contact" aria-labelledby="h-contact" className="frame">
-        <h2 id="h-contact" className="sr-only">
-          Contact
-        </h2>
+      <section id="contact" aria-labelledby="h-contact" className="frame hello-band">
         <div className="side" />
-        <div className="fcols">
-          {/* Off home, Wessel does one small job on the email here. */}
-          <FooterMoment>
-            <h3 className="text-lead">Email</h3>
-            <MailLink email={EMAIL} />
-          </FooterMoment>
-          <div className="cell">
-            <h3 className="text-lead">Elsewhere</h3>
-            <a className="l" href={LINKEDIN} target="_blank" rel="noopener">
-              <Hop text="LinkedIn" />
-              <span className="sr-only"> (opens in a new tab)</span>
-              <span className="ext" aria-hidden="true">
-                <Arrow dir="out" />
-              </span>
-            </a>
-          </div>
-          <div className="cell">
-            <h3 className="text-lead">More</h3>
-            {NAV.map(({ href, label }) => (
-              <Link key={href} className="l" href={href}>
-                <Hop text={label} />
-              </Link>
-            ))}
-            <a className="l" href="#top">
-              <Hop text="Back to top" />
-              <span className="ar" aria-hidden="true">
-                <Arrow dir="up" />
-              </span>
-            </a>
-          </div>
-        </div>
+        <FooterHello email={EMAIL} />
         <div className="side" />
       </section>
+      <Row className="flinks">
+        <nav aria-label="Footer">
+          {NAV.map(({ href, label }) => (
+            <Link key={href} className="l" href={href}>
+              <Hop text={label} />
+            </Link>
+          ))}
+          <a className="l" href={LINKEDIN} target="_blank" rel="noopener">
+            <Hop text="LinkedIn" />
+            <span className="sr-only"> (opens in a new tab)</span>
+          </a>
+        </nav>
+        <a className="l top" href="#top">
+          <Hop text="Back to top" />
+          <span className="ar" aria-hidden="true">
+            <Arrow dir="up" />
+          </span>
+        </a>
+      </Row>
       <Row className="legal text-small">
         <span>© 2027 Wessel Oud</span>
         <span>Made in the Netherlands</span>
