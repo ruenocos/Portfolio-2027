@@ -1,4 +1,5 @@
 import { cookies, draftMode } from "next/headers";
+import type { ClientReturn, QueryParams } from "next-sanity";
 import {
   defineLive,
   resolvePerspectiveFromCookies,
@@ -19,11 +20,18 @@ export const { sanityFetch, SanityLive } = defineLive({
   strict: true,
 });
 
+// Results typed by `npm run typegen`, without the stega brand: stega is
+// only on in draft mode, and the client's filter (client.ts) keeps the
+// fields the code branches on clean.
+type TypedFetch = <const Q extends string>(
+  options: FetchOptions & { query: Q; params?: QueryParams },
+) => Promise<{ data: ClientReturn<Q, unknown> }>;
+
 // The one shared cache boundary for Sanity content.
-export const cachedSanity: StrictDefinedFetchType = async (options) => {
+export const cachedSanity = (async (options) => {
   "use cache";
   return sanityFetch(options);
-};
+}) as StrictDefinedFetchType as TypedFetch;
 
 export interface FetchOptions {
   perspective: LivePerspective;

@@ -22,6 +22,11 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
+      # Fails when a schema or query changed without `npm run typegen`.
+      - name: Sanity types up to date
+        run: |
+          npm run typegen
+          git diff --exit-code -- src/sanity/schema.json src/sanity/types.ts
       - name: Typecheck
         run: npm run typecheck
       - name: Lint

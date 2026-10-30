@@ -119,6 +119,15 @@ Projects and Playground posts are ordered by dragging in the Studio
 (`@sanity/orderable-document-list`, field `orderRank`). Images go through
 `urlFor`, so the crop and focal point set in the Studio are used.
 
+Types: `npm run typegen` extracts the schema (`src/sanity/schema.json`) and
+writes a type for it and for every `defineQuery()` in `src/sanity/queries.ts`
+to `src/sanity/types.ts`. `sanityFetch` and `client.fetch` pick those up by
+the query text, so `src/content/get.ts` needs no casts. Run it after changing
+a schema or a query and commit both files; CI fails when they're stale. Every
+field is typed as possibly `null`, because drafts skip the Studio's required
+rules. Query helpers end in `as const`, so each query stays a literal string
+and finds its type.
+
 Scripts (need `SANITY_API_WRITE_TOKEN`, an Editor token; `--dry` to preview):
 `npx jiti scripts/seed-sanity.ts` fills empty fields from `src/content`;
 `npx jiti scripts/fill-placeholders.ts` fills every empty project field (on

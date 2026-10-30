@@ -4,52 +4,29 @@ import { knownTools } from "@/lib/tools";
 import { client, urlFor } from "@/sanity/client";
 import { cachedSanity, published, type FetchOptions } from "@/sanity/live";
 import { ABOUT_QUERY, CASE_QUERY, CASE_SLUGS_QUERY, HOME_QUERY, PLAYGROUND_QUERY, WORK_QUERY } from "@/sanity/queries";
-import { FALLBACK_HOME, type HomeContent, type Track } from "./home";
-import { FALLBACK_ABOUT, type AboutContent, type Sticker } from "./about";
-import { FALLBACK_CASES, type Case, type CaseSection } from "./cases";
+import type { ABOUT_QUERY_RESULT, CASE_QUERY_RESULT, HOME_QUERY_RESULT, WORK_QUERY_RESULT } from "@/sanity/types";
+import { FALLBACK_HOME, type HomeContent } from "./home";
+import { FALLBACK_ABOUT, type AboutContent } from "./about";
+import { FALLBACK_CASES, type Case } from "./cases";
 import { FALLBACK_POSTS, PLAYGROUND_TARGET, type Post } from "./playground";
 import { FALLBACK_FEATURED, FALLBACK_PROJECTS } from "./projects";
 
+// Query results are typed by `npm run typegen` (src/sanity/types.ts). Every
+// field can come back null: drafts skip the Studio's required rules.
+type Row = WORK_QUERY_RESULT[number];
+type HomeDoc = NonNullable<HOME_QUERY_RESULT["home"]>;
+type CaseDoc = NonNullable<CASE_QUERY_RESULT>;
+type AboutDoc = NonNullable<ABOUT_QUERY_RESULT>;
 /** A Sanity image as the queries return it: the asset plus the Studio's crop and focal point. */
-type Pic = { asset?: { _ref: string }; crop?: object; hotspot?: object };
+type Pic = NonNullable<Row["poster"]>;
 
-type Row = {
-  _createdAt?: string;
-  title: string;
-  lang?: string;
-  summary: string;
-  timeline: string;
-  role?: string;
-  tools?: string[];
-  note?: string;
-  label?: string;
-  slug: string;
-  poster?: Pic;
-  video?: string;
-  videoAv1?: string;
-  peek?: string;
-  peekAv1?: string;
-};
-type HomeDoc = {
-  basedIn?: string;
-  role?: string[];
-  reel?: { loop?: string; full?: string; poster?: string };
-  aboutOpener?: string;
-  aboutNext?: string;
-  photos?: { src?: Pic; alt?: string }[];
-  focusStatement?: string;
-  tracks?: Partial<Track>[];
-  archive?: { src?: string; name?: string }[];
-  featured?: (Row | null)[];
-};
-
-const img = (src?: string, w = 1200) => (src ? `${src}?w=${w}&auto=format` : undefined);
+const img = (src?: string | null, w = 1200) => (src ? `${src}?w=${w}&auto=format` : undefined);
 // With a ratio the CDN cuts the picture to its frame around the focal point
 // set in the Studio; without one it keeps the whole (cropped) picture.
-const pic = (p: Pic | undefined, w: number, ratio?: number) =>
+const pic = (p: Pic | null | undefined, w: number, ratio?: number) =>
   p?.asset ? (ratio ? urlFor(p).width(w).height(Math.round(w / ratio)).fit("crop") : urlFor(p).width(w)).url() : undefined;
 const PORTRAIT = 3 / 4;
-const hasPic = <T extends { src?: Pic; alt?: string }>(p: T): p is T & { src: Pic; alt: string } => !!p.src?.asset && !!p.alt;
+const hasPic = <T extends { src: Pic | null; alt: string | null }>(p: T): p is T & { src: Pic; alt: string } => !!p.src?.asset && !!p.alt;
 // Where Wessel drops each pin on the media: a little off, like by hand.
 const SPOTS = [
   { fx: 0.72, dy: 30, rot: -3 },
@@ -59,11 +36,11 @@ const SPOTS = [
 
 // Placeholder copy stays marked (data-mock, shown with ?mocks) after it moves
 // into Sanity: lorem ipsum, or the code's own mock text left unchanged.
-const isLorem = (s?: string) => !!s && /lorem ipsum|dolor sit|20XX/i.test(s);
+const isLorem = (s?: string | null) => !!s && /lorem ipsum|dolor sit|20XX/i.test(s);
 
 function rowMock(r: Row): Project["mock"] {
   const fb = FALLBACK_FEATURED.find((p) => p.href === `/work/${r.slug}`);
-  const same = (f: "summary" | "role" | "note", v?: string) =>
+  const same = (f: "summary" | "role" | "note", v: string | null) =>
     !!fb?.mock?.includes(f) && v === (f === "note" ? fb.note?.text : fb[f]);
   const fields = (["summary", "role", "note"] as const).filter((f) => {
     const v = f === "note" ? r.note : r[f];
@@ -75,13 +52,19 @@ function rowMock(r: Row): Project["mock"] {
 function toProject(r: Row, i: number): Project {
   return {
     mock: rowMock(r),
-    title: r.title,
+    title: r.title ?? "",
     lang: r.lang === "nl" ? "nl" : undefined,
-    summary: r.summary,
-    timeline: r.timeline,
+    summary: r.summary ?? "",
+    timeline: r.timeline ?? "",
     role: r.role ?? "",
     tools: knownTools(r.tools ?? []),
-    media: { poster: pic(r.poster, 1040, PORTRAIT), video: r.video, videoAv1: r.videoAv1, peek: r.peek, peekAv1: r.peekAv1 },
+    media: {
+      poster: pic(r.poster, 1040, PORTRAIT),
+      video: r.video ?? undefined,
+      videoAv1: r.videoAv1 ?? undefined,
+      peek: r.peek ?? undefined,
+      peekAv1: r.peekAv1 ?? undefined,
+    },
     href: `/work/${r.slug}`,
     label: r.label || `${r.title}, ${r.timeline}.`,
     note: r.note ? { text: r.note, spot: SPOTS[i % SPOTS.length] } : undefined,
@@ -128,17 +111,19 @@ export async function getHome(o: FetchOptions = published): Promise<HomeContent>
   let rows: Row[] = [];
   try {
     const { data } = await cachedSanity({ query: HOME_QUERY, ...o });
-    const d = data as unknown as { home: HomeDoc | null; projects: Row[] | null };
-    doc = d.home;
-    rows = homeRows((d.home?.featured ?? []).filter((r): r is Row => !!r?.title), d.projects ?? []);
+    doc = data.home;
+    rows = homeRows((data.home?.featured ?? []).filter((r) => !!r?.title), data.projects);
   } catch (e) {
     console.warn("Home: Sanity unavailable, using the fallback content.", e);
   }
-  const h = doc ?? {};
+  const h: Partial<HomeDoc> = doc ?? {};
   const photos = (h.photos ?? []).filter(hasPic);
   const archive = (h.archive ?? []).filter((c): c is { src: string; name: string } => !!c.src && !!c.name);
   // Only the loop uploaded: the reel opens on the loop instead of doing nothing.
-  const reel = h.reel?.loop || h.reel?.full ? { ...h.reel, full: h.reel.full || h.reel.loop, poster: img(h.reel.poster, 1600) } : f.hero.reel;
+  const reel =
+    h.reel?.loop || h.reel?.full
+      ? { loop: h.reel.loop ?? undefined, full: (h.reel.full || h.reel.loop) ?? undefined, poster: img(h.reel.poster, 1600) }
+      : f.hero.reel;
 
   return {
     hero: {
@@ -168,32 +153,17 @@ export async function getWork(o: FetchOptions = published): Promise<Project[]> {
   let rows: Row[] | null = null;
   try {
     const { data } = await cachedSanity({ query: WORK_QUERY, ...o });
-    rows = data as unknown as Row[] | null;
+    rows = data;
   } catch (e) {
     console.warn("Work: Sanity unavailable, using the fallback content.", e);
   }
   return rows?.length ? rows.map(toProject) : FALLBACK_PROJECTS;
 }
 
-type CaseDoc = {
-  title: string;
-  lang?: string;
-  lead?: string;
-  intro?: string;
-  role?: string;
-  scope?: string;
-  timeline?: string;
-  hero?: { video?: string; videoAv1?: string; poster?: Pic; alt?: string; caption?: string };
-  sections?: (Omit<CaseSection, "key" | "figure"> & {
-    _key: string;
-    figure?: { src?: string; alt?: string; caption?: string; width?: number; height?: number };
-  })[];
-};
-
 // Field by field: whatever Sanity hasn't filled yet keeps the draft's.
 function toCase(slug: string, d: CaseDoc): Case {
   const fb = FALLBACK_CASES.find((c) => c.slug === slug);
-  const fact = (label: string, value?: string) =>
+  const fact = (label: string, value: string | null) =>
     value ? { label, value } : (fb?.facts.find((f) => f.label === label) ?? { label, value: "" });
   const poster = pic(d.hero?.poster, 1800, 16 / 9);
   // A header video counts without a poster too.
@@ -211,16 +181,22 @@ function toCase(slug: string, d: CaseDoc): Case {
     }),
     facts: [fact("Role", d.role), fact("Scope", d.scope), fact("Timeline", d.timeline)],
     hero: hero
-      ? { video: d.hero?.video, videoAv1: d.hero?.videoAv1, poster, alt: d.hero?.alt ?? "", caption: d.hero?.caption ?? "" }
+      ? {
+          video: d.hero.video ?? undefined,
+          videoAv1: d.hero.videoAv1 ?? undefined,
+          poster,
+          alt: d.hero.alt ?? "",
+          caption: d.hero.caption ?? "",
+        }
       : fb?.hero ?? { poster: undefined, alt: "", caption: "" },
     sections: (d.sections ?? [])
       .filter((s) => s.name && s.heading)
       .map((s) => ({
         key: s._key,
-        name: s.name,
-        heading: s.heading,
+        name: s.name!,
+        heading: s.heading!,
         body: s.body ?? "",
-        note: s.note,
+        note: s.note ?? undefined,
         // Lorem stays marked; code mock text left unchanged keeps its mark.
         mock:
           isLorem(s.heading) || isLorem(s.body)
@@ -247,8 +223,7 @@ function toCase(slug: string, d: CaseDoc): Case {
 export async function getCase(slug: string, o: FetchOptions = published): Promise<Case | null> {
   try {
     const { data } = await cachedSanity({ query: CASE_QUERY, params: { slug }, ...o });
-    const d = data as unknown as CaseDoc | null;
-    if (d) return d.sections?.some((s) => s.name && s.heading) ? toCase(slug, d) : null;
+    if (data) return data.sections?.some((s) => s.name && s.heading) ? toCase(slug, data) : null;
   } catch (e) {
     console.warn(`Case ${slug}: Sanity unavailable, using the fallback content.`, e);
   }
@@ -259,41 +234,32 @@ export async function getCase(slug: string, o: FetchOptions = published): Promis
 export async function caseSlugs(): Promise<string[]> {
   let live: string[] = [];
   try {
-    live = (await client.fetch<string[] | null>(CASE_SLUGS_QUERY)) ?? [];
+    live = (await client.fetch(CASE_SLUGS_QUERY)).filter((s) => s !== null);
   } catch (e) {
     console.warn("Case slugs: Sanity unavailable, using the fallback list.", e);
   }
   return [...new Set([...FALLBACK_CASES.map((c) => c.slug), ...live])];
 }
 
-type AboutDoc = {
-  hello?: string;
-  lead?: string;
-  photos?: { src?: Pic; alt?: string }[];
-  facts?: { label?: string; value?: string; sub?: string }[];
-  experience?: { when?: string; place?: string; role?: string }[];
-  stickers?: { text?: string; tone?: Sticker["tone"]; size?: Sticker["size"] }[];
-};
-
 /** About: Sanity first, the approved copy for whatever is still empty. */
 export async function getAbout(o: FetchOptions = published): Promise<AboutContent> {
   const f = FALLBACK_ABOUT;
-  let d: AboutDoc = {};
+  let d: Partial<AboutDoc> = {};
   try {
     const { data } = await cachedSanity({ query: ABOUT_QUERY, ...o });
-    d = (data as unknown as AboutDoc | null) ?? {};
+    d = data ?? {};
   } catch (e) {
     console.warn("About: Sanity unavailable, using the fallback content.", e);
   }
   const photos = (d.photos ?? []).filter(hasPic);
   const facts = (d.facts ?? []).filter((x) => x.label && x.value);
   const jobs = (d.experience ?? []).filter((j) => j.when && j.place && j.role);
-  const stickers = (d.stickers ?? []).filter((s): s is Sticker => !!s.text);
+  const stickers = (d.stickers ?? []).filter((s): s is typeof s & { text: string } => !!s.text);
   return {
     hello: d.hello || f.hello,
     lead: d.lead || f.lead,
     photos: photos.length ? photos.map((p) => ({ alt: p.alt, src: pic(p.src, 760, PORTRAIT)! })) : f.photos,
-    facts: facts.length ? facts.map((x) => ({ label: x.label!, value: x.value, sub: x.sub })) : f.facts,
+    facts: facts.length ? facts.map((x) => ({ label: x.label!, value: x.value!, sub: x.sub ?? undefined })) : f.facts,
     experience: jobs.length
       ? jobs.map((j) => ({
           when: j.when!,
@@ -316,9 +282,14 @@ export async function getAbout(o: FetchOptions = published): Promise<AboutConten
 export async function getPosts(o: FetchOptions = published): Promise<Post[]> {
   try {
     const { data } = await cachedSanity({ query: PLAYGROUND_QUERY, ...o });
-    const rows = (data as unknown as { title: string; src: string; video?: string; videoAv1?: string; w?: number; h?: number }[] | null) ?? [];
-    if (rows.length) {
-      const real: Post[] = rows.map((r) => ({ title: r.title, src: img(r.src, 640), video: r.video, videoAv1: r.videoAv1, ar: r.w && r.h ? r.w / r.h : 1 }));
+    if (data.length) {
+      const real: Post[] = data.map((r) => ({
+        title: r.title ?? "",
+        src: img(r.src, 640),
+        video: r.video ?? undefined,
+        videoAv1: r.videoAv1 ?? undefined,
+        ar: r.w && r.h ? r.w / r.h : 1,
+      }));
       // Until there are enough, previews top the board up with the prompt
       // cards (what kind of piece fits). The live site shows only real posts.
       if (IS_PRODUCTION) return real;
