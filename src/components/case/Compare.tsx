@@ -5,8 +5,8 @@ import type { CaseMedia } from "@/content/cases";
 import { SIZES, srcSet } from "@/lib/image";
 
 function Pic({ m }: { m: CaseMedia }) {
-  // eslint-disable-next-line @next/next/no-img-element -- lib/image does the sizes
   return (
+    // eslint-disable-next-line @next/next/no-img-element -- lib/image does the sizes
     <img
       src={m.src}
       srcSet={m.src ? srcSet(m.src) : undefined}
