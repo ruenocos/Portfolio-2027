@@ -8,11 +8,15 @@ const pic = `{ asset, crop, hotspot }`;
 const copy = (video: string, kind: string) =>
   `select(${video}Copies.from == ${video}.asset._ref => ${video}Copies.${kind}.asset->url)`;
 
+// A project shows only once it has a case: a slug and a written section.
+// `at` reaches the project through a reference (featured[]).
+const caseOf = (at = "") =>
+  `defined(${at}slug.current) && count(${at}sections[defined(name) && defined(heading)]) > 0`;
+const hasCase = caseOf();
+
 const projectRow = `{
   _createdAt, title, lang, summary, timeline, role, tools, note, label,
   "slug": slug.current,
-  // Linked only once its case is live and written.
-  "hasCase": hasCase == true && count(sections[defined(name) && defined(heading)]) > 0,
   "poster": poster${pic},
   "video": video.asset->url,
   "videoAv1": ${copy("video", "av1")},
@@ -29,23 +33,22 @@ export const HOME_QUERY = defineQuery(`{
     focusStatement,
     tracks[]{ key, title, line },
     "archive": archive[]{ "src": asset->url, name },
-    "featured": featured[]->${projectRow}
+    "featured": featured[${caseOf("@->")}]->${projectRow}
   },
   // For the fallback when nothing is picked: the site takes the newest three.
-  "projects": *[_type == "project"] | order(orderRank) ${projectRow}
+  "projects": *[_type == "project" && ${hasCase}] | order(orderRank) ${projectRow}
 }`);
 
 // Work: every project, in the Studio's drag order.
-export const WORK_QUERY = defineQuery(`*[_type == "project"] | order(orderRank) ${projectRow}`);
+export const WORK_QUERY = defineQuery(`*[_type == "project" && ${hasCase}] | order(orderRank) ${projectRow}`);
 
 export const CASE_QUERY = defineQuery(`*[_type == "project" && slug.current == $slug][0]{
-  hasCase, title, lang, lead, intro, role, scope, timeline,
+  title, lang, lead, intro, role, scope, timeline,
   "hero": { "video": hero.video.asset->url, "videoAv1": ${copy("hero.video", "av1")}, "poster": hero.poster${pic}, "alt": hero.alt, "caption": hero.caption },
   "sections": sections[]{ _key, name, heading, body, note,
     "figure": figure{ "src": asset->url, alt, caption, "width": asset->metadata.dimensions.width, "height": asset->metadata.dimensions.height } }
 }`);
-// Case pages to prebuild: the live ones.
-export const CASE_SLUGS_QUERY = defineQuery(`*[_type == "project" && hasCase == true && defined(slug.current)].slug.current`);
+export const CASE_SLUGS_QUERY = defineQuery(`*[_type == "project" && ${hasCase}].slug.current`);
 
 export const ABOUT_QUERY = defineQuery(`*[_id == "about"][0]{
   hello, lead,

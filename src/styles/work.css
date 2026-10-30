@@ -195,16 +195,6 @@
   html[data-mode="dark"] .arow .apk {
     outline: 1px solid color-mix(in srgb, var(--mute) 55%, transparent);
   }
-  .arow .soontag {
-    left: auto;
-    right: var(--spacing-inset);
-    bottom: auto;
-    top: 50%;
-    translate: 0 -40%;
-  }
-  .arow .soontag[data-on="true"] {
-    translate: 0 -50%;
-  }
   @media (hover: hover) and (pointer: fine) {
     .arow:is(:hover, :focus-within) .apk {
       scale: 1;
@@ -252,17 +242,6 @@
       opacity: 1;
       scale: 1;
       border-radius: 12px;
-    }
-    /* A project still to write is only its title and thumb: the row
-       shrinks to the thumb, title centred beside it (?mocks keeps the slots). */
-    html:not([data-mocks]) .arow[data-gap] {
-      grid-template-areas: "t k";
-      grid-template-rows: auto;
-      align-items: center;
-      padding-block: 16px;
-    }
-    html:not([data-mocks]) .arow[data-gap] :is(.ay, .ap) {
-      display: none;
     }
   }
 }

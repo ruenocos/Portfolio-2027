@@ -4,15 +4,15 @@ import { defineArrayMember, defineField, defineType } from "sanity";
 import { TOOLS } from "../../lib/tools";
 import { copiesField } from "./videoCopies";
 
-// A project: one row on Home and Work (DESIGN.md §6, Project row), and its
-// case page when it has one, all in one document.
+// A project: one row on Home and Work (DESIGN.md §6, Project row) and its
+// case page, all in one document. It shows once its case has a section.
 export const project = defineType({
   name: "project",
   title: "Project",
   type: "document",
   icon: ProjectsIcon,
   description:
-    "Home and Work show the built-in rows until a project is published here, then only published ones. Publish all of them together.",
+    "Home and Work show the built-in rows until a project with a case is published here, then only published ones with a case.",
   groups: [
     { name: "row", title: "Row", default: true },
     { name: "media", title: "Media" },
@@ -68,20 +68,6 @@ export const project = defineType({
       group: "row",
       description: "Read out for the media link. Like \"De Saak case study. Design, dev and SEO, 2023 to now.\"",
     }),
-    defineField({
-      name: "hasCase",
-      title: "Case page is live",
-      type: "boolean",
-      group: "row",
-      initialValue: false,
-      description: "On: the row links to the case below. Off: no page yet, the row says \"Case study soon\". Small projects belong on the Playground instead.",
-      validation: (rule) =>
-        rule.custom((on, { document }) =>
-          on && !(document?.sections as unknown[] | undefined)?.length
-            ? { message: "No sections yet, so the row stays \"Case study soon\" until there are.", level: "warning" }
-            : true,
-        ),
-    }),
     // Set by dragging in the Projects list.
     orderRankField({ type: "project" }),
     defineField({
@@ -122,7 +108,7 @@ export const project = defineType({
       name: "sections",
       type: "array",
       group: "case",
-      description: "The read. Each one is a layer in the panel.",
+      description: "The read. Each one is a layer in the panel. The project shows on Home and Work once one has a name and heading; small projects go on the Playground instead.",
       of: [
         defineArrayMember({
           type: "object",

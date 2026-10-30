@@ -10,7 +10,7 @@ import { Facts } from "@/components/parts/Facts";
 import { Media, MediaFigure } from "@/components/parts/Media";
 import { GrapePill, KeyChip, MockTag, OutlinePill, SizePill, Slot } from "@/components/parts/Pills";
 import { ProjectRows } from "@/components/parts/ProjectRow";
-import { FALLBACK_PROJECTS as PROJECTS } from "@/content/projects";
+import { FALLBACK_FEATURED as PROJECTS } from "@/content/projects";
 import { SectionLabel } from "@/components/parts/SectionLabel";
 import { Status } from "@/components/parts/Status";
 import { TextLink } from "@/components/parts/TextLink";
@@ -71,7 +71,6 @@ export default function SystemPage() {
               <GrapePill>
                 <Play /> Reel
               </GrapePill>
-              <GrapePill>Case study soon</GrapePill>
               <GrapePill size="tap">
                 Contact <Arrow dir="down" />
               </GrapePill>
@@ -134,7 +133,7 @@ export default function SystemPage() {
       <ProjectRows projects={PROJECTS} id="project-rows" />
 
       <Divider label={{ name: "Case parts" }} />
-      <Crumb count="Case 1/3" next={{ label: "UI motion study" }} />
+      <Crumb count="Case 1/3" next={{ label: "UI motion study", href: "/work/ui-motion-study" }} />
       <Facts
         items={[
           { label: "Role", value: "Designer and developer", mock: true },

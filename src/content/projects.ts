@@ -1,7 +1,8 @@
 import type { Project } from "@/components/parts/ProjectRow";
+import { FALLBACK_CASES } from "./cases";
 
-// The home's three rows until Sanity has projects. A row links only once
-// its case exists; small projects go on the Playground instead.
+// The home's three rows in code. A project shows only once it has a case;
+// small projects go on the Playground instead.
 // Summaries, roles and pin notes are its placeholder copy; the video per
 // row is a guess until the real media is in Sanity.
 export const FALLBACK_FEATURED: Project[] = [
@@ -46,25 +47,5 @@ export const FALLBACK_FEATURED: Project[] = [
   },
 ];
 
-// Three more projects whose stories aren't written yet: Wessel's own side
-// projects. Only the titles are real; year, role and tools show as slots
-// (hidden on the live site) and the poster is a placeholder tile.
-const TO_WRITE: [string, string, number][] = [
-  ["Orka", "orka", 1],
-  ["Wagg.le", "waggle", 2],
-  ["AniPlanner", "aniplanner", 3],
-];
-export const FALLBACK_PROJECTS: Project[] = [
-  ...FALLBACK_FEATURED,
-  ...TO_WRITE.map(([title, slug, tile]) => ({
-    title,
-    summary: "",
-    timeline: "",
-    role: "",
-    tools: [],
-    media: { poster: `/media/archive-tile${tile}.jpg` },
-    href: `/work/${slug}`,
-    label: title,
-    placeholder: true,
-  })),
-];
+// Without Sanity, only the rows whose case is in code show.
+export const FALLBACK_PROJECTS = FALLBACK_FEATURED.filter((p) => FALLBACK_CASES.some((c) => p.href === `/work/${c.slug}`));

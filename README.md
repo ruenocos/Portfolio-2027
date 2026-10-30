@@ -111,8 +111,8 @@ it). Studio at `/studio`, draft mode at `/api/draft-mode/enable`. Schemas in
   one shows the approved copy from `src/content`, which the Studio shows as
   grey placeholder text.
 - `project`: one per project, its row on Home and Work plus its case page.
-  Home and Work show the built-in rows until projects are published, then
-  only published ones, so publish them together.
+  A project shows once its case has a section (name and heading); without a
+  case it isn't listed, and small projects go on the Playground instead.
 - `playgroundPiece`: one per Playground post.
 
 Projects and Playground posts are ordered by dragging in the Studio

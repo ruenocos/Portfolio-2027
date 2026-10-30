@@ -36,12 +36,11 @@ export default async function CasePage({ params }: PageProps<"/work/[slug]">) {
   const [c, projects] = await Promise.all([getCase(slug, o), getWork(o)]);
   if (!c) notFound();
 
-  // Where this case sits among the live ones, and the one after it.
-  const cases = projects.filter((p) => p.href);
-  const i = cases.findIndex((p) => p.href === `/work/${slug}`);
-  const after = i >= 0 ? cases[(i + 1) % cases.length] : undefined;
+  // Where this case sits in the work, and the one after it.
+  const i = projects.findIndex((p) => p.href === `/work/${slug}`);
+  const after = i >= 0 ? projects[(i + 1) % projects.length] : undefined;
   const crumb = {
-    count: i >= 0 ? `Project ${i + 1}/${cases.length}` : undefined,
+    count: i >= 0 ? `Project ${i + 1}/${projects.length}` : undefined,
     next: after && after.href !== `/work/${slug}` ? { label: after.title, href: after.href } : undefined,
   };
   const mock = (f: "lead" | "intro" | "caption") => (c.mock?.includes(f) ? "" : undefined);
@@ -114,7 +113,7 @@ export default async function CasePage({ params }: PageProps<"/work/[slug]">) {
       {crumb.next && after && (
         <>
           <Divider label={{ name: "Next project" }} />
-          <ProjectRows projects={[after]} label="Next project" next />
+          <ProjectRows projects={[after]} label="Next project" />
         </>
       )}
       {/* No bar at the end: the Next row is the way on and Work in the

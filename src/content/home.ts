@@ -1,5 +1,5 @@
 import type { Project } from "@/components/parts/ProjectRow";
-import { FALLBACK_FEATURED } from "./projects";
+import { FALLBACK_PROJECTS } from "./projects";
 
 // Everything the home page says and shows. Sanity fills it (the "home"
 // singleton plus the projects picked for Home); until a field is filled there,
@@ -43,7 +43,7 @@ export const FALLBACK_HOME: HomeContent = {
       { src: "/media/about-hat.jpg", alt: "Wessel in a denim bucket hat, mid-thought" },
     ],
   },
-  projects: FALLBACK_FEATURED,
+  projects: FALLBACK_PROJECTS,
   focus: {
     statement: "I like the small stuff. The bits you feel before you notice them.",
     tracks: [

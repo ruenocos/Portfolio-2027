@@ -417,17 +417,6 @@
     background: var(--line);
     min-width: 0;
   }
-  /* A project still to write has no role or tools yet: title | media, no
-     empty third cell (it comes back with ?mocks). Not in the case page's
-     Next row, which keeps its thirds so every next project looks the same. */
-  @media (width >= 900px) {
-    html:not([data-mocks]) :not([data-next]) > .pj[data-gap] {
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
-    html:not([data-mocks]) :not([data-next]) > .pj[data-gap] > .pr {
-      display: none;
-    }
-  }
   .pj > .cell {
     padding: var(--spacing-section) var(--spacing-inset);
   }
@@ -497,23 +486,6 @@
   .meta:has(.tools:empty) {
     display: none;
   }
-  /* "Case study soon" for touch and keyboard (mouse users get it on the You tag). */
-  .soontag {
-    position: absolute;
-    left: 50%;
-    bottom: 18px;
-    z-index: 5;
-    translate: -50% 8px;
-    opacity: 0;
-    pointer-events: none;
-    transition:
-      opacity var(--dur-ui) var(--ease-ui),
-      translate var(--dur-spring) var(--ease-spring);
-  }
-  .soontag[data-on="true"] {
-    opacity: 1;
-    translate: -50% 0;
-  }
 
   /* ---------- crumb bar ---------- */
   .crumb > .cell {
@@ -523,9 +495,6 @@
     gap: 16px;
     padding: 0 var(--spacing-inset);
     min-height: 64px;
-  }
-  .crumb .sn {
-    color: var(--mute);
   }
 
   /* ---------- facts row ---------- */

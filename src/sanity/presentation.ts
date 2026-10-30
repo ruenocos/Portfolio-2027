@@ -11,10 +11,10 @@ export const resolve: PresentationPluginOptions["resolve"] = {
     home: defineLocations({ message: "The home page", locations: [{ title: "Home", href: "/" }] }),
     about: defineLocations({ message: "The About page", locations: [{ title: "About", href: "/about" }] }),
     project: defineLocations({
-      select: { title: "title", slug: "slug.current", hasCase: "hasCase" },
+      select: { title: "title", slug: "slug.current" },
       resolve: (doc) => ({
         locations: [
-          ...(doc?.slug && doc.hasCase ? [{ title: doc.title || "Case", href: `/work/${doc.slug}` }] : []),
+          ...(doc?.slug ? [{ title: doc.title || "Case", href: `/work/${doc.slug}` }] : []),
           { title: "Work", href: "/work" },
           { title: "Home", href: "/" },
         ],

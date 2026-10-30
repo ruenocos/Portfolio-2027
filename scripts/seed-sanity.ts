@@ -159,7 +159,6 @@ async function projects() {
       tools: p.tools.map(String),
       note: p.note?.text,
       label: p.label,
-      hasCase: !!c,
       orderRank: rank[i],
       poster: await image(p.media.poster),
       ...(p.media.video ? { video: await file(p.media.video) } : {}),

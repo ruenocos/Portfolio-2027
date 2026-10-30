@@ -8,7 +8,7 @@ import { FALLBACK_HOME, type HomeContent, type Track } from "./home";
 import { FALLBACK_ABOUT, type AboutContent, type Sticker } from "./about";
 import { FALLBACK_CASES, type Case, type CaseSection } from "./cases";
 import { FALLBACK_POSTS, PLAYGROUND_TARGET, type Post } from "./playground";
-import { FALLBACK_PROJECTS } from "./projects";
+import { FALLBACK_FEATURED, FALLBACK_PROJECTS } from "./projects";
 
 /** A Sanity image as the queries return it: the asset plus the Studio's crop and focal point. */
 type Pic = { asset?: { _ref: string }; crop?: object; hotspot?: object };
@@ -23,8 +23,7 @@ type Row = {
   tools?: string[];
   note?: string;
   label?: string;
-  hasCase?: boolean;
-  slug?: string;
+  slug: string;
   poster?: Pic;
   video?: string;
   videoAv1?: string;
@@ -63,7 +62,7 @@ const SPOTS = [
 const isLorem = (s?: string) => !!s && /lorem ipsum|dolor sit|20XX/i.test(s);
 
 function rowMock(r: Row): Project["mock"] {
-  const fb = FALLBACK_PROJECTS.find((p) => p.href === `/work/${r.slug}`);
+  const fb = FALLBACK_FEATURED.find((p) => p.href === `/work/${r.slug}`);
   const same = (f: "summary" | "role" | "note", v?: string) =>
     !!fb?.mock?.includes(f) && v === (f === "note" ? fb.note?.text : fb[f]);
   const fields = (["summary", "role", "note"] as const).filter((f) => {
@@ -83,9 +82,7 @@ function toProject(r: Row, i: number): Project {
     role: r.role ?? "",
     tools: knownTools(r.tools ?? []),
     media: { poster: pic(r.poster, 1040, PORTRAIT), video: r.video, videoAv1: r.videoAv1, peek: r.peek, peekAv1: r.peekAv1 },
-    // No live case yet: the row says "Case study soon". Small projects go
-    // on the Playground instead of getting a page.
-    href: r.slug && r.hasCase ? `/work/${r.slug}` : undefined,
+    href: `/work/${r.slug}`,
     label: r.label || `${r.title}, ${r.timeline}.`,
     note: r.note ? { text: r.note, spot: SPOTS[i % SPOTS.length] } : undefined,
   };
@@ -153,7 +150,7 @@ export async function getHome(o: FetchOptions = published): Promise<HomeContent>
       next: h.aboutNext || f.about.next,
       photos: photos.length ? photos.map((p) => ({ alt: p.alt, src: pic(p.src, 760, PORTRAIT)! })) : f.about.photos,
     },
-    projects: rows.length ? rows.map(toProject) : f.projects.map(withCodeCase),
+    projects: rows.length ? rows.map(toProject) : f.projects,
     focus: {
       statement: h.focusStatement || f.focus.statement,
       tracks: f.focus.tracks.map((t) => {
@@ -174,15 +171,10 @@ export async function getWork(o: FetchOptions = published): Promise<Project[]> {
   } catch (e) {
     console.warn("Work: Sanity unavailable, using the fallback content.", e);
   }
-  return rows?.length ? rows.map(toProject) : FALLBACK_PROJECTS.map(withCodeCase);
+  return rows?.length ? rows.map(toProject) : FALLBACK_PROJECTS;
 }
 
-// A code row links only when the code has its case.
-const withCodeCase = (p: Project): Project =>
-  FALLBACK_CASES.some((c) => p.href === `/work/${c.slug}`) ? p : { ...p, href: undefined };
-
 type CaseDoc = {
-  hasCase?: boolean;
   title: string;
   lang?: string;
   lead?: string;
@@ -246,22 +238,21 @@ function toCase(slug: string, d: CaseDoc): Case {
 }
 
 /**
- * A case page: Sanity's once it's live and written. A project Sanity doesn't
- * have (or Sanity unreachable) falls back to the case in code, if any.
- * Anything else has no page.
+ * A case page: Sanity's once it has a written section. A project Sanity
+ * doesn't have (or Sanity unreachable) falls back to the case in code.
  */
 export async function getCase(slug: string, o: FetchOptions = published): Promise<Case | null> {
   try {
     const { data } = await cachedSanity({ query: CASE_QUERY, params: { slug }, ...o });
     const d = data as unknown as CaseDoc | null;
-    if (d) return d.hasCase && d.sections?.some((s) => s.name && s.heading) ? toCase(slug, d) : null;
+    if (d) return d.sections?.some((s) => s.name && s.heading) ? toCase(slug, d) : null;
   } catch (e) {
     console.warn(`Case ${slug}: Sanity unavailable, using the fallback content.`, e);
   }
   return FALLBACK_CASES.find((c) => c.slug === slug) ?? null;
 }
 
-/** Case pages to prebuild: the live ones, plus the cases in code. */
+/** Case pages to prebuild: Sanity's, plus the cases in code. */
 export async function caseSlugs(): Promise<string[]> {
   let live: string[] = [];
   try {

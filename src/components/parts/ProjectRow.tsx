@@ -1,19 +1,17 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import { Pin } from "@/components/canvas/Pin";
 import { Hop } from "@/components/shell/Hop";
 import { useBeat } from "@/components/canvas/useBeat";
 import { useMotion } from "@/components/useMotion";
-import { announce } from "@/lib/motion";
 import type { ToolId } from "@/lib/tools";
 import { live, select, showPin, wait, wessel, type XY } from "@/lib/wessel";
 import motionTokens from "../../../design/motion-tokens.json";
 import { magnet } from "@/lib/magnet";
 import { MediaFill } from "./Media";
-import { MockTag, Slot } from "./Pills";
-import { EmptyTool, Tools } from "./Tools";
+import { Tools } from "./Tools";
 import { finePointer, narrow } from "@/lib/media";
 
 const NEED = motionTokens.wessel.need.projectRow;
@@ -29,40 +27,21 @@ export type Project = {
   tools: ToolId[];
   /** peek: the small copy of the loop, for thumbnails (Work's rows). */
   media: { poster?: string; video?: string; videoAv1?: string; peek?: string; peekAv1?: string };
-  /** The case page. Without one the media says "Case study soon". */
-  href?: string;
+  /** The case page. */
+  href: string;
   /** Read out for the media link, e.g. "De Saak case study. Design, dev and SEO, 2023 to now." */
   label: string;
   /** Wessel's pin on the media. spot: where it lands, a little off, like it was dropped by hand. */
   note?: { text: string; spot?: { fx: number; dy: number; rot: number } };
   /** Which of these fields are placeholder copy (DESIGN.md §2.8). */
   mock?: ("summary" | "role" | "note" | "media")[];
-  /** A slot still waiting for its project: only the media is real; the text shows dashed gaps. */
-  placeholder?: boolean;
 };
-
-// No case page yet: the click says so. Mouse users read it on their You
-// tag; touch and keyboard get the "Case study soon" pill for a moment.
-export function useCaseSoon() {
-  const [soon, setSoon] = useState(false);
-  const timer = useRef(0);
-  useEffect(() => () => clearTimeout(timer.current), []);
-  const notYet = (e: React.MouseEvent) => {
-    announce("Case study soon");
-    const mouse = (e.nativeEvent as PointerEvent).pointerType === "mouse" && e.detail > 0;
-    if (mouse) return;
-    setSoon(true);
-    clearTimeout(timer.current);
-    timer.current = window.setTimeout(() => setSoon(false), 1600);
-  };
-  return [soon, notYet] as const;
-}
 
 // Leans toward your pointer while it's over the row's side columns, with a
 // little tilt, like a card picked up off the desk. Holds still over the
 // middle column so it's easy to hit. Off on touch and while calm.
 function useMagnet() {
-  const media = useRef<HTMLElement>(null);
+  const media = useRef<HTMLAnchorElement>(null);
   const { calm } = useMotion();
   useEffect(() => {
     const el = media.current;
@@ -105,9 +84,7 @@ function ProjectRow({
 }) {
   const media = useMagnet();
   const pin = useRef<HTMLSpanElement>(null);
-  const [soon, notYet] = useCaseSoon();
   const mock = (f: "summary" | "role" | "note" | "media") => (p.mock?.includes(f) ? "" : undefined);
-  const gap = p.placeholder;
 
   // Pin spot: a fraction across the media, a little up from its bottom.
   const placePin = () => {
@@ -187,11 +164,6 @@ function ProjectRow({
           {p.note.text}
         </Pin>
       )}
-      {!p.href && (
-        <span className="soontag gpill text-micro-caps" data-size="small" data-on={soon} aria-hidden="true">
-          Case study soon
-        </span>
-      )}
     </>
   );
 
@@ -206,96 +178,57 @@ function ProjectRow({
     <article
       ref={row}
       className="pj"
-      data-gap={gap ? "" : undefined}
       hidden={hidden}
       data-leaving={leaving || undefined}
       data-hop-host
-      data-you={p.href ? "View case" : "Case study soon"}
-     
+      data-you="View case"
       onClick={rowClick}
     >
       <div className="cell pl">
         <div>
-          <h3 className="text-title" lang={p.lang} data-mock={gap ? "" : undefined}>
-            <span className="tt">{gap ? p.title : <Hop text={p.title} />}</span>
-            {gap && (
-              <span aria-hidden="true">
-                <MockTag className="ml-2.5 align-middle" />
-              </span>
-            )}
+          <h3 className="text-title" lang={p.lang}>
+            <span className="tt">
+              <Hop text={p.title} />
+            </span>
           </h3>
           <p className="pd text-body" data-mock={mock("summary")}>
-            {gap ? <Slot>Summary</Slot> : p.summary}
+            {p.summary}
           </p>
         </div>
-        {/* A project still to write shows no empty labels (they come back with ?mocks). */}
-        <dl className="meta" data-mock-only={gap ? "" : undefined}>
+        <dl className="meta">
           <dt className="text-label">Timeline</dt>
-          <dd className="text-body">{gap ? <Slot>Year</Slot> : p.timeline}</dd>
+          <dd className="text-body">{p.timeline}</dd>
         </dl>
       </div>
       <div className="cell pc">
-        {p.href ? (
-          <Link
-            ref={media as React.RefObject<HTMLAnchorElement>}
-            data-mock={mock("media")}
-            href={p.href}
-            className="media"
-            data-ratio="portrait"
-            aria-label={p.label}
-          >
-            {inner}
-          </Link>
-        ) : (
-          <button
-            ref={media as React.RefObject<HTMLButtonElement>}
-            data-mock={mock("media")}
-            type="button"
-            className="media"
-            data-ratio="portrait"
-            aria-label={`${p.label} Case study soon.`}
-            onClick={notYet}
-          >
-            {inner}
-          </button>
-        )}
+        <Link ref={media} data-mock={mock("media")} href={p.href} className="media" data-ratio="portrait" aria-label={p.label}>
+          {inner}
+        </Link>
       </div>
       <div className="cell pr">
-        <dl className="meta" data-mock-only={gap ? "" : undefined}>
+        <dl className="meta">
           <dt className="text-label">Role</dt>
           <dd className="text-body" data-mock={mock("role")}>
-            {gap ? <Slot>Role</Slot> : p.role}
+            {p.role}
           </dd>
         </dl>
-        <dl className="meta" data-mock-only={gap ? "" : undefined}>
+        <dl className="meta">
           <dt className="text-label">Tools</dt>
-          <dd>{gap ? <EmptyTool /> : <Tools ids={p.tools} />}</dd>
+          <dd>
+            <Tools ids={p.tools} />
+          </dd>
         </dl>
       </div>
     </article>
   );
 }
 
-/**
- * The rows sit in one ruled stack inside the frame. `next` is the case
- * page's Next project row: always the full thirds, so
- * a project still to write gets the same media size as a written one.
- */
-export function ProjectRows({
-  projects,
-  label = "Selected work",
-  id,
-  next,
-}: {
-  projects: Project[];
-  label?: string;
-  id?: string;
-  next?: boolean;
-}) {
+/** The rows sit in one ruled stack inside the frame. */
+export function ProjectRows({ projects, label = "Selected work", id }: { projects: Project[]; label?: string; id?: string }) {
   return (
     <section className="frame" data-row id={id} aria-label={label}>
       <div className="side" />
-      <div className="ruled min-w-0" data-next={next ? "" : undefined}>
+      <div className="ruled min-w-0">
         {projects.map((p) => (
           <ProjectRow key={p.title} project={p} />
         ))}
