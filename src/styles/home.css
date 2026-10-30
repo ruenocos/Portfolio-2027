@@ -215,7 +215,7 @@
     gap: 16px;
   }
   .atext .intro p {
-    max-width: 34em;
+    max-width: 62ch;
   }
   .atext h3 {
     max-width: 20ch;
@@ -342,6 +342,23 @@
   }
   .fdots {
     display: none;
+  }
+  /* Tablet landscape: three cards in two thirds of the row would clip their
+     titles, so the statement sits above them and the cards get the width. */
+  @media (900px <= width < 1200px) {
+    .fx {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+  /* Narrow desktops: the five Daily kit chips stay on one line. */
+  @media (1200px <= width < 1440px) {
+    .tools.kit[data-size="56"] {
+      gap: 8px;
+      flex-wrap: nowrap;
+    }
+    .tools.kit[data-size="56"] .tool {
+      --s: 48px;
+    }
   }
   .fig {
     padding: 64px 28px;

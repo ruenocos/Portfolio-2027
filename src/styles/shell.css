@@ -146,10 +146,27 @@
   .hd .ct:hover {
     color: var(--grape);
   }
+  html[data-lost] .hd nav a[aria-current="page"]:not(:hover) {
+    color: inherit;
+  }
   .hd .ctw {
     display: flex;
     align-items: center;
     gap: 24px;
+  }
+  /* Tablet landscape: centred on the bar, the nav would run under the
+     switch, so it sits at the start of its own box instead. */
+  @media (900px <= width < 1180px) {
+    .hd nav {
+      position: static;
+      translate: none;
+      gap: 16px;
+      margin-right: auto;
+    }
+    .hd .mid {
+      justify-content: space-between;
+      gap: 16px;
+    }
   }
   .hd .end {
     justify-content: center;
@@ -792,12 +809,13 @@ html[data-motion="calm"]:not(.mode-fade) *::after {
 }
 
 /* Page change (PageSwitch): the veil is a canvas-coloured cover over the
-   content column, under the header so that holds still. */
+   content column, under the header so that holds still. It covers the old
+   page's marks too (.ovl, 34); only Wessel (39) stays above it. */
 .veil {
   position: fixed;
   top: var(--spacing-header);
   bottom: 0;
-  z-index: 30;
+  z-index: 35;
   background: var(--canvas);
   pointer-events: none;
 }

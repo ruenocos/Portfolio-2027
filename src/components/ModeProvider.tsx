@@ -40,6 +40,15 @@ export function useMode(): Mode {
 
 export function ModeProvider() {
   useEffect(() => {
+    // A page rendered in the browser after a server error or a not-found
+    // (its <head> scripts never ran) starts on the default: set it straight.
+    const root = document.documentElement;
+    const mode = resolveMode();
+    if (root.dataset.mode !== mode) {
+      root.dataset.mode = mode;
+      paintThemeColor(mode);
+      listeners.forEach((fn) => fn());
+    }
     const system = matchMedia("(prefers-color-scheme: dark)");
     system.addEventListener("change", apply);
     return () => system.removeEventListener("change", apply);

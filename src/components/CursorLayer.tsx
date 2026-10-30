@@ -7,6 +7,9 @@ import { TIP, arrive, attachWessel, newPage } from "@/lib/wessel";
 import { Cursor } from "./canvas/Cursor";
 import { finePointer } from "@/lib/media";
 
+// How often the hover hint re-checks what is under a still pointer while the page scrolls.
+const LOOK_MS = 120;
+
 // Wessel's layer. It lives in the root layout so he survives page changes:
 // one Wessel on screen, always. The engine (lib/wessel) moves him; pages
 // give him jobs with useBeat().
@@ -50,10 +53,13 @@ export function CursorLayer() {
     let soon = 0;
     let at: [number, number] | null = null;
     let raf = 0;
-    // What's under you: the hand on links, and a hint in the tag.
+    // What's under you: the hand on links, and a hint in the tag. Written
+    // only when it changes, so a scroll over plain text costs no style work.
     const look = (t: Element | null) => {
-      y.dataset.on = String(!!t?.closest?.("a,button,[role=button],label,[data-you]"));
-      if (!soon) tag.textContent = t?.closest?.("[data-you]")?.getAttribute("data-you") || "You";
+      const on = String(!!t?.closest?.("a,button,[role=button],label,[data-you]"));
+      if (y.dataset.on !== on) y.dataset.on = on;
+      const text = t?.closest?.("[data-you]")?.getAttribute("data-you") || "You";
+      if (!soon && tag.textContent !== text) tag.textContent = text;
     };
     const move = (e: PointerEvent) => {
       if (e.pointerType !== "mouse") return;
@@ -63,11 +69,20 @@ export function CursorLayer() {
       look(e.target as Element);
     };
     // Scrolling with the mouse still moves the page under you, not you.
-    const scrolled = () =>
-      (raf ||= requestAnimationFrame(() => {
+    // Hit-testing is a layout read, so mid-scroll it runs every LOOK_MS
+    // and once more when the page comes to rest.
+    let lookedAt = 0;
+    let settle = 0;
+    const scrolled = () => {
+      clearTimeout(settle);
+      settle = window.setTimeout(() => at && look(document.elementFromPoint(at[0], at[1])), LOOK_MS);
+      if (raf || performance.now() - lookedAt < LOOK_MS) return;
+      raf = requestAnimationFrame(() => {
         raf = 0;
+        lookedAt = performance.now();
         if (at) look(document.elementFromPoint(at[0], at[1]));
-      }));
+      });
+    };
     const out = (e: MouseEvent) => {
       if (!e.relatedTarget) y.dataset.hide = "true";
     };
@@ -92,6 +107,7 @@ export function CursorLayer() {
       removeEventListener("pointermove", move);
       removeEventListener("scroll", scrolled);
       cancelAnimationFrame(raf);
+      clearTimeout(settle);
       removeEventListener("pointerdown", down);
       removeEventListener("pointerup", up);
       removeEventListener("wsl:you", say);

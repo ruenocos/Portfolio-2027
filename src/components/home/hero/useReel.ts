@@ -27,17 +27,27 @@ export function useReel(
     if (!video || !link) return;
     let visible = false;
     let raf = 0;
+    // The bar moves when the video shows a new frame, not on every screen
+    // refresh (the reel runs at its own frame rate).
+    const vfc = "requestVideoFrameCallback" in video;
+    const next = () => (vfc ? video.requestVideoFrameCallback(draw) : requestAnimationFrame(draw));
+    const stop = () => (vfc ? video.cancelVideoFrameCallback(raf) : cancelAnimationFrame(raf));
     const draw = () => {
       if (video.duration && progress.current) {
         progress.current.style.transform = `scaleX(${(video.currentTime / video.duration).toFixed(4)})`;
       }
-      raf = visible && !video.paused ? requestAnimationFrame(draw) : 0;
+      raf = visible && !video.paused ? next() : 0;
     };
     syncLoop.current = () => {
       if (visible && invited.current && !still && !opened.current) {
         if (!video.src && video.dataset.src) video.src = video.dataset.src;
-        video.play().then(() => (raf ||= requestAnimationFrame(draw)), () => {});
-      } else video.pause();
+        video.play().then(() => (raf ||= next()), () => {});
+      } else {
+        video.pause();
+        // A paused video calls back no frames, so the pending one is dropped here.
+        stop();
+        raf = 0;
+      }
     };
     const io = new IntersectionObserver(([entry]) => {
       visible = entry.isIntersecting;
@@ -48,7 +58,7 @@ export function useReel(
     video.addEventListener("playing", playing);
     return () => {
       io.disconnect();
-      cancelAnimationFrame(raf);
+      stop();
       video.removeEventListener("playing", playing);
       video.pause();
     };

@@ -57,16 +57,17 @@
    registered with @property in tokens.css) and every element inherits them,
    so it's one animated style instead of a transition on every node, and no
    element's own transitions get replaced (the switch knob keeps its spring).
-   The surfaces go first and the text follows a quarter later, so ink never
-   sits on the same grey as the canvas. 0.6s in total, in-out (DESIGN.md §3).
+   The surfaces fade over the first three quarters; the text holds its old
+   colour and swaps quickly as the canvas passes its middle grey, so ink
+   always has contrast against it. 0.6s in total, in-out (DESIGN.md §3).
    Kept under reduced motion: colour changes are allowed there. */
 .mode-fade {
   transition-property: --canvas, --line, --fill, --dot, --tang, --tang-ink, --grape, --ink, --mute, --on-tang, --on-grape;
   transition-duration:
     calc(var(--dur-mode) * 0.75), calc(var(--dur-mode) * 0.75), calc(var(--dur-mode) * 0.75), calc(var(--dur-mode) * 0.75),
     var(--dur-mode), var(--dur-mode), var(--dur-mode),
-    calc(var(--dur-mode) * 0.75), calc(var(--dur-mode) * 0.75), calc(var(--dur-mode) * 0.75), calc(var(--dur-mode) * 0.75);
-  transition-delay: 0s, 0s, 0s, 0s, 0s, 0s, 0s, calc(var(--dur-mode) * 0.25), calc(var(--dur-mode) * 0.25), calc(var(--dur-mode) * 0.25), calc(var(--dur-mode) * 0.25);
+    calc(var(--dur-mode) * 0.1), calc(var(--dur-mode) * 0.1), calc(var(--dur-mode) * 0.1), calc(var(--dur-mode) * 0.1);
+  transition-delay: 0s, 0s, 0s, 0s, 0s, 0s, 0s, calc(var(--dur-mode) * 0.33), calc(var(--dur-mode) * 0.33), calc(var(--dur-mode) * 0.33), calc(var(--dur-mode) * 0.33);
   transition-timing-function: var(--ease-mode);
 }
 

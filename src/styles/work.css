@@ -147,6 +147,10 @@
     justify-content: space-between;
     gap: 16px;
   }
+  /* A narrow third lets the role wrap; the chips stay on one line. */
+  .arow .ap .tools {
+    flex-wrap: nowrap;
+  }
   .arow .apk {
     position: absolute;
     /* Right of centre, so it never covers the year. */
@@ -193,6 +197,7 @@
     }
     .arow > .cell {
       padding: 0;
+      min-height: 0;
     }
     .arow .al {
       grid-area: t;

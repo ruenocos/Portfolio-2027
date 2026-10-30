@@ -1,11 +1,19 @@
 "use client";
 
+import { useEffect } from "react";
 import { useBeat } from "@/components/canvas/useBeat";
 import { live, pageBox, putPin, select, wait, wessel } from "@/lib/wessel";
 
 // The 404's beat: an empty dashed frame where the
 // page should be. Wessel selects it (0 × 0), drops a comment, and leaves.
 export function LostBeat() {
+  // A missing page under /work isn't the Work page: the header stops
+  // marking it current while this is on screen (shell.css).
+  useEffect(() => {
+    const root = document.documentElement;
+    root.dataset.lost = "";
+    return () => void delete root.dataset.lost;
+  }, []);
   const frame = useBeat<HTMLDivElement>({
     need: 0.5,
     async day(g) {
