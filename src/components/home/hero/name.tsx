@@ -1,5 +1,5 @@
 import { useLayoutEffect, type RefObject } from "react";
-import { getMotion } from "@/lib/motion";
+import { getMotion, helloSeen } from "@/lib/motion";
 import { narrow } from "@/lib/media";
 
 /** The letters Wessel plays with: the W, the u of Oud, and both words. */
@@ -16,7 +16,7 @@ export function nameLetters(name: HTMLElement) {
 // The server renders these classes already (<Letters marks>), so the first
 // paint is the prepped name and it never changes after; calm ignores them in CSS.
 export function prepName(name: HTMLElement) {
-  if (getMotion().calm) return;
+  if (getMotion().calm || helloSeen()) return;
   const { letterW, letterU } = nameLetters(name);
   letterW.classList.add("ol");
   letterU.classList.add("off");

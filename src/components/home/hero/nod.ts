@@ -17,9 +17,9 @@ export const nodSpot = (hero: HTMLElement): [number, number, number] => {
   return [0.56, 1, Math.max(8, Math.min(24, innerHeight - 64 - bottom))];
 };
 
-export async function nodDown(hero: HTMLElement) {
+export async function nodDown(hero: HTMLElement, dips = 2) {
   const [fx, fy, dy] = nodSpot(hero);
-  for (let k = 0; k < 2; k++) {
+  for (let k = 0; k < dips; k++) {
     await wessel.go(wessel.at(hero, fx, fy, 0, dy + 22), { k: 320, timeout: 260 });
     await wessel.go(wessel.at(hero, fx, fy, 0, dy), { k: 320, timeout: 260 });
   }

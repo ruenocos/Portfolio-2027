@@ -84,9 +84,19 @@ export function announce(text: string) {
  *  over (no JS, a render error) the flag clears itself at intro.watchdogS. Runs before
  *  motionScript, which then skips the house entrance. */
 export const BOOT_KEY = "wsl-boot";
+/** Set once home's full hello has played this session; after that home
+ *  gets the short version and the name is never redrawn unfinished. */
+export const HELLO_KEY = "wsl-hello";
+export const helloSeen = () => document.documentElement.dataset.hello === "seen";
+export function markHelloSeen() {
+  document.documentElement.dataset.hello = "seen";
+  try {
+    sessionStorage.setItem(HELLO_KEY, "1");
+  } catch {}
+}
 export const bootScript = `try{var h=document.documentElement,n=performance.getEntriesByType("navigation")[0],c=navigator.connection;if(location.pathname==="/"&&!location.hash&&!sessionStorage.getItem("${BOOT_KEY}")&&localStorage.getItem("${PAUSE_KEY}")!=="1"&&!matchMedia("(prefers-reduced-motion: reduce)").matches&&!(c&&c.saveData)&&!(n&&n.type==="back_forward")&&document.visibilityState!=="hidden"){h.dataset.boot="pending";setTimeout(function(){if(h.dataset.boot==="pending")delete h.dataset.boot},${motionTokens.intro.watchdogS * 1000})}}catch(e){}`;
 // Runs in <head> before the first paint, next to the mode script.
 // "entering" hides the first screen until the house entrance picks it up
 // (the inline script after the page, lib/entrance);
 // it removes itself after 1.5s in case scripts never run.
-export const motionScript = `try{var h=document.documentElement,p=localStorage.getItem("${PAUSE_KEY}")==="1",r=matchMedia("(prefers-reduced-motion: reduce)").matches;h.classList.toggle("pz",p);h.dataset.motion=p||r?"calm":"full";if(!p&&!r&&!h.dataset.boot){h.classList.add("entering");setTimeout(function(){h.classList.remove("entering")},1500)}}catch(e){}`;
+export const motionScript = `try{var h=document.documentElement,p=localStorage.getItem("${PAUSE_KEY}")==="1",r=matchMedia("(prefers-reduced-motion: reduce)").matches;h.classList.toggle("pz",p);h.dataset.motion=p||r?"calm":"full";if(sessionStorage.getItem("${HELLO_KEY}"))h.dataset.hello="seen";if(!p&&!r&&!h.dataset.boot){h.classList.add("entering");setTimeout(function(){h.classList.remove("entering")},1500)}}catch(e){}`;
