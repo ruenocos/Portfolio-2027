@@ -1,5 +1,5 @@
 /* Home sections (DESIGN.md §5–§7): hero, About deck,
-   Focus, archive hand, bookend, plus the marks Wessel puts on the page
+   Focus, archive hand, plus the marks Wessel puts on the page
    while he works them. Type comes from the text-* utilities. */
 
 @layer components {
@@ -486,53 +486,6 @@
     color: var(--grape);
   }
 
-  /* ---------- bookend ---------- */
-  .bk {
-    padding: 56px var(--spacing-inset) 72px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 28px;
-  }
-  .bkn {
-    width: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    font-size: 192px;
-    line-height: 1;
-    color: var(--tang);
-  }
-  .bkn .wd {
-    height: 0.716em;
-    display: block;
-    overflow: visible;
-    fill: currentColor;
-  }
-  .bkn .smi {
-    width: 1.04em;
-    height: 1.04em;
-    flex: none;
-    display: block;
-  }
-  .bkn .smi svg {
-    width: 100%;
-    height: 100%;
-    display: block;
-  }
-  /* Each piece lands slightly off, like a fresh paste, then snaps home. */
-  html:not([data-motion="calm"]) .bkn > * {
-    opacity: 0;
-    transform: translate(0.08em, 0.08em);
-    transition:
-      opacity 90ms var(--ease-ui),
-      transform 560ms var(--ease-spring);
-  }
-  html:not([data-motion="calm"]) .bkn > [data-in] {
-    opacity: 1;
-    transform: none;
-  }
-
   /* ---------- Wessel's marks on the page layer ---------- */
   .ovl > .pin {
     position: absolute;
@@ -761,9 +714,6 @@
     }
     .allw {
       top: calc(56% + 64px);
-    }
-    .bk {
-      padding-top: 40px;
     }
   }
   @media (hover: none) {

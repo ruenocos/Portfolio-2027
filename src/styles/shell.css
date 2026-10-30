@@ -324,58 +324,121 @@
        so no bare hairline colour shows under the footer. */
     flex: 1 0 auto;
   }
-  .footer-air {
+  /* The hello takes the slack on a short page. */
+  .hello-band {
     flex: 1 0 auto;
   }
-  .footer-air.divider.divider-tall > :is(.cell, .side) {
-    height: auto;
-    min-height: var(--spacing-divider-tall);
-  }
-  .fcols {
-    display: grid;
-    grid-template-columns: 2fr 1fr 1fr;
-    gap: var(--spacing-hairline);
-    background: var(--line);
-    min-width: 0;
-  }
-  .fcols .cell {
-    padding: 64px var(--spacing-inset);
+  .hello {
+    position: relative;
+    container-type: inline-size;
+    padding: 40px var(--spacing-inset) 104px;
     display: flex;
     flex-direction: column;
-    gap: 16px;
-    align-items: flex-start;
+    gap: 28px;
   }
-  .mail {
-    display: inline-block;
+  /* The address fills the row. This is the first guess (its length times
+     a wide letter); FooterHello measures and fits it exactly. */
+  .big {
+    align-self: flex-start;
     max-width: 100%;
-    padding-block: 12px;
-    margin-block: -12px;
-    font: 500 var(--type-email-size) / 1.1 var(--font-display);
-    overflow-wrap: anywhere;
-    text-decoration: underline 2px var(--grape);
-    text-underline-offset: 8px;
-    transition: color var(--dur-ui) var(--ease-ui);
+    min-height: var(--spacing-tap);
+    display: flex;
+    align-items: center;
+    font: 500 min(170px, 100cqw / (var(--n) * 0.52)) / 1.02 var(--font-display);
+    letter-spacing: -0.03em;
+    white-space: nowrap;
+    padding-block: 0.08em 0.14em;
   }
-  .mail:hover {
-    color: var(--grape);
+  .big .chs {
+    position: relative;
+    display: inline-block;
   }
-  .fcols .l {
-    min-width: var(--spacing-tap);
+  .big .chs::after {
+    content: "";
+    position: absolute;
+    inset: auto 0 0.02em;
+    height: 3px;
+    background: var(--grape);
+    transform-origin: 0 50%;
+    transform: scaleX(0);
+    transition: transform 700ms var(--ease-spring);
+  }
+  .big[data-on] .chs::after {
+    transform: none;
+  }
+  /* Each letter lifts and turns grape by how close a pointer is (--k, 0–1). */
+  .big .ch {
+    --k: 0;
+    display: inline-block;
+    white-space: pre;
+    transform: translateY(calc(var(--k) * -0.16em));
+    color: color-mix(in srgb, var(--grape) calc(var(--k) * 100%), var(--ink));
+  }
+  .big:focus-visible {
+    outline: 2px solid var(--grape);
+    outline-offset: 6px;
+    border-radius: 4px;
+  }
+  /* Rides on Wessel's parking spot; takes the mouse only while he's there. */
+  .five {
+    position: absolute;
+    width: 96px;
+    height: 72px;
+    margin: -16px 0 0 -16px;
+    border-radius: 16px;
+    pointer-events: none;
+  }
+  .five[data-here] {
+    pointer-events: auto;
+    cursor: pointer;
+  }
+  .five:focus-visible {
+    outline: 2px solid var(--grape);
+    outline-offset: 2px;
+  }
+  .hello .ring {
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    margin: -10px 0 0 -10px;
+    border-radius: 50%;
+    border: 2px solid var(--c);
+    pointer-events: none;
+    animation: five-ring 620ms cubic-bezier(0.2, 0.7, 0.2, 1) forwards;
+  }
+  .cur.wes[data-wave] .ptr {
+    animation: wes-wave 900ms var(--ease-ui);
+  }
+  .flinks {
+    padding: 24px var(--spacing-inset);
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px 24px;
+  }
+  .flinks nav {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0 24px;
+  }
+  .flinks .l {
     min-height: var(--spacing-tap);
     display: inline-flex;
     align-items: center;
     gap: 0.3em;
     transition: color var(--dur-ui) var(--ease-ui);
   }
-  .fcols .l:hover {
+  .flinks .l:hover {
     color: var(--grape);
   }
-  .fcols .ar {
-    color: var(--grape);
+  /* Right-hand even when it wraps under the links on a phone. */
+  .flinks .top {
+    margin-left: auto;
   }
-  .fcols .ext {
-    font-family: var(--font-mono);
-    color: var(--mute);
+  .flinks .ar {
+    display: inline-flex;
+    color: var(--grape);
   }
   .legal {
     padding: 24px var(--spacing-inset);
@@ -669,18 +732,33 @@
     section[id] {
       scroll-margin-top: var(--spacing-header);
     }
-    .fcols {
-      grid-template-columns: 1fr 1fr;
-    }
-    .fcols .cell:first-child {
-      grid-column: 1 / -1;
-    }
-    .fcols .cell {
-      padding-block: 32px;
-      gap: 12px;
+    .hello {
+      padding-block: 32px 80px;
+      gap: 20px;
     }
   }
 
+}
+
+@keyframes five-ring {
+  to {
+    transform: scale(6.5);
+    opacity: 0;
+  }
+}
+@keyframes wes-wave {
+  20% {
+    transform: rotate(-22deg);
+  }
+  45% {
+    transform: rotate(16deg);
+  }
+  70% {
+    transform: rotate(-12deg);
+  }
+  85% {
+    transform: rotate(6deg);
+  }
 }
 
 @keyframes hop {
