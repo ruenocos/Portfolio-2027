@@ -241,6 +241,16 @@ function wake() {
 
 const PARK_SLACK = 40;
 
+/** Clamped with a soft knee: the last KNEE px before an edge ease into it,
+ *  so a target pressing past the edge doesn't pin him flat against it. */
+const KNEE = 32;
+function softClamp(v: number, lo: number, hi: number) {
+  if (hi - lo < KNEE * 2) return clamp(v, lo, hi);
+  if (v < lo + KNEE) return lo + KNEE * Math.exp((v - lo - KNEE) / KNEE);
+  if (v > hi - KNEE) return hi - KNEE * Math.exp((hi - KNEE - v) / KNEE);
+  return v;
+}
+
 // Where he goes when he has no job.
 function home(): XY {
   if (cursor.hold) {
@@ -257,15 +267,102 @@ function home(): XY {
     const bottom = screenHeight() - 40;
     const slack = cursor.parked ? 0 : PARK_SLACK;
     cursor.parked = y > top + slack && y < bottom - slack;
-    if (cursor.parked) return [cursor.anchor[0] - scrollX, y];
+    if (cursor.parked) return offText([cursor.anchor[0] - scrollX, y], `p${cursor.anchor[0]},${cursor.anchor[1]},${innerWidth}`);
     // …and once that has scrolled away he wanders after you, a beat behind.
-    return [cursor.anchor[0] - scrollX, y <= top ? screenHeight() * 0.22 : screenHeight() * 0.78];
+    const slot = y <= top ? 0.22 : 0.78;
+    return offText([cursor.anchor[0] - scrollX, screenHeight() * slot], `f${slot},${scrollY | 0},${innerWidth}`);
   }
   cursor.parked = false;
-  return [innerWidth - (narrow() ? 64 : 120), screenHeight() * 0.74];
+  return offText([innerWidth - (narrow() ? 64 : 120), screenHeight() * 0.74], `r${scrollY | 0},${innerWidth}`);
+}
+
+// ---------- keeping off what you read ----------
+// His resting spots (parked, following, the spot he starts on) never sit on
+// text: once the page is still, the spot is checked against the lines of text
+// under his arrow and tag (16px clear), and he steps aside to the nearest
+// clear spot. Where no spot is clear (a phone's full-width copy), his tag
+// folds away and only the arrow waits in the margin. Jobs point him on
+// purpose and aren't moved.
+const TEXT = "main :is(p,h1,h2,h3,h4,h5,h6,li,blockquote,figcaption,dt,dd), footer :is(p,h1,h2,h3,a)";
+const CLEAR = 16;
+/** Arrow alone (tag folded): it may wait closer to text, in a margin. */
+const ARROW_CLEAR = 8;
+type Box = { l: number; r: number; t: number; b: number };
+const rest = { key: "", dx: 0, dy: 0 };
+let restPending = false;
+
+/** The box his arrow and tag cover with the tip at x, y (screen px). */
+function footprint(x: number, y: number, withTag = true): Box {
+  if (!withTag) return { l: x - 3 - ARROW_CLEAR, r: x + 20 + ARROW_CLEAR, t: y - 3 - ARROW_CLEAR, b: y + 20 + ARROW_CLEAR };
+  // The tag swaps to his left near the right edge (see tick); in the slack
+  // band where it could be on either side, both count.
+  const room = innerWidth - x - labelW;
+  const right = { l: x - 3 - CLEAR, r: x + 17 + labelW + CLEAR, t: y - 3 - CLEAR, b: y + 43 + CLEAR };
+  const left = { l: x + 10 - labelW - CLEAR, r: x + 20 + CLEAR, t: y - 3 - CLEAR, b: y + 43 + CLEAR };
+  if (cursor.lean || room < 20) return left;
+  if (room >= 40) return right;
+  return { ...right, l: left.l };
+}
+
+/** The line boxes of text between top and bottom (screen px). */
+function textLines(top: number, bottom: number) {
+  const lines: Box[] = [];
+  const range = document.createRange();
+  for (const el of document.querySelectorAll(TEXT)) {
+    const r = el.getBoundingClientRect();
+    if (!r.width || r.bottom < top || r.top > bottom) continue;
+    const walk = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
+    for (let n = walk.nextNode(); n; n = walk.nextNode()) {
+      if (!n.textContent?.trim()) continue;
+      range.selectNodeContents(n);
+      for (const q of range.getClientRects())
+        if (q.width && q.bottom > top && q.top < bottom) lines.push({ l: q.left, r: q.right, t: q.top, b: q.bottom });
+    }
+  }
+  return lines;
+}
+
+/** The nearest spot to at where he covers no text, and whether his tag fits there. */
+function clearSpot([x, y]: XY): { at: XY; fold: boolean } {
+  const lines = textLines(y - 180, y + 220);
+  const hits = (b: Box) => lines.some((q) => q.r > b.l && q.l < b.r && q.b > b.t && q.t < b.b);
+  const top = header() + 24;
+  const bottom = screenHeight() - 40;
+  for (const withTag of [true, false])
+    for (const dy of [0, -48, 48, -96, 96]) {
+      const cy = y + dy;
+      if (dy && (cy < top || cy > bottom)) continue;
+      for (let d = 0; d < innerWidth; d += 24)
+        for (const cx of d ? [x - d, x + d] : [x])
+          if (cx >= 8 && cx <= innerWidth - 22 && !hits(footprint(cx, cy, withTag))) return { at: [cx, cy], fold: !withTag };
+    }
+  // Nothing clear at all: the arrow waits in the right margin.
+  return { at: [innerWidth - 22, y], fold: true };
+}
+
+function fold(on: boolean) {
+  if (cursor.el && (cursor.el.dataset.fold === "true") !== on) cursor.el.dataset.fold = String(on);
+}
+
+/** A resting spot moved off text. key names the spot: it's checked once
+ *  the page has been still for a moment, and the step aside is kept while
+ *  you scroll, so he never shuffles under a moving page. */
+function offText([x, y]: XY, key: string): XY {
+  // Not checked yet: keeps his loop awake until it is.
+  restPending = key !== rest.key;
+  if (restPending && performance.now() - lastScrollAt > 160 && cursor.el) {
+    restPending = false;
+    const s = clearSpot([x, y]);
+    rest.key = key;
+    rest.dx = s.at[0] - x;
+    rest.dy = s.at[1] - y;
+    fold(s.fold);
+  }
+  return [x + rest.dx, y + rest.dy];
 }
 
 let lastTargetY: number | null = null;
+let lastTargetX: number | null = null;
 // When the page last scrolled (ms), for touch: a finger or a fling is still going.
 let lastScrollAt = 0;
 // The last written transform and tag side, so a still frame writes nothing.
@@ -283,6 +380,30 @@ function draw(el: HTMLElement) {
   if (at !== shownAt) el.style.transform = shownAt = at;
 }
 
+
+// ---------- ?wessel=debug ----------
+// Logs his state every frame (scripts/check-wessel.mjs reads it) and marks
+// his target on screen, so you can see why he moves. Never on by default.
+type Frame = { t: number; x: number; y: number; tx: number; ty: number; sy: number; mode: string; out: boolean };
+const debug =
+  typeof window !== "undefined" && /[?&]wessel=debug\b/.test(location.search)
+    ? { frames: [] as Frame[], ticks: 0, dot: null as HTMLElement | null }
+    : null;
+if (debug) (window as unknown as { __wessel: unknown }).__wessel = Object.assign(debug, { rest, spot: () => clearSpot([cursor.x, cursor.y]) });
+function logFrame(t: number, tx: number, ty: number, mode: string) {
+  if (!debug || !cursor.el) return;
+  debug.ticks++;
+  const out = cursor.el.dataset.hide === "true" || cursor.el.dataset.tuck === "true" || !cursor.el.offsetParent;
+  if (debug.frames.length < 50000) debug.frames.push({ t, x: cursor.x, y: cursor.y, tx, ty, sy: scrollY, mode, out });
+  if (!debug.dot) {
+    debug.dot = document.createElement("div");
+    debug.dot.style.cssText =
+      "position:fixed;left:0;top:0;z-index:99;width:10px;height:10px;margin:-5px 0 0 -5px;border:2px solid var(--tang);border-radius:50%;pointer-events:none;font:11px monospace;color:var(--tang);white-space:nowrap;text-indent:14px;line-height:6px";
+    document.body.appendChild(debug.dot);
+  }
+  debug.dot.style.transform = `translate(${tx}px,${ty}px)`;
+  debug.dot.textContent = mode;
+}
 
 function tick(frameTime: number) {
   const el = cursor.el;
@@ -305,10 +426,15 @@ function tick(frameTime: number) {
 
   let target = cursor.drive?.() ?? null;
   const driving = !!target;
-  // A job that scrolls away: he reaches for it from the edge instead of leaving.
+  // A job that scrolls away: he reaches for it from the edge instead of leaving
+  // (easing into the edge, so he doesn't press flat against it).
   // Never on the sticky header: his target stays below it.
-  if (target) target = [target[0], clamp(target[1], header() + 24, screenHeight() - 40)];
-  if (!target) target = home();
+  if (target) target = [target[0], softClamp(target[1], header() + 24, screenHeight() - 40)];
+  restPending = false;
+  if (target) {
+    fold(false);
+    rest.key = "";
+  } else target = home();
   const [tx, ty] = target;
   const parked = !driving && cursor.parked;
   // Where his job last pointed him, in page coordinates: if he's let go
@@ -319,7 +445,9 @@ function tick(frameTime: number) {
   // job holds still on screen while you scroll (a sticky panel): then he
   // stays put with it instead of bobbing up and back.
   const pinned = driving && lastTargetY !== null && Math.abs(ty - lastTargetY) < 0.5;
+  const targetStill = pinned && lastTargetX !== null && Math.abs(tx - lastTargetX) < 0.5;
   lastTargetY = driving ? ty : null;
+  lastTargetX = driving ? tx : null;
   // After a page change he holds his spot on screen, like the header.
   const holding = !driving && !!cursor.hold;
   // On touch, free and mid-scroll, he rides the page under your finger
@@ -381,7 +509,10 @@ function tick(frameTime: number) {
   const flip = cursor.lean || room < (flipped ? 40 : 20);
   if (flip !== flipped) el.dataset.flip = String((flipped = flip));
   draw(el);
-  const quiet = !driving && !riding && Math.abs(scrolled) < 0.5 && cursor.distance < 0.5 && cursor.speed < 4;
+  if (debug) logFrame(frameTime, tx, ty, driving ? "job" : still ? "calm" : holding ? "hold" : parked ? "park" : riding ? "ride" : "follow");
+  // A job that holds him still outside a beat (the case read panel resting
+  // him beside your layer) counts as quiet too: scroll and the next move wake him.
+  const quiet = (!driving || (targetStill && !busy)) && !restPending && !riding && Math.abs(scrolled) < 0.5 && cursor.distance < 0.5 && cursor.speed < 4;
   quietFrames = quiet ? quietFrames + 1 : 0;
   raf = quietFrames > SLEEP_AFTER ? 0 : requestAnimationFrame(tick);
 }
@@ -403,10 +534,11 @@ export const wessel = {
     cursor.drive = typeof target === "function" ? target : () => target;
     cursor.spring = { k, z: springs.beat.z };
     const t = cursor.drive();
-    // Lost off screen: he comes back in from the edge he left by.
+    // Lost off screen: he comes back in from the edge he left by, at the
+    // spot along it where he went out (never somewhere new).
     if (t && !calm() && cursor.shown && (cursor.y < -60 || cursor.y > screenHeight() + 60)) {
       cursor.y = cursor.y < 0 ? -40 : screenHeight() + 40;
-      cursor.x = clamp(t[0] + 80, 20, innerWidth - 20);
+      cursor.x = clamp(cursor.x, 20, innerWidth - 20);
       cursor.vx = cursor.vy = 0;
     }
     return new Promise<void>((res) => {
@@ -736,10 +868,12 @@ export function arrive(ms = 600) {
   const g = generation;
   const wait = calm() ? 0 : ms;
   setTimeout(() => wessel.show(), wait);
-  // No job on the new page after a moment: he stops holding his old spot
-  // (which may now be over copy) and goes back to resting.
+  // No job on the new page after a moment: the spot he held becomes his
+  // parked spot on this page (he steps aside if it's on copy), instead of
+  // drifting off to a resting spot that has nothing to do with the page.
   setTimeout(() => {
     if (g === generation && !cursor.drive && !busy) {
+      if (cursor.hold) cursor.anchor = [cursor.hold[0] + scrollX, cursor.hold[1] + scrollY];
       cursor.hold = null;
       wake();
     }

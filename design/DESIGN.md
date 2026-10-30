@@ -144,6 +144,7 @@ Header (sticky, 90px) → Hero → `{ About }` → About (story + photo deck) �
 - **Idle nod:** if you sit still on the hero, he repeats the down-nod after 7s, 12s and 17s, three times at most.
 - **Reduced motion:** end states only, no travel.
 - **Hold back:** never more than one pin on screen; never select something the visitor is using; never cover the name, role or work.
+- **Off the text you read (2026-10-30):** where he rests by himself (parked, following, after a page change, calm) never sits on text. Once the page is still, the spot is checked against the lines of text under his arrow and tag (16px clear) and he steps aside to the nearest clear spot. Where nothing is clear (a phone's full-width copy), his tag folds toward his tip and only the arrow waits in the margin. Jobs point him on purpose and aren't moved. After a page change, the spot he held becomes his parked spot on the new page; lost off screen, he comes back in where he went out. `node scripts/check-wessel.mjs` measures jumps, time off screen, rests on text and idle frames (`?wessel=debug` shows his target).
 
 ## 8. Motion
 

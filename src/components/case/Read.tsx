@@ -168,11 +168,13 @@ export function Read({ sections }: { sections: CaseSection[] }) {
                 </li>
               ))}
             </ol>
+            {/* Off once the read is behind you: the last layer would
+                otherwise trail alone under the header. */}
             {box && (
               <>
                 <span
                   className="sel lsel"
-                  data-on={cur >= 0}
+                  data-on={cur >= 0 && inside}
                   style={{ transform: `translateY(${box.y}px)`, height: box.h }}
                   aria-hidden="true"
                 >
