@@ -137,7 +137,8 @@ export async function getHome(o: FetchOptions = published): Promise<HomeContent>
   const h = doc ?? {};
   const photos = (h.photos ?? []).filter(hasPic);
   const archive = (h.archive ?? []).filter((c): c is { src: string; name: string } => !!c.src && !!c.name);
-  const reel = h.reel?.loop || h.reel?.full ? { ...h.reel, poster: img(h.reel.poster, 1600) } : f.hero.reel;
+  // Only the loop uploaded: the reel opens on the loop instead of doing nothing.
+  const reel = h.reel?.loop || h.reel?.full ? { ...h.reel, full: h.reel.full || h.reel.loop, poster: img(h.reel.poster, 1600) } : f.hero.reel;
 
   return {
     hero: {
@@ -195,6 +196,8 @@ function toCase(slug: string, d: CaseDoc): Case {
   const fact = (label: string, value?: string) =>
     value ? { label, value } : (fb?.facts.find((f) => f.label === label) ?? { label, value: "" });
   const poster = pic(d.hero?.poster, 1800, 16 / 9);
+  // A header video counts without a poster too.
+  const hero = !!(poster || d.hero?.video);
   return {
     slug,
     title: d.title || fb?.title || slug,
@@ -202,12 +205,12 @@ function toCase(slug: string, d: CaseDoc): Case {
     lead: d.lead || fb?.lead || "",
     intro: d.intro || fb?.intro || "",
     mock: (["lead", "intro", "caption"] as const).filter((m) => {
-      const v = m === "caption" ? (poster ? d.hero?.caption : undefined) : d[m];
+      const v = m === "caption" ? (hero ? d.hero?.caption : undefined) : d[m];
       const was = m === "caption" ? fb?.hero.caption : fb?.[m];
       return isLorem(v) || (!!fb?.mock?.includes(m) && (!v || v === was));
     }),
     facts: [fact("Role", d.role), fact("Scope", d.scope), fact("Timeline", d.timeline)],
-    hero: poster
+    hero: hero
       ? { video: d.hero?.video, videoAv1: d.hero?.videoAv1, poster, alt: d.hero?.alt ?? "", caption: d.hero?.caption ?? "" }
       : fb?.hero ?? { poster: undefined, alt: "", caption: "" },
     sections: (d.sections ?? [])
