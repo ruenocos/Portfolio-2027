@@ -116,6 +116,16 @@ export type Project = {
     media?: unknown;
     _type: "file";
   };
+  videoFocus?:
+    | "left top"
+    | "center top"
+    | "right top"
+    | "left center"
+    | "center"
+    | "right center"
+    | "left bottom"
+    | "center bottom"
+    | "right bottom";
   videoCopies?: VideoCopies;
   lead?: string;
   intro?: string;
@@ -150,6 +160,52 @@ export type Project = {
       caption?: string;
       _type: "image";
     };
+    media?: Array<
+      | {
+          layout?: "full" | "half" | "third";
+          items?: Array<{
+            image?: {
+              asset?: SanityImageAssetReference;
+              media?: unknown;
+              hotspot?: SanityImageHotspot;
+              crop?: SanityImageCrop;
+              _type: "image";
+            };
+            video?: {
+              asset?: SanityFileAssetReference;
+              media?: unknown;
+              _type: "file";
+            };
+            alt?: string;
+            _type: "caseMedia";
+            _key: string;
+          }>;
+          _type: "mediaRow";
+          _key: string;
+        }
+      | {
+          before?: {
+            asset?: SanityImageAssetReference;
+            media?: unknown;
+            hotspot?: SanityImageHotspot;
+            crop?: SanityImageCrop;
+            alt?: string;
+            _type: "image";
+          };
+          after?: {
+            asset?: SanityImageAssetReference;
+            media?: unknown;
+            hotspot?: SanityImageHotspot;
+            crop?: SanityImageCrop;
+            alt?: string;
+            _type: "image";
+          };
+          beforeLabel?: string;
+          afterLabel?: string;
+          _type: "compareRow";
+          _key: string;
+        }
+    >;
     note?: string;
     _type: "caseSection";
     _key: string;
@@ -391,7 +447,7 @@ export type AllSanitySchemaTypes =
 
 // Source: src/sanity/queries.ts
 // Variable: HOME_QUERY
-// Query: {  "home": *[_type == "home" && _id == "home"][0]{    basedIn, role,    "reel": { "loop": reel.loop.asset->url, "full": reel.full.asset->url, "poster": reel.poster.asset->url },    aboutOpener, aboutNext,    "photos": photos[]{ "src": @{ asset, crop, hotspot }, alt },    focusStatement,    tracks[]{ key, title, line },    "archive": archive[]{ "src": asset->url, name },    "featured": featured[defined(@->slug.current) && count(@->sections[defined(name) && defined(heading)]) > 0]->{  _createdAt, title, lang, summary, timeline, role, tools, note, label,  "slug": slug.current,  "poster": poster{ asset, crop, hotspot },  "video": video.asset->url,  "videoAv1": select(videoCopies.from == video.asset._ref => videoCopies.av1.asset->url),  "peek": select(videoCopies.from == video.asset._ref => videoCopies.small.asset->url),  "peekAv1": select(videoCopies.from == video.asset._ref => videoCopies.smallAv1.asset->url)}  },  // For the fallback when nothing is picked: the site takes the newest three.  "projects": *[_type == "project" && defined(slug.current) && count(sections[defined(name) && defined(heading)]) > 0] | order(orderRank) {  _createdAt, title, lang, summary, timeline, role, tools, note, label,  "slug": slug.current,  "poster": poster{ asset, crop, hotspot },  "video": video.asset->url,  "videoAv1": select(videoCopies.from == video.asset._ref => videoCopies.av1.asset->url),  "peek": select(videoCopies.from == video.asset._ref => videoCopies.small.asset->url),  "peekAv1": select(videoCopies.from == video.asset._ref => videoCopies.smallAv1.asset->url)}}
+// Query: {  "home": *[_type == "home" && _id == "home"][0]{    basedIn, role,    "reel": { "loop": reel.loop.asset->url, "full": reel.full.asset->url, "poster": reel.poster.asset->url },    aboutOpener, aboutNext,    "photos": photos[]{ "src": @{ asset, crop, hotspot }, alt },    focusStatement,    tracks[]{ key, title, line },    "archive": archive[]{ "src": asset->url, name },    "featured": featured[defined(@->slug.current) && count(@->sections[defined(name) && defined(heading)]) > 0]->{  _createdAt, title, lang, summary, timeline, role, tools, note, label,  "slug": slug.current,  "poster": poster{ asset, crop, hotspot },  "video": video.asset->url,  videoFocus,  "videoAv1": select(videoCopies.from == video.asset._ref => videoCopies.av1.asset->url),  "peek": select(videoCopies.from == video.asset._ref => videoCopies.small.asset->url),  "peekAv1": select(videoCopies.from == video.asset._ref => videoCopies.smallAv1.asset->url)}  },  // For the fallback when nothing is picked: the site takes the newest three.  "projects": *[_type == "project" && defined(slug.current) && count(sections[defined(name) && defined(heading)]) > 0] | order(orderRank) {  _createdAt, title, lang, summary, timeline, role, tools, note, label,  "slug": slug.current,  "poster": poster{ asset, crop, hotspot },  "video": video.asset->url,  videoFocus,  "videoAv1": select(videoCopies.from == video.asset._ref => videoCopies.av1.asset->url),  "peek": select(videoCopies.from == video.asset._ref => videoCopies.small.asset->url),  "peekAv1": select(videoCopies.from == video.asset._ref => videoCopies.smallAv1.asset->url)}}
 export type HOME_QUERY_RESULT = {
   home: {
     basedIn: string | null;
@@ -438,6 +494,17 @@ export type HOME_QUERY_RESULT = {
         hotspot: SanityImageHotspot | null;
       } | null;
       video: string | null;
+      videoFocus:
+        | "center bottom"
+        | "center top"
+        | "center"
+        | "left bottom"
+        | "left center"
+        | "left top"
+        | "right bottom"
+        | "right center"
+        | "right top"
+        | null;
       videoAv1: string | null;
       peek: string | null;
       peekAv1: string | null;
@@ -460,6 +527,17 @@ export type HOME_QUERY_RESULT = {
       hotspot: SanityImageHotspot | null;
     } | null;
     video: string | null;
+    videoFocus:
+      | "center bottom"
+      | "center top"
+      | "center"
+      | "left bottom"
+      | "left center"
+      | "left top"
+      | "right bottom"
+      | "right center"
+      | "right top"
+      | null;
     videoAv1: string | null;
     peek: string | null;
     peekAv1: string | null;
@@ -468,7 +546,7 @@ export type HOME_QUERY_RESULT = {
 
 // Source: src/sanity/queries.ts
 // Variable: WORK_QUERY
-// Query: *[_type == "project" && defined(slug.current) && count(sections[defined(name) && defined(heading)]) > 0] | order(orderRank) {  _createdAt, title, lang, summary, timeline, role, tools, note, label,  "slug": slug.current,  "poster": poster{ asset, crop, hotspot },  "video": video.asset->url,  "videoAv1": select(videoCopies.from == video.asset._ref => videoCopies.av1.asset->url),  "peek": select(videoCopies.from == video.asset._ref => videoCopies.small.asset->url),  "peekAv1": select(videoCopies.from == video.asset._ref => videoCopies.smallAv1.asset->url)}
+// Query: *[_type == "project" && defined(slug.current) && count(sections[defined(name) && defined(heading)]) > 0] | order(orderRank) {  _createdAt, title, lang, summary, timeline, role, tools, note, label,  "slug": slug.current,  "poster": poster{ asset, crop, hotspot },  "video": video.asset->url,  videoFocus,  "videoAv1": select(videoCopies.from == video.asset._ref => videoCopies.av1.asset->url),  "peek": select(videoCopies.from == video.asset._ref => videoCopies.small.asset->url),  "peekAv1": select(videoCopies.from == video.asset._ref => videoCopies.smallAv1.asset->url)}
 export type WORK_QUERY_RESULT = Array<{
   _createdAt: string;
   title: string | null;
@@ -486,6 +564,17 @@ export type WORK_QUERY_RESULT = Array<{
     hotspot: SanityImageHotspot | null;
   } | null;
   video: string | null;
+  videoFocus:
+    | "center bottom"
+    | "center top"
+    | "center"
+    | "left bottom"
+    | "left center"
+    | "left top"
+    | "right bottom"
+    | "right center"
+    | "right top"
+    | null;
   videoAv1: string | null;
   peek: string | null;
   peekAv1: string | null;
@@ -493,7 +582,7 @@ export type WORK_QUERY_RESULT = Array<{
 
 // Source: src/sanity/queries.ts
 // Variable: CASE_QUERY
-// Query: *[_type == "project" && slug.current == $slug][0]{  title, lang, lead, intro, role, scope, timeline,  "hero": { "video": hero.video.asset->url, "videoAv1": select(hero.videoCopies.from == hero.video.asset._ref => hero.videoCopies.av1.asset->url), "poster": hero.poster{ asset, crop, hotspot }, "alt": hero.alt, "caption": hero.caption },  "sections": sections[]{ _key, name, heading, body, note,    "figure": figure{ "src": asset->url, alt, caption, "width": asset->metadata.dimensions.width, "height": asset->metadata.dimensions.height } }}
+// Query: *[_type == "project" && slug.current == $slug][0]{  title, lang, lead, intro, role, scope, timeline,  "hero": { "video": hero.video.asset->url, "videoAv1": select(hero.videoCopies.from == hero.video.asset._ref => hero.videoCopies.av1.asset->url), "poster": hero.poster{ asset, crop, hotspot }, "alt": hero.alt, "caption": hero.caption },  "sections": sections[]{ _key, name, heading, body, note,    "figure": figure{ "src": asset->url, alt, caption, "width": asset->metadata.dimensions.width, "height": asset->metadata.dimensions.height },    "media": media[]{ _key, _type, layout,      items[]{ "src": image{ asset, crop, hotspot }, "width": image.asset->metadata.dimensions.width, "height": image.asset->metadata.dimensions.height, "video": video.asset->url, alt },      "before": before{ "src": asset->url, alt, "width": asset->metadata.dimensions.width, "height": asset->metadata.dimensions.height },      "after": after{ "src": asset->url, alt, "width": asset->metadata.dimensions.width, "height": asset->metadata.dimensions.height },      beforeLabel, afterLabel } }}
 export type CASE_QUERY_RESULT = {
   title: string | null;
   lang: "en" | "nl" | null;
@@ -526,6 +615,48 @@ export type CASE_QUERY_RESULT = {
       width: number | null;
       height: number | null;
     } | null;
+    media: Array<
+      | {
+          _key: string;
+          _type: "compareRow";
+          layout: null;
+          items: null;
+          before: {
+            src: string | null;
+            alt: string | null;
+            width: number | null;
+            height: number | null;
+          } | null;
+          after: {
+            src: string | null;
+            alt: string | null;
+            width: number | null;
+            height: number | null;
+          } | null;
+          beforeLabel: string | null;
+          afterLabel: string | null;
+        }
+      | {
+          _key: string;
+          _type: "mediaRow";
+          layout: "full" | "half" | "third" | null;
+          items: Array<{
+            src: {
+              asset: SanityImageAssetReference | null;
+              crop: SanityImageCrop | null;
+              hotspot: SanityImageHotspot | null;
+            } | null;
+            width: number | null;
+            height: number | null;
+            video: string | null;
+            alt: string | null;
+          }> | null;
+          before: null;
+          after: null;
+          beforeLabel: null;
+          afterLabel: null;
+        }
+    > | null;
   }> | null;
 } | null;
 
@@ -580,9 +711,9 @@ export type PLAYGROUND_QUERY_RESULT = Array<{
 // Query TypeMap
 declare global {
   interface SanityQueries {
-    '{\n  "home": *[_type == "home" && _id == "home"][0]{\n    basedIn, role,\n    "reel": { "loop": reel.loop.asset->url, "full": reel.full.asset->url, "poster": reel.poster.asset->url },\n    aboutOpener, aboutNext,\n    "photos": photos[]{ "src": @{ asset, crop, hotspot }, alt },\n    focusStatement,\n    tracks[]{ key, title, line },\n    "archive": archive[]{ "src": asset->url, name },\n    "featured": featured[defined(@->slug.current) && count(@->sections[defined(name) && defined(heading)]) > 0]->{\n  _createdAt, title, lang, summary, timeline, role, tools, note, label,\n  "slug": slug.current,\n  "poster": poster{ asset, crop, hotspot },\n  "video": video.asset->url,\n  "videoAv1": select(videoCopies.from == video.asset._ref => videoCopies.av1.asset->url),\n  "peek": select(videoCopies.from == video.asset._ref => videoCopies.small.asset->url),\n  "peekAv1": select(videoCopies.from == video.asset._ref => videoCopies.smallAv1.asset->url)\n}\n  },\n  // For the fallback when nothing is picked: the site takes the newest three.\n  "projects": *[_type == "project" && defined(slug.current) && count(sections[defined(name) && defined(heading)]) > 0] | order(orderRank) {\n  _createdAt, title, lang, summary, timeline, role, tools, note, label,\n  "slug": slug.current,\n  "poster": poster{ asset, crop, hotspot },\n  "video": video.asset->url,\n  "videoAv1": select(videoCopies.from == video.asset._ref => videoCopies.av1.asset->url),\n  "peek": select(videoCopies.from == video.asset._ref => videoCopies.small.asset->url),\n  "peekAv1": select(videoCopies.from == video.asset._ref => videoCopies.smallAv1.asset->url)\n}\n}': HOME_QUERY_RESULT;
-    '*[_type == "project" && defined(slug.current) && count(sections[defined(name) && defined(heading)]) > 0] | order(orderRank) {\n  _createdAt, title, lang, summary, timeline, role, tools, note, label,\n  "slug": slug.current,\n  "poster": poster{ asset, crop, hotspot },\n  "video": video.asset->url,\n  "videoAv1": select(videoCopies.from == video.asset._ref => videoCopies.av1.asset->url),\n  "peek": select(videoCopies.from == video.asset._ref => videoCopies.small.asset->url),\n  "peekAv1": select(videoCopies.from == video.asset._ref => videoCopies.smallAv1.asset->url)\n}': WORK_QUERY_RESULT;
-    '*[_type == "project" && slug.current == $slug][0]{\n  title, lang, lead, intro, role, scope, timeline,\n  "hero": { "video": hero.video.asset->url, "videoAv1": select(hero.videoCopies.from == hero.video.asset._ref => hero.videoCopies.av1.asset->url), "poster": hero.poster{ asset, crop, hotspot }, "alt": hero.alt, "caption": hero.caption },\n  "sections": sections[]{ _key, name, heading, body, note,\n    "figure": figure{ "src": asset->url, alt, caption, "width": asset->metadata.dimensions.width, "height": asset->metadata.dimensions.height } }\n}': CASE_QUERY_RESULT;
+    '{\n  "home": *[_type == "home" && _id == "home"][0]{\n    basedIn, role,\n    "reel": { "loop": reel.loop.asset->url, "full": reel.full.asset->url, "poster": reel.poster.asset->url },\n    aboutOpener, aboutNext,\n    "photos": photos[]{ "src": @{ asset, crop, hotspot }, alt },\n    focusStatement,\n    tracks[]{ key, title, line },\n    "archive": archive[]{ "src": asset->url, name },\n    "featured": featured[defined(@->slug.current) && count(@->sections[defined(name) && defined(heading)]) > 0]->{\n  _createdAt, title, lang, summary, timeline, role, tools, note, label,\n  "slug": slug.current,\n  "poster": poster{ asset, crop, hotspot },\n  "video": video.asset->url,\n  videoFocus,\n  "videoAv1": select(videoCopies.from == video.asset._ref => videoCopies.av1.asset->url),\n  "peek": select(videoCopies.from == video.asset._ref => videoCopies.small.asset->url),\n  "peekAv1": select(videoCopies.from == video.asset._ref => videoCopies.smallAv1.asset->url)\n}\n  },\n  // For the fallback when nothing is picked: the site takes the newest three.\n  "projects": *[_type == "project" && defined(slug.current) && count(sections[defined(name) && defined(heading)]) > 0] | order(orderRank) {\n  _createdAt, title, lang, summary, timeline, role, tools, note, label,\n  "slug": slug.current,\n  "poster": poster{ asset, crop, hotspot },\n  "video": video.asset->url,\n  videoFocus,\n  "videoAv1": select(videoCopies.from == video.asset._ref => videoCopies.av1.asset->url),\n  "peek": select(videoCopies.from == video.asset._ref => videoCopies.small.asset->url),\n  "peekAv1": select(videoCopies.from == video.asset._ref => videoCopies.smallAv1.asset->url)\n}\n}': HOME_QUERY_RESULT;
+    '*[_type == "project" && defined(slug.current) && count(sections[defined(name) && defined(heading)]) > 0] | order(orderRank) {\n  _createdAt, title, lang, summary, timeline, role, tools, note, label,\n  "slug": slug.current,\n  "poster": poster{ asset, crop, hotspot },\n  "video": video.asset->url,\n  videoFocus,\n  "videoAv1": select(videoCopies.from == video.asset._ref => videoCopies.av1.asset->url),\n  "peek": select(videoCopies.from == video.asset._ref => videoCopies.small.asset->url),\n  "peekAv1": select(videoCopies.from == video.asset._ref => videoCopies.smallAv1.asset->url)\n}': WORK_QUERY_RESULT;
+    '*[_type == "project" && slug.current == $slug][0]{\n  title, lang, lead, intro, role, scope, timeline,\n  "hero": { "video": hero.video.asset->url, "videoAv1": select(hero.videoCopies.from == hero.video.asset._ref => hero.videoCopies.av1.asset->url), "poster": hero.poster{ asset, crop, hotspot }, "alt": hero.alt, "caption": hero.caption },\n  "sections": sections[]{ _key, name, heading, body, note,\n    "figure": figure{ "src": asset->url, alt, caption, "width": asset->metadata.dimensions.width, "height": asset->metadata.dimensions.height },\n    "media": media[]{ _key, _type, layout,\n      items[]{ "src": image{ asset, crop, hotspot }, "width": image.asset->metadata.dimensions.width, "height": image.asset->metadata.dimensions.height, "video": video.asset->url, alt },\n      "before": before{ "src": asset->url, alt, "width": asset->metadata.dimensions.width, "height": asset->metadata.dimensions.height },\n      "after": after{ "src": asset->url, alt, "width": asset->metadata.dimensions.width, "height": asset->metadata.dimensions.height },\n      beforeLabel, afterLabel } }\n}': CASE_QUERY_RESULT;
     '*[_type == "project" && defined(slug.current) && count(sections[defined(name) && defined(heading)]) > 0].slug.current': CASE_SLUGS_QUERY_RESULT;
     '*[_type == "about" && _id == "about"][0]{\n  hello, lead,\n  "photos": photos[]{ "src": @{ asset, crop, hotspot }, alt },\n  facts[]{ label, value, sub },\n  experience[]{ when, place, role },\n  stickers[]{ text, tone, size }\n}': ABOUT_QUERY_RESULT;
     '*[_type == "playgroundPiece" && defined(image.asset)] | order(orderRank){\n  title, "src": image.asset->url, "video": video.asset->url, "videoAv1": select(videoCopies.from == video.asset._ref => videoCopies.av1.asset->url),\n  "w": image.asset->metadata.dimensions.width, "h": image.asset->metadata.dimensions.height\n}': PLAYGROUND_QUERY_RESULT;

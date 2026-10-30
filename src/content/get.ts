@@ -7,7 +7,7 @@ import { ABOUT_QUERY, CASE_QUERY, CASE_SLUGS_QUERY, HOME_QUERY, PLAYGROUND_QUERY
 import type { ABOUT_QUERY_RESULT, CASE_QUERY_RESULT, HOME_QUERY_RESULT, WORK_QUERY_RESULT } from "@/sanity/types";
 import { FALLBACK_HOME, type HomeContent } from "./home";
 import { FALLBACK_ABOUT, type AboutContent } from "./about";
-import { FALLBACK_CASES, type Case } from "./cases";
+import { FALLBACK_CASES, type Case, type CaseMedia, type CaseRow } from "./cases";
 import { FALLBACK_POSTS, PLAYGROUND_TARGET, type Post } from "./playground";
 import { FALLBACK_FEATURED, FALLBACK_PROJECTS } from "./projects";
 
@@ -62,6 +62,7 @@ function toProject(r: Row, i: number): Project {
       poster: pic(r.poster, 1040, PORTRAIT),
       video: r.video ?? undefined,
       videoAv1: r.videoAv1 ?? undefined,
+      focus: r.videoFocus ?? undefined,
       peek: r.peek ?? undefined,
       peekAv1: r.peekAv1 ?? undefined,
     },
@@ -160,6 +161,44 @@ export async function getWork(o: FetchOptions = published): Promise<Project[]> {
   return rows?.length ? rows.map(toProject) : FALLBACK_PROJECTS;
 }
 
+type MediaDoc = NonNullable<NonNullable<NonNullable<CaseDoc["sections"]>[number]["media"]>[number]>;
+
+// A section's media rows. Items in a 2 or 3 row are cut to the first one's
+// shape (around each focal point), so the row lines up; a full row keeps
+// the picture's own shape. Items without a picture or loop, or alt, drop out.
+function toRows(media: MediaDoc[] | null | undefined): CaseRow[] {
+  return (media ?? []).flatMap((m): CaseRow[] => {
+    if (m._type === "compareRow") {
+      const side = (p: typeof m.before): CaseMedia | null =>
+        p?.src && p.alt ? { src: img(p.src, 1600), alt: p.alt, width: p.width ?? 1600, height: p.height ?? 1000 } : null;
+      const before = side(m.before);
+      const after = side(m.after);
+      if (!before || !after) return [];
+      return [{ key: m._key, kind: "compare", before, after, labels: [m.beforeLabel || "Before", m.afterLabel || "After"] }];
+    }
+    const items = (m.items ?? []).filter((it) => (it.src?.asset || it.video) && it.alt);
+    if (!items.length) return [];
+    const layout = m.layout ?? "full";
+    const first = items[0];
+    const ratio = layout === "full" ? undefined : (first.width ?? 4) / (first.height ?? 3);
+    const w = layout === "full" ? 1600 : layout === "half" ? 1000 : 720;
+    return [
+      {
+        key: m._key,
+        kind: "row",
+        layout,
+        items: items.map((it) => ({
+          src: pic(it.src, w, ratio),
+          video: it.video ?? undefined,
+          alt: it.alt!,
+          width: ratio ? w : (it.width ?? 1600),
+          height: ratio ? Math.round(w / ratio) : (it.height ?? 1000),
+        })),
+      },
+    ];
+  });
+}
+
 // Field by field: whatever Sanity hasn't filled yet keeps the draft's.
 function toCase(slug: string, d: CaseDoc): Case {
   const fb = FALLBACK_CASES.find((c) => c.slug === slug);
@@ -212,6 +251,7 @@ function toCase(slug: string, d: CaseDoc): Case {
                 height: s.figure.height ?? 1000,
               }
             : undefined,
+        rows: toRows(s.media),
       })),
   };
 }

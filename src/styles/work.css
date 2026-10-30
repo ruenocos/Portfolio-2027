@@ -9,9 +9,14 @@
     gap: 24px;
     padding: var(--spacing-section) var(--spacing-inset) var(--spacing-inset);
   }
-  /* A little air between the filter and the rows. */
+  /* A little air between the filter and the rows, with the list's name in it. */
   .wgap > * {
     height: 40px;
+  }
+  .wgap > .cell {
+    display: flex;
+    align-items: center;
+    padding-inline: var(--spacing-inset);
   }
   .wfbar {
     display: flex;

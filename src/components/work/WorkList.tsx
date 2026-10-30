@@ -4,7 +4,9 @@ import { useEffect, useRef, useState } from "react";
 import type { Project } from "@/components/parts/ProjectRow";
 import { ToolFilter } from "@/components/parts/ToolFilter";
 import { useBeat } from "@/components/canvas/useBeat";
+import { SectionLabel } from "@/components/parts/SectionLabel";
 import { getMotion } from "@/lib/motion";
+import { narrow } from "@/lib/media";
 import { live, select, wait, wessel } from "@/lib/wessel";
 import { TOOLS, knownTools, type ToolId } from "@/lib/tools";
 import { WorkRow } from "./WorkRow";
@@ -60,6 +62,11 @@ export function WorkList({ projects }: { projects: Project[] }) {
         await wait(650);
         live(g);
       }
+      // Parks in the empty run left of the kit, his tag clear of the first chip.
+      if (!narrow()) {
+        await wessel.go(wessel.at(chips[0], 0, 0.3, -120, 0), { k: 280, timeout: 600 });
+        live(g);
+      }
       wessel.free();
     },
   });
@@ -74,12 +81,15 @@ export function WorkList({ projects }: { projects: Project[] }) {
         </div>
         <div className="side" />
       </section>
-      <div className="frame wgap" data-row aria-hidden="true">
+      {/* The little room between filter and list, named like every band. */}
+      <div className="frame wgap" data-row>
         <div className="side" />
-        <div className="cell bg-dots" />
+        <div className="cell bg-dots">
+          <SectionLabel id="h-all" name="All projects" />
+        </div>
         <div className="side" />
       </div>
-      <section className="frame" data-row aria-label="Projects">
+      <section className="frame" data-row aria-labelledby="h-all">
         <div className="side" />
         <div className="ruled min-w-0">
           {projects.map((p) => (

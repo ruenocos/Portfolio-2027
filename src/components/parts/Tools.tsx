@@ -7,8 +7,9 @@ export function Tools({ ids, size = 32, label }: { ids: readonly ToolId[]; size?
     <ul className="tools" data-size={size} aria-label={label}>
       {knownTools(ids).map((id) => (
         <li key={id} className="tool" title={TOOLS[id].name}>
+          {/* Lazy, or React preloads them from every prefetched route and the console warns they went unused. */}
           {/* eslint-disable-next-line @next/next/no-img-element -- brand SVGs, served as they are */}
-          <img src={toolSrc(id)} alt={TOOLS[id].name} width={size} height={size} />
+          <img src={toolSrc(id)} alt={TOOLS[id].name} width={size} height={size} loading="lazy" />
         </li>
       ))}
     </ul>

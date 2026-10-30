@@ -377,10 +377,15 @@ export const wessel = {
   drag(a: () => XY, b: () => XY, ms: number, step?: (e: number) => void) {
     return new Promise<void>((res) => {
       const t0 = performance.now();
+      // The drive keeps holding b until his next move, but step stops at the
+      // end: a beat that resets its object after the drag (the photo stack's
+      // toss) would otherwise be pulled back to the drag's end every frame.
+      let ended = false;
       cursor.spring = { k: 1400, z: springs.beat.z };
       cursor.drive = () => {
         const e = easeInOutCubic(calm() ? 1 : clamp((performance.now() - t0) / ms));
-        step?.(e);
+        if (!ended) step?.(e);
+        ended = e >= 1;
         const A = a();
         const B = b();
         return [lerp(A[0], B[0], e), lerp(A[1], B[1], e)];

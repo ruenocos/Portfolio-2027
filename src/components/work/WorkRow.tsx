@@ -66,6 +66,7 @@ export function WorkRow({ project: p, hidden, leaving }: { project: Project; hid
             poster={p.media.poster}
             video={p.media.peek ?? p.media.video}
             videoAv1={p.media.peek ? p.media.peekAv1 : p.media.videoAv1}
+            focus={p.media.focus}
             sizes={SIZES.peek}
           />
         </span>

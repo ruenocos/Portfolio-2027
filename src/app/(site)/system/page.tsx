@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { notFound } from "next/navigation";
 import tokens from "../../../../design/tokens.json";
 import { Cursor } from "@/components/canvas/Cursor";
 import { Pin } from "@/components/canvas/Pin";
@@ -18,10 +19,11 @@ import { ToolFilter } from "@/components/parts/ToolFilter";
 import { EmptyTool, Tools } from "@/components/parts/Tools";
 import { Row } from "@/components/shell/Row";
 import type { ToolId } from "@/lib/tools";
+import { IS_PRODUCTION } from "@/lib/site";
 
 // Build check for the system: every component in light and dark side by
 // side, then the live ones on the page itself, then every token.
-// Not a public page.
+// Not a public page: the live site answers it with the 404.
 export const metadata: Metadata = { title: "System", robots: { index: false } };
 
 const MODES = ["light", "dark"] as const;
@@ -46,6 +48,7 @@ function Specimen({ name, children, className = "" }: { name: string; children: 
 }
 
 export default function SystemPage() {
+  if (IS_PRODUCTION) notFound();
   return (
     <>
       <Row className="p-inset">

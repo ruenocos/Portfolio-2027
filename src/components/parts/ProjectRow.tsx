@@ -26,7 +26,7 @@ export type Project = {
   role: string;
   tools: ToolId[];
   /** peek: the small copy of the loop, for thumbnails (Work's rows). */
-  media: { poster?: string; video?: string; videoAv1?: string; peek?: string; peekAv1?: string };
+  media: { poster?: string; video?: string; videoAv1?: string; focus?: string; peek?: string; peekAv1?: string };
   /** The case page. */
   href: string;
   /** Read out for the media link, e.g. "De Saak case study. Design, dev and SEO, 2023 to now." */
@@ -158,7 +158,7 @@ function ProjectRow({
 
   const inner = (
     <>
-      <MediaFill poster={p.media.poster} video={p.media.video} videoAv1={p.media.videoAv1} />
+      <MediaFill poster={p.media.poster} video={p.media.video} videoAv1={p.media.videoAv1} focus={p.media.focus} />
       {p.note && (
         <Pin ref={pin} live note={false} data-mock={mock("note")}>
           {p.note.text}

@@ -4,16 +4,25 @@ import { useEffect, useRef, useState } from "react";
 import { Pin } from "@/components/canvas/Pin";
 import { MockTag } from "@/components/parts/Pills";
 import { useMotion } from "@/components/useMotion";
-import type { CaseSection } from "@/content/cases";
+import type { CaseRow, CaseSection } from "@/content/cases";
 import { wessel, type XY } from "@/lib/wessel";
 import { narrow } from "@/lib/media";
-import { SIZES, srcSet } from "@/lib/image";
+import { srcSet } from "@/lib/image";
+import { openViewer, type ViewerItem } from "@/lib/viewer";
+import { CaseRows } from "./CaseRows";
 
 // The reading line: a section is "the one you're reading" once its top
 // passes 40% of the screen.
 const LINE = 0.4;
 // His cursor rests beside the active layer, capped so his tag stays inside the panel.
 const REST_X = 110;
+
+// A section's media: the single figure (the first way to add one) as a
+// full row, then its media rows.
+const rowsOf = (s: CaseSection): CaseRow[] => [
+  ...(s.figure ? [{ key: `${s.key}-figure`, kind: "row" as const, layout: "full" as const, items: [{ src: s.figure.src, alt: s.figure.alt, width: s.figure.width, height: s.figure.height }] }] : []),
+  ...(s.rows ?? []),
+];
 
 /**
  * The read: a sticky Layers panel next to the
@@ -31,6 +40,32 @@ export function Read({ sections }: { sections: CaseSection[] }) {
   const [pct, setPct] = useState(0);
   const [inside, setInside] = useState(false);
   const [box, setBox] = useState<{ y: number; h: number; x: number } | null>(null);
+
+  // Every picture and loop on the page, in order: the viewer steps through them all.
+  const media = sections.map(rowsOf);
+  const items: ViewerItem[] = media.flat().flatMap((r) =>
+    r.kind === "row"
+      ? r.items.map((m) => ({
+          kind: m.video ? ("video" as const) : ("image" as const),
+          src: m.src,
+          srcSet: m.src ? srcSet(m.src) : undefined,
+          video: m.video,
+          alt: m.alt,
+          width: m.width,
+          height: m.height,
+        }))
+      : [],
+  );
+  const firsts = media.map((rows, i) =>
+    media.slice(0, i).flat().reduce((n, r) => n + (r.kind === "row" ? r.items.length : 0), 0),
+  );
+  const open = (vi: number, el: HTMLElement) =>
+    openViewer({
+      items,
+      index: vi,
+      from: el,
+      tileFor: (i) => root.current?.querySelector<HTMLElement>(`[data-vi="${i}"]`) ?? null,
+    });
 
   // Which section you're in, and how far through the read.
   useEffect(() => {
@@ -151,7 +186,7 @@ export function Read({ sections }: { sections: CaseSection[] }) {
           </div>
         </nav>
         <div className="secs">
-          {sections.map((s) => (
+          {sections.map((s, i) => (
             <article key={s.key} id={s.key} className="cell sc" tabIndex={-1} aria-labelledby={`h-${s.key}`}>
               {/* Same frame-name label as every other section: { Name }. The
                   # stays in the Layers panel, where it's Figma's frame mark. */}
@@ -171,19 +206,19 @@ export function Read({ sections }: { sections: CaseSection[] }) {
               <p className={`sl ${s.key === "takeaway" ? "text-accent" : "text-body"}`} data-enter data-mock={s.mock ? "" : undefined}>
                 {s.body}
               </p>
-              {s.figure && (
-                <figure data-enter>
-                  <div className="fimg">
-                    {/* eslint-disable-next-line @next/next/no-img-element -- screenshots at their own ratio */}
-                    <img src={s.figure.src} srcSet={srcSet(s.figure.src)} sizes={SIZES.figure} alt={s.figure.alt} width={s.figure.width} height={s.figure.height} loading="lazy" decoding="async" />
-                  </div>
-                  <figcaption className="text-label text-mute" data-mock={s.mock === "all" ? "" : undefined}>{s.figure.caption}</figcaption>
-                  {s.note && (
-                    <Pin className="fpin" data-mock={s.mock ? "" : undefined}>
-                      {s.note}
-                    </Pin>
-                  )}
-                </figure>
+              {media[i].length > 0 && (
+                <CaseRows
+                  rows={media[i]}
+                  first={firsts[i]}
+                  open={open}
+                  pin={
+                    s.note && (
+                      <Pin className="fpin" data-mock={s.mock ? "" : undefined}>
+                        {s.note}
+                      </Pin>
+                    )
+                  }
+                />
               )}
             </article>
           ))}

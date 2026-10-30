@@ -125,17 +125,6 @@
     gap: 16px;
     position: relative;
   }
-  .sc .fimg {
-    border-radius: var(--radius-media);
-    background: var(--canvas);
-    box-shadow: inset 0 0 0 1px var(--frame-edge);
-    overflow: hidden;
-  }
-  .sc .fimg img {
-    display: block;
-    width: 100%;
-    height: auto;
-  }
   /* His pin on a figure pops in the first time it's half in view. */
   .sc .fpin {
     position: absolute;
@@ -157,6 +146,162 @@
     max-width: 220px;
   }
 
+  /* ---------- media rows: 1, 2 or 3 across, or a before/after ---------- */
+  .crows {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    margin-top: 20px;
+  }
+  .crows figure {
+    margin: 0;
+  }
+  .crow {
+    display: grid;
+    gap: 16px;
+    grid-template-columns: minmax(0, 1fr);
+    align-items: start;
+  }
+  .crow[data-layout="half"] {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .crow[data-layout="third"] {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  .ctile {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    min-width: 0;
+  }
+  .cmed {
+    width: 100%;
+    padding: 0;
+    border: 0;
+    font: inherit;
+    color: inherit;
+    cursor: zoom-in;
+  }
+  .cmed:focus-visible {
+    outline: 2px solid var(--grape);
+    outline-offset: 4px;
+  }
+  .crows .fpin {
+    z-index: 1;
+  }
+
+  /* before/after */
+  .cmp {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .cfr {
+    position: relative;
+    border-radius: var(--radius-media);
+    overflow: hidden;
+    background: var(--fill);
+    box-shadow: inset 0 0 0 1px var(--frame-edge);
+    touch-action: pan-y;
+    user-select: none;
+    cursor: ew-resize;
+  }
+  .cfr img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    pointer-events: none;
+  }
+  .cbefore {
+    position: absolute;
+    inset: 0;
+  }
+  .clab {
+    position: absolute;
+    top: 16px;
+    padding: 4px 10px;
+    border-radius: var(--radius-pill);
+    background: var(--canvas);
+    color: var(--ink);
+    box-shadow: var(--shadow-outline);
+    pointer-events: none;
+  }
+  .clab[data-side="before"] {
+    left: 16px;
+  }
+  .clab[data-side="after"] {
+    right: 16px;
+  }
+  .cdiv {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    translate: -50% 0;
+    background: var(--canvas);
+    box-shadow: 0 0 0 1px rgb(0 0 0 / 0.08);
+    outline: none;
+  }
+  .cknob {
+    --tac-c: var(--grape);
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 40px;
+    height: 40px;
+    translate: -50% -50%;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    background: var(--grape);
+    color: var(--on-grape);
+    touch-action: none;
+    cursor: ew-resize;
+    box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / var(--tac-lit)),
+      inset 0 -1px 0 rgb(0 0 0 / 0.12),
+      0 1px 1px rgb(0 0 0 / 0.12),
+      0 4px 8px -4px color-mix(in srgb, var(--grape) 60%, transparent);
+    transition: scale var(--dur-spring) var(--ease-spring);
+  }
+  .cknob svg {
+    width: 16px;
+    height: 16px;
+  }
+  .cfr:hover .cknob,
+  .cdiv:focus-visible .cknob {
+    scale: 1.1;
+  }
+  .cdiv:focus-visible .cknob {
+    outline: 2px solid var(--grape);
+    outline-offset: 3px;
+  }
+
+  @media (width < 600px) {
+    .crow[data-layout="half"] {
+      grid-template-columns: minmax(0, 1fr);
+    }
+    /* Three stacked would be a long scroll: on phones they swipe, the next one peeking in. */
+    .crow[data-layout="third"] {
+      grid-template-columns: none;
+      grid-auto-flow: column;
+      grid-auto-columns: 76%;
+      overflow-x: auto;
+      scroll-snap-type: x mandatory;
+      scroll-padding-inline: var(--spacing-inset);
+      margin-inline: calc(var(--spacing-inset) * -1);
+      padding-inline: var(--spacing-inset);
+      scrollbar-width: none;
+    }
+    .crow[data-layout="third"] > .ctile {
+      scroll-snap-align: start;
+    }
+  }
+
   @media (width < 900px) {
     .copen,
     .rd {
@@ -169,7 +314,7 @@
       align-self: flex-start;
     }
   }
-  html[data-motion="calm"] :is(.lsel, .sc .fpin) {
+  html[data-motion="calm"] :is(.lsel, .sc .fpin, .cknob) {
     transition: none;
   }
 }

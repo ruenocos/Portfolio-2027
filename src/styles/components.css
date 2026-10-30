@@ -620,9 +620,9 @@
     transform: rotate(-8deg);
   }
   /* Your own pointer hides only while the You cursor really stands in for
-     it: not while calm, not in the reel dialog, not in forced colours. */
-  html.youcur:not([data-motion="calm"]):not(.reel-open),
-  html.youcur:not([data-motion="calm"]):not(.reel-open) * {
+     it: not while calm, not in the viewer, not in forced colours. */
+  html.youcur:not([data-motion="calm"]):not(.viewer-open),
+  html.youcur:not([data-motion="calm"]):not(.viewer-open) * {
     cursor: none !important;
   }
   html[data-motion="calm"] .cur.you[data-fixed] {

@@ -21,6 +21,7 @@ const projectRow = `{
   "slug": slug.current,
   "poster": poster${pic},
   "video": video.asset->url,
+  videoFocus,
   "videoAv1": ${copy("video", "av1")},
   "peek": ${copy("video", "small")},
   "peekAv1": ${copy("video", "smallAv1")}
@@ -48,7 +49,12 @@ export const CASE_QUERY = defineQuery(`*[_type == "project" && slug.current == $
   title, lang, lead, intro, role, scope, timeline,
   "hero": { "video": hero.video.asset->url, "videoAv1": ${copy("hero.video", "av1")}, "poster": hero.poster${pic}, "alt": hero.alt, "caption": hero.caption },
   "sections": sections[]{ _key, name, heading, body, note,
-    "figure": figure{ "src": asset->url, alt, caption, "width": asset->metadata.dimensions.width, "height": asset->metadata.dimensions.height } }
+    "figure": figure{ "src": asset->url, alt, caption, "width": asset->metadata.dimensions.width, "height": asset->metadata.dimensions.height },
+    "media": media[]{ _key, _type, layout,
+      items[]{ "src": image${pic}, "width": image.asset->metadata.dimensions.width, "height": image.asset->metadata.dimensions.height, "video": video.asset->url, alt },
+      "before": before{ "src": asset->url, alt, "width": asset->metadata.dimensions.width, "height": asset->metadata.dimensions.height },
+      "after": after{ "src": asset->url, alt, "width": asset->metadata.dimensions.width, "height": asset->metadata.dimensions.height },
+      beforeLabel, afterLabel } }
 }`);
 export const CASE_SLUGS_QUERY = defineQuery(`*[_type == "project" && ${hasCase}].slug.current`);
 
