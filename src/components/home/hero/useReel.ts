@@ -1,18 +1,21 @@
 import { useEffect, useRef, type RefObject } from "react";
-import { getMotion } from "@/lib/motion";
 import { finePointer, touch } from "@/lib/media";
+import { openViewer } from "@/lib/viewer";
 
 /**
  * Everything the hero's reel does: the small loop that plays once Wessel
  * invites you to it, its lean toward your pointer, the touch slop, and the
- * full reel that opens in a dialog.
+ * full reel that opens in the viewer.
  */
-export function useReel(still: boolean, nameRef: RefObject<HTMLDivElement | null>) {
+export function useReel(
+  still: boolean,
+  nameRef: RefObject<HTMLDivElement | null>,
+  full: { video?: string; poster?: string },
+) {
   const reel = useRef<HTMLAnchorElement>(null);
   const loop = useRef<HTMLVideoElement>(null);
   const progress = useRef<HTMLElement>(null);
-  const dialog = useRef<HTMLDialogElement>(null);
-  const full = useRef<HTMLVideoElement>(null);
+  const opened = useRef(false);
   const invited = useRef(false);
 
   // The loop plays once Wessel has invited you to it, only on screen, never
@@ -31,7 +34,7 @@ export function useReel(still: boolean, nameRef: RefObject<HTMLDivElement | null
       raf = visible && !video.paused ? requestAnimationFrame(draw) : 0;
     };
     syncLoop.current = () => {
-      if (visible && invited.current && !still && !dialog.current?.open) {
+      if (visible && invited.current && !still && !opened.current) {
         if (!video.src && video.dataset.src) video.src = video.dataset.src;
         video.play().then(() => (raf ||= requestAnimationFrame(draw)), () => {});
       } else video.pause();
@@ -50,8 +53,6 @@ export function useReel(still: boolean, nameRef: RefObject<HTMLDivElement | null
       video.pause();
     };
   }, [still]);
-  // Leaving home with the reel open (the router hides the page): your pointer comes back.
-  useEffect(() => () => document.documentElement.classList.remove("reel-open"), []);
 
   const playLoop = () => {
     invited.current = true;
@@ -119,66 +120,24 @@ export function useReel(still: boolean, nameRef: RefObject<HTMLDivElement | null
     return () => name.removeEventListener("click", tap);
   }, [nameRef]);
 
-  // The reel opens like a Playground post: it lifts out of its frame and
-  // springs to the middle over a canvas wash, then drops back on close.
-  const fly = (open: boolean) => {
-    const box = dialog.current;
-    const media = box?.querySelector<HTMLElement>(".rbm");
-    const from = reel.current?.getBoundingClientRect();
-    if (!box || !media || !from) return;
-    const to = media.getBoundingClientRect();
-    const scale = from.width / to.width;
-    const start = `translate(${from.left - to.left}px,${from.top - to.top}px) scale(${scale})`;
-    if (open) {
-      media.style.transition = "none";
-      media.style.transform = start;
-      media.getBoundingClientRect();
-      media.style.transition = "";
-      requestAnimationFrame(() => {
-        box.dataset.on = "";
-        media.style.transform = "";
-      });
-    } else {
-      delete box.dataset.on;
-      media.style.transform = start;
-    }
-  };
-
+  // The full reel opens in the viewer: it grows out of the small one and
+  // drops back into it on close, then the loop picks up again.
   const openReel = (e: React.MouseEvent) => {
     e.preventDefault();
-    const box = dialog.current;
-    const video = full.current;
-    if (!box || !video) return;
-    box.showModal();
-    // Your own pointer comes back in the dialog (components.css, .youcur).
-    // A class, not html:has(dialog[open]): that made every style write restyle the page.
-    document.documentElement.classList.add("reel-open");
+    if (!full.video) return;
+    opened.current = true;
     loop.current?.pause();
-    video.currentTime = 0;
-    video.play().catch(() => {});
-    fly(true);
-  };
-  const closeReel = () => {
-    const box = dialog.current;
-    if (!box?.open || box.dataset.closing != null) return;
-    box.dataset.closing = "";
-    full.current?.pause();
-    fly(false);
-    setTimeout(
-      () => {
-        delete box.dataset.closing;
-        box.close();
+    const done = openViewer({
+      items: [{ kind: "video", video: full.video, src: full.poster, alt: "Reel", caption: "Reel", width: 16, height: 9, sound: true }],
+      index: 0,
+      from: reel.current,
+      onClose: () => {
+        opened.current = false;
+        syncLoop.current();
       },
-      getMotion().calm ? 0 : 560,
-    );
-  };
-  /** After the dialog closed (by any route): back to the loop, focus on the reel. */
-  const reelClosed = () => {
-    document.documentElement.classList.remove("reel-open");
-    full.current?.pause();
-    syncLoop.current();
-    reel.current?.focus({ preventScroll: true });
+    });
+    if (!done) opened.current = false;
   };
 
-  return { reel, loop, progress, dialog, full, playLoop, stopLoop, markInvited, openReel, closeReel, reelClosed };
+  return { reel, loop, progress, playLoop, stopLoop, markInvited, openReel };
 }

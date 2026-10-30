@@ -1,6 +1,23 @@
 import type { Fact } from "@/components/parts/Facts";
 
 export type CaseFigure = { src: string; alt: string; caption: string; width: number; height: number };
+
+/** One picture or loop in a media row. A loop shows its picture as the poster. */
+export type CaseMedia = {
+  src?: string;
+  video?: string;
+  alt: string;
+  caption?: string;
+  width: number;
+  height: number;
+  /** Seat it on a quiet panel with room around it (raw screenshots). */
+  panel?: boolean;
+};
+/** A row in a section: 1, 2 or 3 across, or a before/after compare. */
+export type CaseRow =
+  | { key: string; kind: "row"; layout: "full" | "half" | "third"; items: CaseMedia[] }
+  | { key: string; kind: "compare"; before: CaseMedia; after: CaseMedia; labels: [string, string]; caption?: string };
+
 export type CaseSection = {
   key: string;
   /** The layer name in the panel and the section label. */
@@ -9,7 +26,9 @@ export type CaseSection = {
   heading: string;
   body: string;
   figure?: CaseFigure;
-  /** Wessel's pin on the figure. */
+  /** Media rows under the text, after the figure. */
+  rows?: CaseRow[];
+  /** Wessel's pin on the figure (or the first media row). */
   note?: string;
   /** Mock wording; real: the facts in it are sourced (e.g. Search Console). */
   mock?: "all" | "wording";

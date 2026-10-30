@@ -1,4 +1,5 @@
 import { CursorLayer } from "@/components/CursorLayer";
+import { Viewer } from "@/components/viewer/Viewer";
 import { entranceScript } from "@/lib/entrance";
 import { AwayTitle } from "./AwayTitle";
 import { ContactPill } from "./ContactPill";
@@ -41,6 +42,8 @@ export function Shell({ children }: { children: React.ReactNode }) {
       {/* After SmoothScroll, so a new page has jumped to the top before it measures. */}
       <ScrollSystem />
       <AwayTitle />
+      {/* Case media and the reel open in it (lib/viewer). */}
+      <Viewer />
     </>
   );
 }

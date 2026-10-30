@@ -2,7 +2,6 @@
 
 import { useEffect, useLayoutEffect, useRef } from "react";
 import { Play } from "@/components/parts/Arrow";
-import { MockTag } from "@/components/parts/Pills";
 import { useMotion } from "@/components/useMotion";
 import { useBeat } from "@/components/canvas/useBeat";
 import type { HomeContent } from "@/content/home";
@@ -41,10 +40,10 @@ export function Hero({ hero: content }: { hero: HomeContent["hero"] }) {
   const { calm: still } = useMotion();
   const name = useRef<HTMLDivElement>(null);
   const idle = useRef<IdleNod>({ on: false, nods: 0, stillSince: 0, nodding: false });
-  const { reel, loop, progress, dialog, full, playLoop, stopLoop, markInvited, openReel, closeReel, reelClosed } = useReel(
-    still,
-    name,
-  );
+  const { reel, loop, progress, playLoop, stopLoop, markInvited, openReel } = useReel(still, name, {
+    video: content.reel.full,
+    poster: content.reel.poster && (resized(content.reel.poster, 1280) ?? content.reel.poster),
+  });
   useFitName(name);
 
   useLayoutEffect(() => {
@@ -130,25 +129,6 @@ export function Hero({ hero: content }: { hero: HomeContent["hero"] }) {
         <br />
         {content.role[1]}
       </p>
-      <dialog
-        ref={dialog}
-        className="reelbox"
-        aria-label="Reel"
-        onClose={reelClosed}
-        onCancel={(e) => {
-          e.preventDefault();
-          closeReel();
-        }}
-        onClick={(e) => e.target === e.currentTarget && closeReel()}
-      >
-        <div className="rbm">
-          {content.reel.full && <video ref={full} controls playsInline loop preload="none" poster={content.reel.poster && (resized(content.reel.poster, 1280) ?? content.reel.poster)} src={content.reel.full} />}
-        </div>
-        <p className="rbc text-label">Reel {content.reel.mock && <MockTag>placeholder</MockTag>}</p>
-        <button type="button" className="rbx gpill text-micro-caps" data-size="tap" onClick={closeReel}>
-          Close
-        </button>
-      </dialog>
       </div>
       <div className="side" />
     </section>
