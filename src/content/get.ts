@@ -83,8 +83,9 @@ function toProject(r: Row, i: number): Project {
     role: r.role ?? "",
     tools: knownTools(r.tools ?? []),
     media: { poster: pic(r.poster, 1040, PORTRAIT), video: r.video, videoAv1: r.videoAv1, peek: r.peek, peekAv1: r.peekAv1 },
-    // Every project has a page; without a written case it's the short one.
-    href: r.slug ? `/work/${r.slug}` : undefined,
+    // No live case yet: the row says "Case study soon". Small projects go
+    // on the Playground instead of getting a page.
+    href: r.slug && r.hasCase ? `/work/${r.slug}` : undefined,
     label: r.label || `${r.title}, ${r.timeline}.`,
     note: r.note ? { text: r.note, spot: SPOTS[i % SPOTS.length] } : undefined,
   };
@@ -152,7 +153,7 @@ export async function getHome(o: FetchOptions = published): Promise<HomeContent>
       next: h.aboutNext || f.about.next,
       photos: photos.length ? photos.map((p) => ({ alt: p.alt, src: pic(p.src, 760, PORTRAIT)! })) : f.about.photos,
     },
-    projects: rows.length ? rows.map(toProject) : f.projects,
+    projects: rows.length ? rows.map(toProject) : f.projects.map(withCodeCase),
     focus: {
       statement: h.focusStatement || f.focus.statement,
       tracks: f.focus.tracks.map((t) => {
@@ -173,10 +174,15 @@ export async function getWork(o: FetchOptions = published): Promise<Project[]> {
   } catch (e) {
     console.warn("Work: Sanity unavailable, using the fallback content.", e);
   }
-  return rows?.length ? rows.map(toProject) : FALLBACK_PROJECTS;
+  return rows?.length ? rows.map(toProject) : FALLBACK_PROJECTS.map(withCodeCase);
 }
 
+// A code row links only when the code has its case.
+const withCodeCase = (p: Project): Project =>
+  FALLBACK_CASES.some((c) => p.href === `/work/${c.slug}`) ? p : { ...p, href: undefined };
+
 type CaseDoc = {
+  hasCase?: boolean;
   title: string;
   lang?: string;
   lead?: string;
@@ -240,42 +246,22 @@ function toCase(slug: string, d: CaseDoc): Case {
 }
 
 /**
- * A case page: Sanity once it has the story, the mock draft until then. A
- * project without either gets the short page: its row's title, summary,
- * video and facts, no read.
+ * A case page: Sanity's once it's live and written. A project Sanity doesn't
+ * have (or Sanity unreachable) falls back to the case in code, if any.
+ * Anything else has no page.
  */
 export async function getCase(slug: string, o: FetchOptions = published): Promise<Case | null> {
   try {
     const { data } = await cachedSanity({ query: CASE_QUERY, params: { slug }, ...o });
     const d = data as unknown as CaseDoc | null;
-    if (d?.sections?.some((s) => s.name && s.heading)) return toCase(slug, d);
+    if (d) return d.hasCase && d.sections?.some((s) => s.name && s.heading) ? toCase(slug, d) : null;
   } catch (e) {
     console.warn(`Case ${slug}: Sanity unavailable, using the fallback content.`, e);
   }
-  const fb = FALLBACK_CASES.find((c) => c.slug === slug);
-  if (fb) return fb;
-  const p = (await getWork(o)).find((x) => x.href === `/work/${slug}`);
-  return p ? shortCase(slug, p) : null;
+  return FALLBACK_CASES.find((c) => c.slug === slug) ?? null;
 }
 
-function shortCase(slug: string, p: Project): Case {
-  return {
-    slug,
-    title: p.title,
-    lang: p.lang,
-    lead: "",
-    intro: p.summary,
-    facts: [
-      { label: "Role", value: p.role || undefined },
-      { label: "Scope", value: undefined },
-      { label: "Timeline", value: p.timeline || undefined },
-    ],
-    hero: { poster: p.media.poster, video: p.media.video, alt: "", caption: "" },
-    sections: [],
-  };
-}
-
-/** Case pages to prebuild: one per project, plus the drafts in code. */
+/** Case pages to prebuild: the live ones, plus the cases in code. */
 export async function caseSlugs(): Promise<string[]> {
   let live: string[] = [];
   try {
@@ -283,8 +269,7 @@ export async function caseSlugs(): Promise<string[]> {
   } catch (e) {
     console.warn("Case slugs: Sanity unavailable, using the fallback list.", e);
   }
-  const code = FALLBACK_PROJECTS.flatMap((p) => (p.href ? [p.href.replace("/work/", "")] : []));
-  return [...new Set([...FALLBACK_CASES.map((c) => c.slug), ...code, ...live])];
+  return [...new Set([...FALLBACK_CASES.map((c) => c.slug), ...live])];
 }
 
 type AboutDoc = {

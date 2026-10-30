@@ -36,12 +36,12 @@ export default async function CasePage({ params }: PageProps<"/work/[slug]">) {
   const [c, projects] = await Promise.all([getCase(slug, o), getWork(o)]);
   if (!c) notFound();
 
-  // Where this project sits in the work, and the one after it (every
-  // project has a page, so Next always opens one).
-  const i = projects.findIndex((p) => p.href === `/work/${slug}`);
-  const after = i >= 0 ? projects[(i + 1) % projects.length] : undefined;
+  // Where this case sits among the live ones, and the one after it.
+  const cases = projects.filter((p) => p.href);
+  const i = cases.findIndex((p) => p.href === `/work/${slug}`);
+  const after = i >= 0 ? cases[(i + 1) % cases.length] : undefined;
   const crumb = {
-    count: i >= 0 ? `Project ${i + 1}/${projects.length}` : undefined,
+    count: i >= 0 ? `Project ${i + 1}/${cases.length}` : undefined,
     next: after && after.href !== `/work/${slug}` ? { label: after.title, href: after.href } : undefined,
   };
   const mock = (f: "lead" | "intro" | "caption") => (c.mock?.includes(f) ? "" : undefined);
@@ -55,7 +55,7 @@ export default async function CasePage({ params }: PageProps<"/work/[slug]">) {
         <div className="copen" data-solo={!c.lead && !c.intro ? "" : undefined}>
           <div className="cell ot">
             <span data-enter>
-              <SectionLabel as="p" name={c.sections.length ? "Case" : "Project"} />
+              <SectionLabel as="p" name="Case" />
             </span>
             <h1 id="ttl" className="text-statement" lang={c.lang} data-enter>
               {c.title}
@@ -105,14 +105,11 @@ export default async function CasePage({ params }: PageProps<"/work/[slug]">) {
         </section>
       )}
       <Facts items={c.facts} />
-      {/* The short page (no case written yet) has no read. */}
-      {c.sections.length > 0 && (
-        <section className="frame" data-row data-steps aria-label="Case study">
-          <div className="side" />
-          <Read sections={c.sections} />
-          <div className="side" />
-        </section>
-      )}
+      <section className="frame" data-row data-steps aria-label="Case study">
+        <div className="side" />
+        <Read sections={c.sections} />
+        <div className="side" />
+      </section>
       {/* The next project as its own row, so the page ends on a door, not a bar. */}
       {crumb.next && after && (
         <>
@@ -121,7 +118,7 @@ export default async function CasePage({ params }: PageProps<"/work/[slug]">) {
         </>
       )}
       {/* No bar at the end: the Next row is the way on and Work in the
-          header is the way back (Wons 2026-10-28). */}
+          header is the way back. */}
     </>
   );
 }

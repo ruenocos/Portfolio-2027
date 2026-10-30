@@ -74,11 +74,11 @@ export const project = defineType({
       type: "boolean",
       group: "row",
       initialValue: false,
-      description: "Off: the project's page is the short one (title, summary, video, facts). On: the full case below.",
+      description: "On: the row links to the case below. Off: no page yet, the row says \"Case study soon\". Small projects belong on the Playground instead.",
       validation: (rule) =>
         rule.custom((on, { document }) =>
           on && !(document?.sections as unknown[] | undefined)?.length
-            ? { message: "The case page has no sections yet, so it shows the mock case.", level: "warning" }
+            ? { message: "No sections yet, so the row stays \"Case study soon\" until there are.", level: "warning" }
             : true,
         ),
     }),

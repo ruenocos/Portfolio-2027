@@ -1,7 +1,7 @@
 import type { Project } from "@/components/parts/ProjectRow";
 
-// The home's three rows until Sanity has projects. Every project has a
-// page: the short one until its case is written.
+// The home's three rows until Sanity has projects. A row links only once
+// its case exists; small projects go on the Playground instead.
 // Summaries, roles and pin notes are its placeholder copy; the video per
 // row is a guess until the real media is in Sanity.
 export const FALLBACK_FEATURED: Project[] = [

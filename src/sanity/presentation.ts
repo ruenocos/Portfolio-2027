@@ -14,7 +14,7 @@ export const resolve: PresentationPluginOptions["resolve"] = {
       select: { title: "title", slug: "slug.current", hasCase: "hasCase" },
       resolve: (doc) => ({
         locations: [
-          ...(doc?.slug ? [{ title: doc.title || "Case", href: `/work/${doc.slug}` }] : []),
+          ...(doc?.slug && doc.hasCase ? [{ title: doc.title || "Case", href: `/work/${doc.slug}` }] : []),
           { title: "Work", href: "/work" },
           { title: "Home", href: "/" },
         ],
