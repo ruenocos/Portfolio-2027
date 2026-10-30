@@ -71,12 +71,13 @@
     transform-origin: 50% 55%;
   }
   /* Before Wessel arrives: an outlined W and a crooked u. Rendered by the
-     server, so calm (paused or reduced) shows the finished name instead. */
-  :root:not([data-motion="calm"]) .name .lt.ol {
+     server, so calm (paused or reduced) and a return visit in the same
+     session (head script) show the finished name instead. */
+  :root:not([data-motion="calm"]):not([data-hello]) .name .lt.ol {
     color: transparent;
     -webkit-text-stroke: 0.022em var(--tang);
   }
-  :root:not([data-motion="calm"]) .name .lt.off {
+  :root:not([data-motion="calm"]):not([data-hello]) .name .lt.off {
     transform: translate(0.05em, 0.11em) rotate(-7deg);
     transition: none;
   }

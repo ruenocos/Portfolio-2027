@@ -1,5 +1,5 @@
 import { playIntro } from "@/lib/intro/iris";
-import { getMotion } from "@/lib/motion";
+import { getMotion, helloSeen, markHelloSeen } from "@/lib/motion";
 import { live, pageBox, put, putPin, select, wait, wessel, type XY } from "@/lib/wessel";
 import { narrow } from "@/lib/media";
 import { nameLetters, unprepName } from "./name";
@@ -45,9 +45,12 @@ type Hello = {
  * Wessel's hello on the hero, after the first-visit intro hands over: he
  * says hi by the W and fills it, straightens the crooked u, selects the
  * reel and invites you in, then nods you down the page. It skips once the
- * hero is scrolled 45% away, or on any key or click.
+ * hero is scrolled 45% away, or on any key or click. Once per session:
+ * back on home later he just nods you down (shortHello).
  */
-export async function playHello({ gate, hero, name, reel, playLoop, idle }: Hello) {
+export async function playHello(hello: Hello) {
+  const { gate, hero, name, reel, playLoop, idle } = hello;
+  if (helloSeen()) return shortHello(hello);
   // After the intro he glides in from the edge instead of appearing mid-hero.
   const afterIntro = !!document.documentElement.dataset.boot;
   await playIntro();
@@ -189,7 +192,7 @@ export async function playHello({ gate, hero, name, reel, playLoop, idle }: Hell
     // Phones: he parks right of centre, so the pin opens to his left to stay on screen.
     await say("More below", narrow() ? pagePoint(hero, fx, fy, -168, dy + 20) : pagePoint(hero, fx, fy, 16, dy - 24));
     await nodDown(hero);
-    idle.on = true;
+    idleFromNow(idle);
     await wait(1200);
   } catch (e) {
     live(gate);
@@ -200,6 +203,7 @@ export async function playHello({ gate, hero, name, reel, playLoop, idle }: Hell
     // he has his aim there before the beat lets him go (else he parks on the W).
     await goToNodSpot(hero);
   } finally {
+    markHelloSeen();
     letterSelection?.done();
     removeEventListener("scroll", scrolledAway);
     removeEventListener("keydown", input);
@@ -211,4 +215,22 @@ export async function playHello({ gate, hero, name, reel, playLoop, idle }: Hell
       setTimeout(() => last.remove(), 2600);
     }
   }
+}
+
+// The idle nod counts its quiet from his last nod, not from page load.
+function idleFromNow(idle: IdleNod) {
+  idle.stillSince = performance.now();
+  idle.on = true;
+}
+
+/** Back on home in the same session: the name is already finished, so he
+ *  goes straight to the nod spot and dips once. */
+async function shortHello({ gate, hero, name, playLoop, idle }: Hello) {
+  unprepName(name);
+  playLoop();
+  if (getMotion().calm) return;
+  await goToNodSpot(hero);
+  live(gate);
+  await nodDown(hero, 1);
+  idleFromNow(idle);
 }
