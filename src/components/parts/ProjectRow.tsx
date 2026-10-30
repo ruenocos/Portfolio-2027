@@ -10,12 +10,12 @@ import { announce } from "@/lib/motion";
 import type { ToolId } from "@/lib/tools";
 import { live, select, showPin, wait, wessel, type XY } from "@/lib/wessel";
 import motionTokens from "../../../design/motion-tokens.json";
+import { magnet } from "@/lib/magnet";
 import { MediaFill } from "./Media";
 import { MockTag, Slot } from "./Pills";
 import { EmptyTool, Tools } from "./Tools";
 import { finePointer, narrow } from "@/lib/media";
 
-const MAG = motionTokens.magnetism.projectMedia;
 const NEED = motionTokens.wessel.need.projectRow;
 const PIN_MS = motionTokens.wessel.pin.showMs;
 
@@ -41,6 +41,23 @@ export type Project = {
   placeholder?: boolean;
 };
 
+// No case page yet: the click says so. Mouse users read it on their You
+// tag; touch and keyboard get the "Case study soon" pill for a moment.
+export function useCaseSoon() {
+  const [soon, setSoon] = useState(false);
+  const timer = useRef(0);
+  useEffect(() => () => clearTimeout(timer.current), []);
+  const notYet = (e: React.MouseEvent) => {
+    announce("Case study soon");
+    const mouse = (e.nativeEvent as PointerEvent).pointerType === "mouse" && e.detail > 0;
+    if (mouse) return;
+    setSoon(true);
+    clearTimeout(timer.current);
+    timer.current = window.setTimeout(() => setSoon(false), 1600);
+  };
+  return [soon, notYet] as const;
+}
+
 // Leans toward your pointer while it's over the row's side columns, with a
 // little tilt, like a card picked up off the desk. Holds still over the
 // middle column so it's easy to hit. Off on touch and while calm.
@@ -53,36 +70,19 @@ function useMagnet() {
     if (!el || !r) return;
     el.style.transform = "";
     if (calm || !finePointer()) return;
-    const max = MAG.max.match(/\d+/g)!.map(Number);
-    const rot = Number(MAG.rotate.match(/[\d.]+/)![0]);
-    const m = { x: 0, y: 0, tx: 0, ty: 0 };
-    let raf = 0;
-    const draw = () => {
-      m.x += (m.tx - m.x) * MAG.ease;
-      m.y += (m.ty - m.y) * MAG.ease;
-      el.style.transform = `translate(${m.x.toFixed(2)}px,${m.y.toFixed(2)}px) rotate(${(m.x * rot).toFixed(3)}deg)`;
-      raf = Math.abs(m.tx - m.x) + Math.abs(m.ty - m.y) > 0.05 ? requestAnimationFrame(draw) : 0;
-    };
+    const lean = magnet(el);
     const move = (e: PointerEvent) => {
       const R = r.getBoundingClientRect();
       const M = el.closest(".pc")!.getBoundingClientRect();
       const { clientX: x, clientY: y } = e;
       const out = y < R.top || y > R.bottom || x < R.left || x > R.right;
-      if (out || (x >= M.left && x <= M.right)) m.tx = m.ty = 0;
-      else {
-        const b = el.getBoundingClientRect();
-        const cx = b.left + b.width / 2 - m.x;
-        const cy = b.top + b.height / 2 - m.y;
-        m.tx = Math.max(-max[0], Math.min(max[0], (x - cx) * MAG.pull));
-        m.ty = Math.max(-max[1], Math.min(max[1], (y - cy) * MAG.pull));
-      }
-      raf ||= requestAnimationFrame(draw);
+      if (out || (x >= M.left && x <= M.right)) lean.rest();
+      else lean.toward(x, y);
     };
     addEventListener("pointermove", move, { passive: true });
     return () => {
       removeEventListener("pointermove", move);
-      cancelAnimationFrame(raf);
-      el.style.transform = "";
+      lean.stop();
     };
   }, [calm]);
   return media;
@@ -94,7 +94,7 @@ function useMagnet() {
  * Tablet: text | media. Phone: one column.
  * Wessel drops a pin on the media and selects it.
  */
-export function ProjectRow({
+function ProjectRow({
   project: p,
   hidden,
   leaving,
@@ -105,7 +105,7 @@ export function ProjectRow({
 }) {
   const media = useMagnet();
   const pin = useRef<HTMLSpanElement>(null);
-  const [soon, setSoon] = useState(false);
+  const [soon, notYet] = useCaseSoon();
   const mock = (f: "summary" | "role" | "note" | "media") => (p.mock?.includes(f) ? "" : undefined);
   const gap = p.placeholder;
 
@@ -157,7 +157,7 @@ export function ProjectRow({
       wessel.press(false);
       await wait(250);
       // He lifts off just above his pin, clear of its text, with his tag
-      // on its usual side like everywhere else (Wons 2026-10-29).
+      // on its usual side like everywhere else.
       await wessel.go(
         () => {
           const r = el.querySelector(".bub")!.getBoundingClientRect();
@@ -178,17 +178,6 @@ export function ProjectRow({
     },
   });
 
-  // No case page yet: the click says so. Mouse users read it on their You
-  // tag; touch and keyboard get a pill on the media.
-  const sayingSoon = useRef(0);
-  const notYet = (e: React.MouseEvent) => {
-    announce("Case study soon");
-    const mouse = (e.nativeEvent as PointerEvent).pointerType === "mouse" && e.detail > 0;
-    if (mouse) return;
-    setSoon(true);
-    clearTimeout(sayingSoon.current);
-    sayingSoon.current = window.setTimeout(() => setSoon(false), 1600);
-  };
 
   const inner = (
     <>

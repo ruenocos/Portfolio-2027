@@ -87,18 +87,7 @@ function place(d: HTMLElement, [x, y, w, h]: [number, number, number?, number?])
   if (w != null) d.style.width = `${w}px`;
   if (h != null) d.style.height = `${h}px`;
 }
-export const clearMarks = () => overlay()?.replaceChildren();
-
-/** Fades a set of marks out after a while. */
-export function fade(marks: HTMLElement[], after: number) {
-  setTimeout(() => {
-    for (const m of marks) {
-      m.style.transition = "opacity .4s";
-      m.style.opacity = "0";
-      setTimeout(() => m.remove(), 420);
-    }
-  }, after);
-}
+const clearMarks = () => overlay()?.replaceChildren();
 
 // ---------- selections: glued to their element, gone by themselves ----------
 type Sel = {
@@ -181,8 +170,8 @@ export function putPin(at: XY, text = "") {
 }
 
 // ---------- cursor markup (shared with <Cursor>) ----------
-// Figma-style multiplayer pointer: a rounded arrowhead, no stem (Wons,
-// 2026-10-27). TIP is where it points, in CSS px from its top-left.
+// Figma-style multiplayer pointer: a rounded arrowhead, no stem.
+// TIP is where it points, in CSS px from its top-left.
 export const POINTER =
   "M3.4 2.6c-.5-.3-1.1.2-.9.8l4.6 13.9c.2.6 1 .7 1.3.1l2.4-4.7c.1-.3.4-.5.7-.5l5.2-.7c.6-.1.8-.9.3-1.3z";
 export const POINTER_BOX = "0 0 20 20";

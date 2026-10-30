@@ -1,7 +1,6 @@
 import { MockTag, Slot } from "./Pills";
 
-// Facts row: three ruled cells, label on top, value in Lead 20 (the serif
-// moved to hero + accent words only, Wons 2026-10-27). An optional sub line
+// Facts row: three ruled cells, label on top, value in Lead 20. An optional sub line
 // sits under the value in mute. A missing value shows a slot instead of an invented one.
 export type Fact = { label: string; value?: string; sub?: string; mock?: boolean };
 

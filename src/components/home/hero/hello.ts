@@ -5,8 +5,8 @@ import { narrow } from "@/lib/media";
 import { nameLetters, unprepName } from "./name";
 import { goToNodSpot, nodDown, nodSpot, type IdleNod } from "./nod";
 
-// Someone who first came on an earlier day gets "Welcome back!" (Wons,
-// 2026-10-28). The day is stored each visit; same day reads as one visit.
+// Someone who first came on an earlier day gets "Welcome back!".
+// The day is stored each visit; same day reads as one visit.
 const SEEN_KEY = "wsl-seen";
 const returning = () => {
   const today = new Date().toISOString().slice(0, 10);

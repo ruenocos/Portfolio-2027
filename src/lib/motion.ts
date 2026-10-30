@@ -10,9 +10,9 @@
 
 import motionTokens from "../../design/motion-tokens.json";
 
-export const PAUSE_KEY = "wsl-pause";
+const PAUSE_KEY = "wsl-pause";
 
-export type MotionState = { paused: boolean; reduced: boolean; calm: boolean };
+type MotionState = { paused: boolean; reduced: boolean; calm: boolean };
 
 const SERVER: MotionState = { paused: false, reduced: false, calm: false };
 let state: MotionState = SERVER;

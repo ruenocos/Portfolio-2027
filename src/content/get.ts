@@ -91,8 +91,9 @@ function toProject(r: Row, i: number): Project {
 }
 
 // The year a project last ran: "2023–now" is this year, "2026" is 2026,
-// a placeholder like "20XX" has none and sorts last.
-function endYear(timeline: string): number {
+// a placeholder like "20XX" (or no timeline yet) has none and sorts last.
+function endYear(timeline: string | null): number {
+  if (!timeline) return -Infinity;
   if (/now/i.test(timeline)) return Infinity;
   const years = timeline.match(/\d{4}/g);
   return years ? Math.max(...years.map(Number)) : -Infinity;
@@ -128,7 +129,7 @@ export async function getHome(o: FetchOptions = published): Promise<HomeContent>
   let doc: HomeDoc | null = null;
   let rows: Row[] = [];
   try {
-    const { data } = await cachedSanity({ query: HOME_QUERY, perspective: o.perspective, variant: o.variant, stega: o.stega });
+    const { data } = await cachedSanity({ query: HOME_QUERY, ...o });
     const d = data as unknown as { home: HomeDoc | null; projects: Row[] | null };
     doc = d.home;
     rows = homeRows((d.home?.featured ?? []).filter((r): r is Row => !!r?.title), d.projects ?? []);
@@ -167,7 +168,7 @@ export async function getHome(o: FetchOptions = published): Promise<HomeContent>
 export async function getWork(o: FetchOptions = published): Promise<Project[]> {
   let rows: Row[] | null = null;
   try {
-    const { data } = await cachedSanity({ query: WORK_QUERY, perspective: o.perspective, variant: o.variant, stega: o.stega });
+    const { data } = await cachedSanity({ query: WORK_QUERY, ...o });
     rows = data as unknown as Row[] | null;
   } catch (e) {
     console.warn("Work: Sanity unavailable, using the fallback content.", e);
@@ -245,7 +246,7 @@ function toCase(slug: string, d: CaseDoc): Case {
  */
 export async function getCase(slug: string, o: FetchOptions = published): Promise<Case | null> {
   try {
-    const { data } = await cachedSanity({ query: CASE_QUERY, params: { slug }, perspective: o.perspective, variant: o.variant, stega: o.stega });
+    const { data } = await cachedSanity({ query: CASE_QUERY, params: { slug }, ...o });
     const d = data as unknown as CaseDoc | null;
     if (d?.sections?.some((s) => s.name && s.heading)) return toCase(slug, d);
   } catch (e) {
@@ -295,12 +296,12 @@ type AboutDoc = {
   stickers?: { text?: string; tone?: Sticker["tone"]; size?: Sticker["size"] }[];
 };
 
-/** About: Sanity first, the approved v07 copy for whatever is still empty. */
+/** About: Sanity first, the approved copy for whatever is still empty. */
 export async function getAbout(o: FetchOptions = published): Promise<AboutContent> {
   const f = FALLBACK_ABOUT;
   let d: AboutDoc = {};
   try {
-    const { data } = await cachedSanity({ query: ABOUT_QUERY, perspective: o.perspective, variant: o.variant, stega: o.stega });
+    const { data } = await cachedSanity({ query: ABOUT_QUERY, ...o });
     d = (data as unknown as AboutDoc | null) ?? {};
   } catch (e) {
     console.warn("About: Sanity unavailable, using the fallback content.", e);
@@ -332,10 +333,10 @@ export async function getAbout(o: FetchOptions = published): Promise<AboutConten
   };
 }
 
-/** Playground posts: Sanity's, or the v08 placeholders while there are none. */
+/** Playground posts: Sanity's, or the placeholders while there are none. */
 export async function getPosts(o: FetchOptions = published): Promise<Post[]> {
   try {
-    const { data } = await cachedSanity({ query: PLAYGROUND_QUERY, perspective: o.perspective, variant: o.variant, stega: o.stega });
+    const { data } = await cachedSanity({ query: PLAYGROUND_QUERY, ...o });
     const rows = (data as unknown as { title: string; src: string; video?: string; videoAv1?: string; w?: number; h?: number }[] | null) ?? [];
     if (rows.length) {
       const real: Post[] = rows.map((r) => ({ title: r.title, src: img(r.src, 640), video: r.video, videoAv1: r.videoAv1, ar: r.w && r.h ? r.w / r.h : 1 }));

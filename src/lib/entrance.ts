@@ -11,7 +11,7 @@ const config = {
   fade: { ms: easing["enter-opacity"].ms, ease: cssBezier(easing["enter-opacity"].bezier) },
   rise: { ms: easing["enter-rise"].ms, ease: cssBezier(easing["enter-rise"].bezier), distance: easing["enter-rise"].distance },
 };
-export type EntranceConfig = typeof config;
+type EntranceConfig = typeof config;
 
 /**
  * The house entrance on load: the first screen's rows rise 16px and fade in,
@@ -25,7 +25,7 @@ export type EntranceConfig = typeof config;
  * every page change after that. So it must stay self-contained: no imports,
  * nothing from outside its own body, as it's sent as source.
  */
-export function houseEntrance(c: EntranceConfig, hold = false) {
+function houseEntrance(c: EntranceConfig, hold = false) {
   const root = document.documentElement;
   // Tiles never move themselves, only their content (the rule in lib/hairline,
   // repeated here because this runs before any module has loaded).

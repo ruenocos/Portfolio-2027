@@ -57,11 +57,13 @@ async function asset(kind: "image" | "file", src?: string) {
   return { _type: kind, asset: { _type: "reference", _ref: id } };
 }
 const image = (src?: string) => asset("image", src);
-// Drag-to-order ranks (the Studio's orderable lists), in list order.
-const ranks = (n: number) => {
-  let r = LexoRank.min();
+// Drag-to-order ranks (the Studio's orderable lists), in list order, after
+// any the type already has so a re-run never collides with them.
+async function ranks(type: string, n: number) {
+  const last = dry ? null : await client.fetch<string | null>(`*[_type == $type && defined(orderRank)] | order(orderRank desc)[0].orderRank`, { type }, { perspective: "raw" });
+  let r = last ? LexoRank.parse(last) : LexoRank.min();
   return Array.from({ length: n }, () => (r = r.genNext().genNext()).toString());
-};
+}
 const file = (src?: string) => asset("file", src);
 
 // Create it if it's new, then fill only what's still empty.
@@ -91,7 +93,7 @@ async function home() {
     _type: "home",
     basedIn: h.hero.basedIn,
     role: [...h.hero.role],
-    // reel: Wons sends the real one. archive: mostly placeholder tiles.
+    // Left out: the reel (the real file is still to come) and the archive (mostly placeholder tiles).
     aboutOpener: h.about.opener,
     aboutNext: h.about.next,
     photos: await Promise.all(h.about.photos.map(async (p) => ({ _key: key(p.src), ...(await image(p.src))!, alt: p.alt }))),
@@ -120,7 +122,7 @@ async function playground() {
   // in the Studio) a second run would only add duplicates.
   if (!dry && (await client.fetch(`count(*[_type == "playgroundPiece"])`))) return console.log("skip playground: posts already exist");
   const real = FALLBACK_POSTS.filter((p) => !p.mock && p.src);
-  const rank = ranks(real.length);
+  const rank = await ranks("playgroundPiece", real.length);
   for (const [i, p] of real.entries()) {
     await fill({
       _id: `play-${key(p.title)}`,
@@ -134,9 +136,15 @@ async function playground() {
 }
 
 async function projects() {
-  const rank = ranks(FALLBACK_PROJECTS.length);
-  for (const [i, p] of FALLBACK_PROJECTS.entries()) {
-    const slug = p.href?.split("/").pop() ?? key(p.title);
+  // Only projects Sanity doesn't have yet: a draft over a published project
+  // would put the mock copy back on top of the real one.
+  const slugOf = (p: (typeof FALLBACK_PROJECTS)[number]) => p.href?.split("/").pop() ?? key(p.title);
+  const existing = dry ? [] : await client.fetch<string[]>(`*[_type == "project"].slug.current`, {}, { perspective: "raw" });
+  const missing = FALLBACK_PROJECTS.filter((p) => !existing.includes(slugOf(p)));
+  for (const p of FALLBACK_PROJECTS) if (!missing.includes(p)) console.log(`skip project ${slugOf(p)}: already in Sanity`);
+  const rank = await ranks("project", missing.length);
+  for (const [i, p] of missing.entries()) {
+    const slug = slugOf(p);
     const c = FALLBACK_CASES.find((x) => x.slug === slug);
     const fact = (label: string) => c?.facts.find((f) => f.label === label)?.value;
     await fill({

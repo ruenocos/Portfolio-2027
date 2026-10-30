@@ -7,7 +7,7 @@ import { Row } from "@/components/shell/Row";
 import { Shell } from "@/components/shell/Shell";
 
 // Any unknown path. It sits outside the (site) group, so it brings the
-// shell itself. Proposed copy, marked data-mock until Wons picks the wording.
+// shell itself. The copy is a placeholder, marked data-mock.
 export const metadata: Metadata = { title: "Not found" };
 
 export default function NotFound() {

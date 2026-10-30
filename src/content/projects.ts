@@ -1,8 +1,7 @@
 import type { Project } from "@/components/parts/ProjectRow";
 
-// The home's three rows from the prototype (web/site-prototype, v90).
-// Every project has a page (Wons 2026-10-28): the short one until its case
-// is written.
+// The home's three rows until Sanity has projects. Every project has a
+// page: the short one until its case is written.
 // Summaries, roles and pin notes are its placeholder copy; the video per
 // row is a guess until the real media is in Sanity.
 export const FALLBACK_FEATURED: Project[] = [

@@ -3,8 +3,7 @@ import { FALLBACK_FEATURED } from "./projects";
 
 // Everything the home page says and shows. Sanity fills it (the "home"
 // singleton plus the projects picked for Home); until a field is filled there,
-// the approved copy below stands in (studio/copy/home-copy_v01.md and the
-// v90 prototype). Fields marked mock are placeholders, shown with data-mock
+// the approved copy below stands in. Fields marked mock are placeholders, shown with data-mock
 // so nothing invented ships unmarked (DESIGN.md §2.8).
 
 export type Photo = { src: string; alt: string };

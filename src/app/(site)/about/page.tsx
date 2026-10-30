@@ -15,7 +15,7 @@ export const metadata: Metadata = {
 };
 
 /**
- * About (v07, approved 2026-10-27): hello + status | the photo stack, three
+ * About: hello + status | the photo stack, three
  * facts, experience (work and school in one list), and the off-screen
  * stickers. Concise on purpose: the toys are the fun, not the copy.
  */

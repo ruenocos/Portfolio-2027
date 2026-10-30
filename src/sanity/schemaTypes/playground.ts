@@ -3,7 +3,7 @@ import { orderRankField, orderRankOrdering } from "@sanity/orderable-document-li
 import { defineField, defineType } from "sanity";
 import { copiesField } from "./videoCopies";
 
-// A Playground post: one picture or loop on the masonry board (v08). The
+// A Playground post: one picture or loop on the masonry board. The
 // board sizes it from the image, so the still sets the ratio.
 export const playgroundPiece = defineType({
   name: "playgroundPiece",

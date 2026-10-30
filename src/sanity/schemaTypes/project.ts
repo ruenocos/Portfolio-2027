@@ -5,7 +5,7 @@ import { TOOLS } from "../../lib/tools";
 import { copiesField } from "./videoCopies";
 
 // A project: one row on Home and Work (DESIGN.md §6, Project row), and its
-// case page when it has one (case-study-spec v02), all in one document.
+// case page when it has one, all in one document.
 export const project = defineType({
   name: "project",
   title: "Project",

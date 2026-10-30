@@ -24,11 +24,11 @@ export async function generateMetadata({ params }: PageProps<"/work/[slug]">): P
 }
 
 /**
- * Case page (case-study-spec v02): crumb → opening (title | lead) → header
+ * Case page: crumb → opening (title | lead) → header
  * video → facts → the read → the next project, then the footer (its air
- * row is the spec's 240px gap). Fully prerendered per slug, with no
+ * row is the 240px gap). Fully prerendered per slug, with no
  * Suspense fallback: a streamed hole showed an empty page (header and
- * cursors only) on load and between cases (Wons 2026-10-28).
+ * cursors only) on load and between cases.
  */
 export default async function CasePage({ params }: PageProps<"/work/[slug]">) {
   const { slug } = await params;

@@ -30,7 +30,7 @@ const ENTER_LEAVES = ".text-label,figcaption,a,button,.gpill";
 const BADGE = ".mock,.slot";
 
 /**
- * One rule per kind (spec v02.2 §4), so nothing gets two effects and
+ * One rule per kind, so nothing gets two effects and
  * nothing is left static: text lines reveal, pictures enter and drift,
  * labels/facts/controls enter, Wessel's objects keep their own motion.
  */
@@ -63,8 +63,7 @@ const RESCAN_MS = 150; // after the page's DOM changes
 const HYDRATION_GIVE_UP_MS = 6000;
 
 /**
- * The scroll system (scroll-system-spec v02.2, Wons picked C depth + T1
- * light on 2026-10-28). One system on every page, for everything below the
+ * The scroll system: one on every page, for everything below the
  * first screen (that screen keeps its load entrance):
  *
  * 1. Text lights up line by line (opacity .25 → 1, out-cubic) while the

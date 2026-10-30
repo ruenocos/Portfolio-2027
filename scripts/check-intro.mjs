@@ -1,4 +1,4 @@
-// Behaviour checks for home's first-visit intro (build-plan_v03 "Tests").
+// Behaviour checks for home's first-visit intro.
 // Needs Playwright with Chromium, and the site running:
 //   npx next build && npx next start -p 3100
 //   node scripts/check-intro.mjs [http://localhost:3100]
@@ -47,14 +47,14 @@ async function page(opts = {}, setup) {
   await ctx.close();
 }
 
-// A host that adds a comment and line breaks to <head> (Netlify did) makes
+// A host that adds a comment and line breaks to <head> makes
 // React's hydration fail and reset <html>: the intro, the mode and the
 // motion state must come back (lib/html).
 {
   const { p, ctx } = await page({ colorScheme: "dark" }, (p) =>
     p.route(BASE + "/", async (r) => {
       const res = await r.fetch();
-      const html = (await res.text()).replace('<meta charSet="utf-8"/>', '$&\n<!-- hosted on Netlify -->\n');
+      const html = (await res.text()).replace('<meta charSet="utf-8"/>', '$&\n<!-- injected by the host -->\n');
       await r.fulfill({ response: res, body: html });
     }),
   );

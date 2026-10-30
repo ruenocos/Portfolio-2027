@@ -16,7 +16,7 @@ const LINE = 0.4;
 const REST_X = 110;
 
 /**
- * The read (case-study-spec v02 §6): a sticky Layers panel next to the
+ * The read: a sticky Layers panel next to the
  * sections. Wessel is your reading buddy: he selects the layer you're
  * reading, presses once per change, and counts how far you are in his tag
  * ("Wessel · 42%"). It's the one Wessel (the shell's), driven to the layer, so

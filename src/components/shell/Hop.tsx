@@ -4,8 +4,7 @@ import { useEffect, useRef } from "react";
 import { getMotion } from "@/lib/motion";
 
 // Letter hop: a text link's label springs up letter by letter on hover.
-// The house style for every clickable text (Wons, 2026-10-27; 2026-10-28:
-// one effect everywhere, no underlines). It plays when the pointer enters
+// The one effect for every clickable text (no underlines). It plays when the pointer enters
 // its host: the closest [data-hop-host] (a whole project tile), else the
 // link or button around it. The host's hover also turns it grape (shell.css).
 // Screen readers get the plain text from the hidden copy.

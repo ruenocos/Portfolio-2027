@@ -1,4 +1,4 @@
-// The site's one arrow icon (Wons, 2026-10-27: drawn icons, not glyphs).
+// The site's one arrow icon, drawn rather than a glyph.
 // One shape, rotated: → inside the site, ↗ leaves it, ↓ scrolls down,
 // ← back, ↑ to the top. 1.5px stroke at every size, round ends, current
 // colour; sized by the text around it.

@@ -1,6 +1,4 @@
-/* Phase 3 components. One rule set per component; the prototype drew some
-   of these several times (merge list: studio/web/build/phase-3/
-   component-inventory_v01.md). Values from DESIGN.md v02.1 §5, §6 and §7.
+/* Shared components, one rule set each. Values from DESIGN.md §5–§7.
    Type comes from the text-* utilities in the markup, not from here. */
 
 @layer components {
@@ -847,7 +845,7 @@
     translate: -50% 0;
   }
 
-  /* The page-coordinate layer: selections, redlines and bots scroll with the page. */
+  /* The page-coordinate layer: selections, redlines and pins scroll with the page. */
   .ovl {
     position: absolute;
     inset: 0;

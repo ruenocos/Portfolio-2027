@@ -28,7 +28,6 @@ const MOBILE_TYPE = {
   headline: "40px",
   email: "clamp(24px, 6.2vw, 32px)", // fluid to 24
 };
-// side: 16px comes from the v90 prototype (web/site-prototype).
 const MOBILE_SPACE = { inset: "20px", section: "40px", divider: "72px", "divider-tall": "96px", side: "16px" };
 
 const v = (token) => token.$value;

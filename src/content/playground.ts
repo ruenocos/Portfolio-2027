@@ -19,14 +19,13 @@ export const PLAYGROUND_TARGET = 24;
 const M = "/media";
 const P = `${M}/play`;
 
-// Playground v08 (studio/web/hifi/playground, approved): a big looping
-// masonry. The game reel and five Study renders are real; the rest are prompts until
-// Wons adds his experiments in Sanity (Playground posts). Nothing here repeats
-// an image from another page (Wons, 2026-10-28).
+// The Playground's looping masonry until Sanity has posts. The game reel and
+// five Study renders are real; the rest are prompts. Nothing here repeats an
+// image from another page.
 export const FALLBACK_POSTS: Post[] = [
   { title: "Match Monsters and Hold’em, game screens", video: `${M}/game-reel.mp4`, src: `${M}/game-reel.jpg`, ar: 720 / 1548 },
-  // From Wons's Study folder (After Effects renders, 2026-10-27). Titles are
-  // working names from the file names until Wons names them.
+  // After Effects renders from Wons's Study folder. Titles are working names
+  // from the file names until he names them.
   { title: "Glass orbs, lit from every side", video: `${P}/glass-orbs.mp4`, src: `${P}/glass-orbs.jpg`, ar: 16 / 9 },
   { title: "Spade to heart in one shape", video: `${P}/suit-morph.mp4`, src: `${P}/suit-morph.jpg`, ar: 1 },
   { title: "A loader worth waiting for", video: `${P}/shape-loader.mp4`, src: `${P}/shape-loader.jpg`, ar: 1 },

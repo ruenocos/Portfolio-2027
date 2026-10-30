@@ -16,7 +16,7 @@ const REST: [number, number, number][] = [
 const TOSS_MS = 260;
 
 /**
- * About's toy (v07): a stack of photos. Drag the top one off (or tap it,
+ * About's toy: a stack of photos. Drag the top one off (or tap it,
  * or Enter) and it flies away and tucks in at the back. Wessel
  * pulls the top one off once, to show you how.
  */

@@ -85,22 +85,21 @@ function postEl(post: Post) {
     idea.dataset.kind = post.title.startsWith("Loop") ? "Loop" : "Picture";
     tile.appendChild(idea);
   }
-  // No frame name above it: the board is purely visual (Wons 2026-10-28);
-  // the name is read out and captions the open post.
+  // No frame name above it (the board is purely visual); the name is read
+  // out and captions the open post.
   f.append(tile);
   return f;
 }
 
 /**
- * Playground (v08, approved): one big masonry on a pannable board that loops
- * back to where it started, sideways and down. Drag (with a throw), wheel or
- * trackpad, arrow keys; tap a post (or Enter for the middle one) to lift it
- * open. At rest it settles on whole columns. Wessel drives it: he grabs a post that's
+ * Playground: one big masonry on a pannable board that loops back to where
+ * it started, sideways and down. Drag (with a throw), wheel or trackpad,
+ * arrow keys; tap a post (or Enter for the middle one) to lift it open. At
+ * rest it settles on whole columns. Wessel drives it: he grabs a post that's
  * half out of view, drags it in, and selects it. He never opens one; that's
- * yours. Touch anything and he lets go and waits. Pause: still.
- * Like a Figma canvas: the tile you're over turns grape (yours). No frame
- * names: the board is purely visual. On arrival Wessel says hello
- * by selecting one tile in view, real size label and all.
+ * yours. Touch anything and he lets go and waits. Pause: still. Like a Figma
+ * canvas, the tile you're over turns grape (yours). On arrival Wessel says
+ * hello by selecting one tile in view, real size label and all.
  */
 type Hello = {
   pick: () => Item | null;
@@ -210,7 +209,7 @@ export function Board({ posts }: { posts: Post[] }) {
       // away, counted in screens and across the wrap. A twin a whole screen
       // away or more is far enough; among those the least used post goes, so
       // the mix stays even. The first row keeps the Studio's order, so the
-      // post Wons put first opens the board, whole, top left.
+      // post put first opens the board, whole, top left.
       const rng = seeded(posts.length * 7919 + 17);
       const used = new Map<Post, number>();
       const twins = new Map<Post, XY[]>();
