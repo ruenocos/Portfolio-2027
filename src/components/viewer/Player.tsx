@@ -2,8 +2,6 @@
 
 import { useEffect, useRef, useState } from "react";
 
-export type PlayerLook = "quiet" | "editor";
-
 const pad = (n: number) => String(Math.floor(n)).padStart(2, "0");
 /** 1:05, or 1:02:05 past an hour. */
 const clock = (t: number) => {
@@ -11,11 +9,6 @@ const clock = (t: number) => {
   const h = Math.floor(t / 3600);
   const m = Math.floor((t % 3600) / 60);
   return h ? `${h}:${pad(m)}:${pad(t % 60)}` : `${m}:${pad(t % 60)}`;
-};
-/** 00:00:12:04, an editor's timecode (frames at 25 fps). */
-const timecode = (t: number) => {
-  if (!Number.isFinite(t)) t = 0;
-  return `${pad(t / 3600)}:${pad((t % 3600) / 60)}:${pad(t % 60)}:${pad((t % 1) * 25)}`;
 };
 
 function Icon({ name }: { name: "play" | "pause" | "sound" | "muted" | "full" }) {
@@ -43,22 +36,20 @@ function Icon({ name }: { name: "play" | "pause" | "sound" | "muted" | "full" })
 /**
  * The viewer's video player: the usual controls (play, scrub, time, sound,
  * full screen), drawn in the system. Your hand is grape: the playhead and
- * what you press. "quiet" floats a pill bar inside the frame; "editor" puts
- * a slim timeline under it, with a timecode and a second ruler.
+ * what you press. A canvas pill floats inside the frame and steps aside
+ * while you watch.
  */
 export function Player({
   src,
   poster,
   alt,
   sound,
-  look,
   active,
 }: {
   src: string;
   poster?: string;
   alt: string;
   sound?: boolean;
-  look: PlayerLook;
   /** Only the item on screen plays. */
   active: boolean;
 }) {
@@ -95,9 +86,9 @@ export function Player({
     return () => cancelAnimationFrame(raf);
   }, [playing]);
 
-  // The quiet bar steps aside after 2s without a pointer move, while playing.
+  // The bar steps aside after 2s without a pointer move, while playing.
   useEffect(() => {
-    if (look !== "quiet" || !playing) return;
+    if (!playing) return;
     const el = wrap.current;
     let t = 0;
     const wake = () => {
@@ -113,7 +104,7 @@ export function Player({
       el?.removeEventListener("pointermove", wake);
       el?.removeEventListener("focusin", wake);
     };
-  }, [look, playing]);
+  }, [playing]);
 
   const toggle = () => {
     const v = video.current;
@@ -154,17 +145,15 @@ export function Player({
     e.stopPropagation();
   };
   const full = () => {
-    const el = look === "quiet" ? wrap.current : video.current;
+    const el = wrap.current;
     if (document.fullscreenElement) void document.exitFullscreen();
     else void (el?.requestFullscreen?.() ?? (video.current as HTMLVideoElement & { webkitEnterFullscreen?: () => void })?.webkitEnterFullscreen?.());
   };
 
   const p = dur ? time / dur : 0;
-  const ticks = look === "editor" && dur ? Math.floor(dur) : 0;
-  const label = look === "editor" ? timecode : clock;
 
   return (
-    <div ref={wrap} className="plyr" data-look={look} data-idle={(idle && playing && look === "quiet") || undefined} data-playing={playing || undefined}>
+    <div ref={wrap} className="plyr" data-idle={(idle && playing) || undefined} data-playing={playing || undefined}>
       <video
         ref={video}
         src={src}
@@ -184,7 +173,6 @@ export function Player({
         <button type="button" className="pbtn" aria-label={playing ? "Pause" : "Play"} onClick={toggle} data-on={playing || undefined}>
           <Icon name={playing ? "pause" : "play"} />
         </button>
-        {look === "editor" && <span className="ptc text-micro">{timecode(time)}</span>}
         <div
           ref={track}
           className="ptrack"
@@ -201,26 +189,17 @@ export function Player({
           onPointerLeave={() => setHover(null)}
           onKeyDown={keys}
         >
-          {ticks > 0 && (
-            <span className="pticks" aria-hidden="true">
-              {Array.from({ length: ticks }, (_, i) => (
-                <i key={i} style={{ left: `${((i + 1) / dur) * 100}%` }} data-big={(i + 1) % 5 === 0 || undefined} />
-              ))}
-            </span>
-          )}
           <span className="prun" aria-hidden="true" style={{ transform: `scaleX(${p})` }} />
           <span className="phead" aria-hidden="true" style={{ left: `${p * 100}%` }} />
           {hover != null && dur > 0 && (
             <span className="phov text-micro" aria-hidden="true" style={{ left: `${(hover / dur) * 100}%` }}>
-              {label(hover)}
+              {clock(hover)}
             </span>
           )}
         </div>
-        {look === "quiet" && (
-          <span className="ptime text-micro">
-            {clock(time)} <span className="text-mute">/ {clock(dur)}</span>
-          </span>
-        )}
+        <span className="ptime text-micro">
+          {clock(time)} <span className="text-mute">/ {clock(dur)}</span>
+        </span>
         <button type="button" className="pbtn ghost" aria-label={muted ? "Sound on" : "Sound off"} onClick={() => setMuted((m) => !m)}>
           <Icon name={muted ? "muted" : "sound"} />
         </button>

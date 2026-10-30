@@ -4,7 +4,7 @@ import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react
 import { Arrow } from "@/components/parts/Arrow";
 import { getMotion } from "@/lib/motion";
 import { onViewer, type ViewerRequest } from "@/lib/viewer";
-import { Player, type PlayerLook } from "./Player";
+import { Player } from "./Player";
 
 // Room the media leaves for the chrome: Close on top, caption and counter
 // under it, the step buttons at the sides (phones swipe instead).
@@ -25,15 +25,6 @@ function fit(w: number, h: number): Box {
   return { x: Math.round((innerWidth - bw) / 2), y: Math.round(ROOM.top + (H - bh) / 2), w: bw, h: bh };
 }
 
-/** The player look picked for the preview board (?player=editor); quiet by default. */
-const pickLook = (): PlayerLook => {
-  try {
-    return new URLSearchParams(location.search).get("player") === "editor" ? "editor" : "quiet";
-  } catch {
-    return "quiet";
-  }
-};
-
 /**
  * The one viewer (lib/viewer): case pictures and loops, and the reel. It
  * grows out of the tile you pressed and shrinks back into it, like a
@@ -47,7 +38,6 @@ export function Viewer() {
   const [index, setIndex] = useState(0);
   const [on, setOn] = useState(false);
   const [zoom, setZoom] = useState<{ s: number; x: number; y: number } | null>(null);
-  const [look, setLook] = useState<PlayerLook>("quiet");
   const [box, setBox] = useState<Box | null>(null);
   const closing = useRef(false);
 
@@ -58,7 +48,6 @@ export function Viewer() {
     () =>
       onViewer((r) => {
         closing.current = false;
-        setLook(pickLook());
         setZoom(null);
         setIndex(r.index);
         // The frame needs its box in the same render, so the open below finds it.
@@ -217,11 +206,10 @@ export function Viewer() {
             ref={frame}
             className="vfr"
             data-kind={item.kind}
-            data-look={item.kind === "video" ? look : undefined}
             style={{ left: box.x, top: box.y, width: box.w, height: box.h }}
           >
             {item.kind === "video" && item.video ? (
-              <Player key={`${index}-${item.video}`} src={item.video} poster={item.src} alt={item.alt} sound={item.sound} look={look} active={on} />
+              <Player key={`${index}-${item.video}`} src={item.video} poster={item.src} alt={item.alt} sound={item.sound} active={on} />
             ) : (
               // eslint-disable-next-line @next/next/no-img-element -- the full picture, at the size it was uploaded
               <img
@@ -240,7 +228,7 @@ export function Viewer() {
               />
             )}
           </div>
-          <div className="vcap" style={{ left: box.x, top: box.y + box.h + (item.kind === "video" && look === "editor" ? 56 : 12), width: box.w }}>
+          <div className="vcap" style={{ left: box.x, top: box.y + box.h + 12, width: box.w }}>
             {item.caption && <p className="text-label text-mute">{item.caption}</p>}
             {many && (
               <p className="vcount text-micro" aria-live="polite">

@@ -79,14 +79,12 @@
     background: #000;
   }
 
+  /* A canvas pill floating in the frame; it steps aside when idle. */
   .pbar {
+    position: absolute;
     display: flex;
     align-items: center;
     gap: 10px;
-  }
-  /* quiet: a canvas pill floating in the frame; it steps aside when idle. */
-  .plyr[data-look="quiet"] .pbar {
-    position: absolute;
     left: 50%;
     bottom: 16px;
     translate: -50% 0;
@@ -107,14 +105,6 @@
   }
   .plyr[data-idle] video {
     cursor: none;
-  }
-  /* editor: a slim timeline under the frame, like a cut in an edit. */
-  .plyr[data-look="editor"] .pbar {
-    position: absolute;
-    left: 0;
-    right: 0;
-    top: calc(100% + 12px);
-    gap: 12px;
   }
 
   .pbtn {
@@ -167,14 +157,10 @@
     transform: translateY(var(--press-y));
   }
 
-  .ptc,
   .ptime {
     flex: none;
     font-variant-numeric: tabular-nums;
     white-space: nowrap;
-  }
-  .ptc {
-    color: var(--tang);
   }
 
   /* The track: a hairline you can grab anywhere along. */
@@ -240,48 +226,6 @@
     font-variant-numeric: tabular-nums;
     white-space: nowrap;
     pointer-events: none;
-  }
-
-  /* editor: tangerine cut line, a playhead line and a second ruler. */
-  .plyr[data-look="editor"] .ptrack::before,
-  .plyr[data-look="editor"] .prun {
-    height: 2px;
-  }
-  .plyr[data-look="editor"] .prun {
-    background: var(--tang);
-  }
-  .plyr[data-look="editor"] .phead {
-    width: 2px;
-    height: 24px;
-    border-radius: 1px;
-    box-shadow: none;
-  }
-  .plyr[data-look="editor"] .phead::before {
-    content: "";
-    position: absolute;
-    left: 50%;
-    top: -4px;
-    width: 10px;
-    height: 10px;
-    translate: -50% 0;
-    border-radius: 50%;
-    background: var(--grape);
-  }
-  .pticks {
-    position: absolute;
-    inset: 0;
-    pointer-events: none;
-  }
-  .pticks i {
-    position: absolute;
-    bottom: 3px;
-    width: 1px;
-    height: 6px;
-    background: var(--line);
-  }
-  .pticks i[data-big] {
-    height: 10px;
-    background: color-mix(in srgb, var(--mute) 60%, transparent);
   }
 
   /* ---------- chrome ---------- */
