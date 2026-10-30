@@ -861,6 +861,12 @@ export function Board({ posts }: { posts: Post[] }) {
       if (driving) wessel.free();
       hi.current = null;
       world.textContent = "";
+      // Leaving the page keeps this DOM alive but hidden, and coming back
+      // runs the effect again from 100%: a zoom left on the nodes would scale
+      // a board laid out for 100%, so only part of the view gets tiles.
+      world.style.transform = "";
+      boardEl.style.removeProperty("--z");
+      if (zoomLabel) zoomLabel.textContent = "100%";
     };
   }, [posts, cvRef]);
 
