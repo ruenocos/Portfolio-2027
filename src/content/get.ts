@@ -1,4 +1,4 @@
-import type { Project } from "@/components/parts/ProjectRow";
+import type { Project } from "@/content/types";
 import { IS_PRODUCTION } from "@/lib/site";
 import { knownTools } from "@/lib/tools";
 import { client, urlFor } from "@/sanity/client";

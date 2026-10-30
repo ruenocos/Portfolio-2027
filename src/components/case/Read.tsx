@@ -152,7 +152,7 @@ export function Read({ sections }: { sections: CaseSection[] }) {
 
   return (
     <>
-      <div ref={root} className="rd">
+      <div ref={root} className="rd" data-depth="off">
         <nav className="cell lay" aria-label="Contents">
           <div className="lp">
             <p className="lh text-label text-mute">Layers</p>

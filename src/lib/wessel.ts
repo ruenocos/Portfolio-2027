@@ -19,10 +19,10 @@
 // - calm (Pause motion or reduced motion): no travel, end states only
 
 import motionTokens from "../../design/motion-tokens.json";
-import { getMotion, subscribeMotion } from "./motion";
+import { isCalm, subscribeMotion } from "./motion";
 import { smileySvg } from "./smiley";
 import { clamp, easeInOutCubic, lerp } from "./math";
-import { narrow, touch } from "./media";
+import { headerHeight, narrow, touch } from "./media";
 
 const { wessel: wesselMotion } = motionTokens;
 const springs = wesselMotion.spring;
@@ -32,10 +32,8 @@ type Target = XY | (() => XY | null);
 type Spring = { k: number; z: number };
 
 export const wait = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
-const calm = () => getMotion().calm;
-// The sticky header's height (--spacing-header), read once.
-let headerPx = 0;
-const header = () => (headerPx ||= parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--spacing-header")) || 90);
+const calm = isCalm;
+const header = headerHeight;
 
 // ---------- generations ----------
 // A mode change or a page change starts a new generation; a running beat
@@ -169,6 +167,28 @@ export function putPin(at: XY, text = "") {
   return { pin, bub };
 }
 
+// ---------- the visitor's pointer ----------
+// Where your mouse last was (screen px), so he can leave alone what you're
+// pointing at. Mouse only: a finger isn't resting anywhere.
+let visitorAt: XY | null = null;
+if (typeof window !== "undefined") {
+  addEventListener("pointermove", (e) => void (visitorAt = e.pointerType === "mouse" ? [e.clientX, e.clientY] : null), { passive: true });
+  document.addEventListener("mouseleave", () => (visitorAt = null));
+}
+/** Your pointer is on el (with pad px around it). */
+export const pointerOn = (el: Element, pad = 40) => {
+  if (!visitorAt) return false;
+  const r = el.getBoundingClientRect();
+  return visitorAt[0] > r.left - pad && visitorAt[0] < r.right + pad && visitorAt[1] > r.top - pad && visitorAt[1] < r.bottom + pad;
+};
+/** Your pointer is right of x (screen px). */
+export const pointerRightOf = (x: number) => !!visitorAt && visitorAt[0] > x;
+/** Waits (up to maxMs) while you're pointing at el: he never works on what you're using. */
+export async function waitTillClear(el: Element, maxMs = 1500) {
+  const t0 = performance.now();
+  while (pointerOn(el) && performance.now() - t0 < maxMs) await wait(100);
+}
+
 // ---------- cursor markup (shared with <Cursor>) ----------
 // Figma-style multiplayer pointer: a rounded arrowhead, no stem.
 // TIP is where it points, in CSS px from its top-left.
@@ -206,6 +226,20 @@ let scrollSpeed = 0;
 let scrollPeak = 0;
 let scrollDirection = 1;
 let raf = 0;
+// Quiet frames in a row (no job, settled, page still). After a few the
+// loop sleeps, so a parked Wessel costs nothing; wake() restarts it.
+let quietFrames = 0;
+const SLEEP_AFTER = 12;
+
+/** Restarts his frame loop after it slept. Called by every move, scroll and resize. */
+function wake() {
+  quietFrames = 0;
+  if (raf || !cursor.el) return;
+  tick.last = 0;
+  raf = requestAnimationFrame(tick);
+}
+
+const PARK_SLACK = 40;
 
 // Where he goes when he has no job.
 function home(): XY {
@@ -215,11 +249,17 @@ function home(): XY {
   }
   if (cursor.anchor) {
     // He stays where he last worked, like a collaborator in a shared file…
+    // A spot under the sticky header counts as above the screen. Once he's
+    // following, the spot has to come SLACK px into the band before he parks
+    // again, so he doesn't flip between the two on its edge.
     const y = cursor.anchor[1] - scrollY;
-    cursor.parked = y > header() + 24 && y < screenHeight() - 40;
+    const top = header() + 24;
+    const bottom = screenHeight() - 40;
+    const slack = cursor.parked ? 0 : PARK_SLACK;
+    cursor.parked = y > top + slack && y < bottom - slack;
     if (cursor.parked) return [cursor.anchor[0] - scrollX, y];
     // …and once that has scrolled away he wanders after you, a beat behind.
-    return [cursor.anchor[0] - scrollX, y < 0 ? screenHeight() * 0.22 : screenHeight() * 0.78];
+    return [cursor.anchor[0] - scrollX, y <= top ? screenHeight() * 0.22 : screenHeight() * 0.78];
   }
   cursor.parked = false;
   return [innerWidth - (narrow() ? 64 : 120), screenHeight() * 0.74];
@@ -246,7 +286,10 @@ function draw(el: HTMLElement) {
 
 function tick(frameTime: number) {
   const el = cursor.el;
-  if (!el) return;
+  if (!el) {
+    raf = 0;
+    return;
+  }
   const dt = Math.min(0.033, (frameTime - (tick.last || frameTime)) / 1000) || 0.016;
   tick.last = frameTime;
   const scrolled = scrollY - lastScrollY;
@@ -338,7 +381,9 @@ function tick(frameTime: number) {
   const flip = cursor.lean || room < (flipped ? 40 : 20);
   if (flip !== flipped) el.dataset.flip = String((flipped = flip));
   draw(el);
-  raf = requestAnimationFrame(tick);
+  const quiet = !driving && !riding && Math.abs(scrolled) < 0.5 && cursor.distance < 0.5 && cursor.speed < 4;
+  quietFrames = quiet ? quietFrames + 1 : 0;
+  raf = quietFrames > SLEEP_AFTER ? 0 : requestAnimationFrame(tick);
 }
 tick.last = 0;
 
@@ -353,6 +398,7 @@ export const wessel = {
 
   /** Travels to a viewport point (or a function that tracks one). */
   go(target: Target, { k = springs.beat.k, timeout = 700, lean = false } = {}) {
+    wake();
     cursor.lean = lean;
     cursor.drive = typeof target === "function" ? target : () => target;
     cursor.spring = { k, z: springs.beat.z };
@@ -381,6 +427,7 @@ export const wessel = {
       // end: a beat that resets its object after the drag (the photo stack's
       // toss) would otherwise be pulled back to the drag's end every frame.
       let ended = false;
+      wake();
       cursor.spring = { k: 1400, z: springs.beat.z };
       cursor.drive = () => {
         const e = easeInOutCubic(calm() ? 1 : clamp((performance.now() - t0) / ms));
@@ -400,12 +447,15 @@ export const wessel = {
 
   /** Lets go: he parks right where he is. */
   free() {
+    wake();
     cursor.drive = null;
     cursor.lean = false;
     wessel.press(false);
     cursor.hold = null;
     cursor.anchor = cursor.aim ?? [cursor.x + scrollX, cursor.y + scrollY];
     cursor.aim = null;
+    // He's parked where he let go (no slack yet: that's for coming back).
+    cursor.parked = true;
   },
 
   /** Where he is now, on screen. */
@@ -429,6 +479,7 @@ export const wessel = {
     cursor.note = text;
     if (cursor.tag) cursor.tag.textContent = text ? `Wessel · ${text}` : "Wessel";
     measureLabel();
+    wake();
   },
 
   /** Back off-screen right, so his next move glides in from the edge. */
@@ -438,6 +489,7 @@ export const wessel = {
     cursor.vx = cursor.vy = 0;
     // Written now, so the frame before his next tick doesn't show the old spot.
     if (cursor.el) draw(cursor.el);
+    wake();
   },
 
   show() {
@@ -459,10 +511,14 @@ export function attachWessel(el: HTMLElement) {
   flipped = false;
   el.dataset.hide = "true";
   measureLabel();
-  addEventListener("resize", measureScreen);
+  const wakeOnResize = () => (measureScreen(), wake());
+  addEventListener("resize", wakeOnResize);
+  // Scrolling moves his target (parked spot, wandering after you).
+  addEventListener("scroll", wake, { passive: true });
   // A font swap can change his tag's width.
-  document.fonts?.ready.then(measureLabel);
-  raf = requestAnimationFrame(tick);
+  document.fonts?.ready.then(() => (measureLabel(), wake()));
+  raf = 0;
+  wake();
   // Pause (or the system's reduce motion) mid-beat: drop what's running and
   // put every section straight into its end state.
   let wasCalm = calm();
@@ -477,10 +533,14 @@ export function attachWessel(el: HTMLElement) {
       trigger(b);
     });
   });
+  const offWake = subscribeMotion(wake);
   return () => {
     off();
-    removeEventListener("resize", measureScreen);
+    offWake();
+    removeEventListener("resize", wakeOnResize);
+    removeEventListener("scroll", wake);
     cancelAnimationFrame(raf);
+    raf = 0;
     cursor.el = null;
   };
 }
@@ -489,12 +549,14 @@ export function attachWessel(el: HTMLElement) {
  *  the route swaps, as a shorter new page can clamp the scroll under him. */
 export function holdWessel() {
   cursor.hold = cursor.el && cursor.el.dataset.hide !== "true" ? [cursor.x, cursor.y] : null;
+  wake();
 }
 
 /** A page change: new generation, fresh marks, he forgets his parking spot
  *  but holds still on screen (like the header) until the new page gives him a job. */
 export function newPage() {
   newGeneration();
+  wake();
   cursor.lean = false;
   cursor.anchor = null;
   if (!cursor.hold) holdWessel();
@@ -677,6 +739,9 @@ export function arrive(ms = 600) {
   // No job on the new page after a moment: he stops holding his old spot
   // (which may now be over copy) and goes back to resting.
   setTimeout(() => {
-    if (g === generation && !cursor.drive && !busy) cursor.hold = null;
+    if (g === generation && !cursor.drive && !busy) {
+      cursor.hold = null;
+      wake();
+    }
   }, wait + 1200);
 }

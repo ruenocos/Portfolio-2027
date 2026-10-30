@@ -68,6 +68,11 @@ push(`  --dur-page-out: ${motion.transition.page.out.ms}ms;`, `  --dur-page-in: 
 for (const [name, t] of Object.entries(tokens.type)) push(`  --type-${name}-size: ${t.$value.fontSize};`);
 push("}", "");
 
+// Colour tokens are registered, so a mode change can cross-fade the tokens
+// themselves on <html> and the page inherits them (globals.css .mode-fade).
+for (const name of colorNames) push(`@property --${name} {`, `  syntax: "<color>";`, `  inherits: true;`, `  initial-value: ${v(tokens.color.light[name])};`, "}");
+push("");
+
 // Colour per mode. Light is also the default before the mode script runs.
 for (const mode of MODES) {
   const selector = mode === "light" ? `:root, [data-mode="light"]` : `[data-mode="${mode}"]`;

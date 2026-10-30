@@ -4,7 +4,7 @@ import { KeepHtml } from "@/components/KeepHtml";
 import { ModeProvider } from "@/components/ModeProvider";
 import { snapshotScript } from "@/lib/html";
 import { bootScript, motionScript } from "@/lib/motion";
-import { modeScript, themeColorScript } from "@/lib/mode";
+import { CANVAS, modeScript, themeColorScript } from "@/lib/mode";
 import { SITE_URL, mocksScript } from "@/lib/site";
 import "./globals.css";
 
@@ -36,7 +36,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       <head>
         {/* Sets the mode and the motion state before the first paint,
             so dark never flashes light and a paused visit never moves. */}
-        <meta name="theme-color" content="#FAF8F4" />
+        <meta name="theme-color" content={CANVAS.light} />
         <script dangerouslySetInnerHTML={{ __html: [modeScript, themeColorScript, bootScript, motionScript, mocksScript, snapshotScript].join(";") }} />
       </head>
       <body>

@@ -35,6 +35,7 @@ export function ToolFilter({
               key={id}
               type="button"
               className="tool"
+              data-tool={id}
               aria-pressed={on}
               aria-label={TOOLS[id].name}
               title={TOOLS[id].name}

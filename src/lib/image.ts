@@ -44,6 +44,9 @@ export const SIZES = {
   stack: "(width < 900px) 68vw, 320px",
   archive: "(width < 900px) 140px, 250px",
   wide: "(width < 900px) 100vw, 1200px",
-  figure: "(width < 900px) 100vw, 860px",
+  // A case's sections take two thirds of the content (max 1600) less the insets.
+  figure: "(width < 900px) 100vw, min(986px, calc(66.7vw - 208px))",
+  figureHalf: "(width < 600px) 100vw, (width < 900px) 50vw, min(483px, calc(33.3vw - 114px))",
+  figureThird: "(width < 600px) 100vw, (width < 900px) 33vw, min(315px, calc(22.2vw - 81px))",
   post: "(width < 900px) 170px, 300px",
 } as const;

@@ -90,20 +90,22 @@ export async function playHello({ gate, hero, name, reel, playLoop, idle }: Hell
     }
   };
 
-  // The reel plays from the start; he invites you to it later.
-  playLoop();
+  // The reel holds its poster while he works on the name (one mover at a
+  // time); its loop starts when he invites you to it, or on a skip.
   try {
     if (getMotion().calm) throw new Skip();
     await breath(450);
     // He glides in next to the outlined W and says hello.
-    await wessel.go(wessel.at(letterW, 0.96, 0.04), { k: 120, timeout: 1400 });
+    // Phones: the name fills the width, so he says it from the empty corner
+    // above it, right of the based-in lines: his tag in the band over the
+    // letters, the pin above him, clear of the name and the reel.
+    const small = narrow();
+    await wessel.go(small ? wessel.at(name, 0.68, 0, 0, -46) : wessel.at(letterW, 0.96, 0.04), { k: 120, timeout: 1400 });
     check();
     await breath(200);
-    // Phones: no room above the name (the based-in lines sit there), so
-    // the pin drops into the reel's corner just under him.
     await say(
       returning() ? "Welcome back!" : "Hello!",
-      narrow() ? pagePoint(reel, 0, 0, 12, 84) : pagePoint(letterW, 0.96, 0.04, 10, -6),
+      small ? pagePoint(name, 0.64, 0, 0, -50) : pagePoint(letterW, 0.96, 0.04, 10, -6),
     );
     await breath(700);
 
@@ -194,8 +196,9 @@ export async function playHello({ gate, hero, name, reel, playLoop, idle }: Hell
     if (!(e instanceof Skip)) throw e;
     unprepName(name);
     playLoop();
-    // Off the name: he waits where he'd have pointed you down.
-    void goToNodSpot(hero);
+    // Off the name: he waits where he'd have pointed you down. Awaited, so
+    // he has his aim there before the beat lets him go (else he parks on the W).
+    await goToNodSpot(hero);
   } finally {
     letterSelection?.done();
     removeEventListener("scroll", scrolledAway);

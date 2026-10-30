@@ -3,10 +3,12 @@
    facts live in components.css. */
 
 @layer components {
-  /* ---------- opening: title | lead, 50/50 ---------- */
+  /* ---------- opening: title | lead, on the page's thirds ----------
+     Every split on a case page sits on thirds (the facts row's too), so
+     the hairlines carry down the page instead of starting new columns. */
   .copen {
     display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
     gap: var(--spacing-hairline);
     background: var(--line);
     min-width: 0;
@@ -36,10 +38,10 @@
     padding: var(--spacing-inset);
   }
 
-  /* ---------- the read: Layers panel | sections ---------- */
+  /* ---------- the read: Layers panel | sections, a third | two ---------- */
   .rd {
     display: grid;
-    grid-template-columns: 320px minmax(0, 1fr);
+    grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
     gap: var(--spacing-hairline);
     background: var(--line);
     min-width: 0;
@@ -115,8 +117,16 @@
     overflow-wrap: break-word;
     hyphens: manual;
   }
+  /* Running text under about 65 characters a line (34em); the takeaway,
+     several lines of Accent, gets a shorter measure and room to breathe:
+     at the Accent's own 1.05 its ascenders and descenders nearly touch. */
   .sc .sl {
-    max-width: 62ch;
+    max-width: 34em;
+  }
+  .sc .sl.text-accent {
+    max-width: 18em;
+    margin-top: 4px;
+    line-height: 1.15;
   }
   .sc figure {
     margin: 20px 0 0;

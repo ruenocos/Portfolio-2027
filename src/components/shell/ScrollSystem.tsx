@@ -7,6 +7,8 @@ import { useMotion } from "@/components/useMotion";
 import motionTokens from "../../../design/motion-tokens.json";
 import { clamp, cssBezier } from "@/lib/math";
 import { movers, onHairline } from "@/lib/hairline";
+import { isBusy } from "@/lib/wessel";
+import { isHydrated } from "@/lib/hydration";
 
 const { easing, entrance, scrollSystem: sx } = motionTokens;
 const out3 = (x: number) => 1 - (1 - x) ** 3;
@@ -20,6 +22,9 @@ const NOT_TEXT =
 const NOT_INSIDE = "img,video,canvas,button,input,select,textarea,.media,.pin";
 // Pictures that never take part: icons, avatars.
 const NOT_PICTURE = ".tool,.tools,.av,.pin,[data-sx-skip]";
+// Pictures that enter but never zoom or drift: a case's screenshots, where a
+// crop would cut the interface's own labels at the edges.
+const FLAT = "[data-depth='off']";
 // Wessel's own objects keep their own arrival: the archive fan, Focus's
 // dioramas and Daily kit chips, the About stickers, the Playground canvas.
 const OWN = ".hand,.fcard,.fcap,.obj,.kitc,.stk,.pgcv";
@@ -58,9 +63,14 @@ type Unit = { el: HTMLElement; top: number; h: number };
 
 const LIT = 0.999; // a line this bright counts as lit
 const SOFT_PX = 3; // half the blend between two lines' light
+// Light is written in 1/64 steps: the eye can't tell them apart, and a
+// scroll frame that changes no step writes nothing (no mask repaint).
+const step64 = (v: number) => (Math.round(v * 64) / 64).toFixed(3);
 const MIN_FRAME_PX = 80; // smaller clipped pictures are icons and avatars
 const RESCAN_MS = 150; // after the page's DOM changes
 const HYDRATION_GIVE_UP_MS = 6000;
+// entrance.stagger.skipIfAbove: "60% of viewport".
+const SKIP_STAGGER_ABOVE = 0.6;
 
 /**
  * The scroll system: one on every page, for everything below the
@@ -72,7 +82,8 @@ const HYDRATION_GIVE_UP_MS = 6000;
  *    own line boxes, so React's text nodes, selection, find-in-page and
  *    screen readers see the page untouched.
  * 2. Depth: pictures sit at scale 1.1 inside their frame and drift ±5% with
- *    the frame's distance from the screen's centre; the side dots pan at 70%.
+ *    the frame's distance from the screen's centre (not inside [data-depth=off]:
+ *    a case's screenshots stay whole); the side dots pan at 70%.
  *    Text, frames and cells never move.
  * 3. Every picture frame, label, fact and control gets the house entrance
  *    at 92% of the screen, and an image fades in only once it has decoded
@@ -82,15 +93,10 @@ const HYDRATION_GIVE_UP_MS = 6000;
  * and Pause flips it without a reload.
  */
 // Nothing may be written before React has hydrated it, or hydration
-// breaks. Streamed pages (behind Suspense) hydrate after the shell, so the
-// system waits until every row of the page carries React's fiber (checked
-// every 100ms; after HYDRATION_GIVE_UP_MS it starts anyway). Pages after the
+// breaks. <PageFade> marks the page hydrated from its effect (lib/hydration);
+// after HYDRATION_GIVE_UP_MS the system starts anyway. Pages after the
 // first arrive client-side and start at once.
 let settled = false;
-const hydrated = () =>
-  [...document.querySelectorAll(".page-body [data-row], .page-body .frame")].every((el) =>
-    Object.keys(el).some((k) => k.startsWith("__reactFiber")),
-  );
 function whenSettled(fn: () => void) {
   if (settled) return (fn(), () => {});
   const t0 = performance.now();
@@ -100,15 +106,14 @@ function whenSettled(fn: () => void) {
   let idles = 0;
   const afterIdle = () =>
     ric ? (idle = requestIdleCallback(go, { timeout: 500 })) : (timer = window.setTimeout(go, 200));
-  // Fibers are attached a moment before React commits the hydrated tree, so
-  // the start also waits for two idle moments in a row after that.
+  // Then two idle moments in a row, so the page's own effects have run.
   function go() {
     if (++idles < 2) return void afterIdle();
     settled = true;
     fn();
   }
   const check = () => {
-    if (document.readyState === "complete" && (hydrated() || performance.now() - t0 > HYDRATION_GIVE_UP_MS))
+    if (document.readyState === "complete" && (isHydrated() || performance.now() - t0 > HYDRATION_GIVE_UP_MS))
       afterIdle();
     else timer = window.setTimeout(check, 100);
   };
@@ -202,12 +207,12 @@ function start() {
     const a = t.lines.map((l, i) => (t.peak[i] = Math.max(t.peak[i] ?? 0, alpha(top + l.top, y))));
     let next: string;
     if (a.every((v) => v >= LIT)) next = "";
-    else if (a.every((v) => Math.abs(v - a[0]) < 0.004)) next = `o:${a[0].toFixed(3)}`;
+    else if (a.every((v) => Math.abs(v - a[0]) < 0.004)) next = `o:${step64(a[0])}`;
     else {
       // Hard steps between line boxes, softened a little so descenders don't band.
       const stops: string[] = [];
       a.forEach((v, i) => {
-        const c = `rgb(0 0 0 / ${v.toFixed(3)})`;
+        const c = `rgb(0 0 0 / ${step64(v)})`;
         const from = i === 0 ? 0 : (t.lines[i - 1].bottom + t.lines[i].top) / 2 + SOFT_PX;
         stops.push(`${c} ${from.toFixed(1)}px`);
         if (i < a.length - 1) {
@@ -261,11 +266,15 @@ function start() {
   const enterIo = new IntersectionObserver(
     (es) => {
       let n = 0;
+      // Entrances wait a breath while Wessel is mid-job (one mover at a
+      // time); a block already high on the screen skips the stagger.
+      const hold = isBusy() ? entrance.holdWhileWesselWorks.ms : 0;
       es.forEach((e) => {
         if (!e.isIntersecting) return;
         const el = e.target as HTMLElement;
         land(el);
-        const delay = Math.min(n++, entrance.stagger.maxSteps) * entrance.stagger.ms;
+        const high = e.boundingClientRect.top < innerHeight * SKIP_STAGGER_ABOVE;
+        const delay = hold + (high ? 0 : Math.min(n++, entrance.stagger.maxSteps) * entrance.stagger.ms);
         const opacity = el.animate([{ opacity: 0 }, { opacity: 1 }], {
           duration: easing["enter-opacity"].ms,
           delay,
@@ -377,6 +386,7 @@ function start() {
         m.addEventListener("error", ok, { once: true });
       }
       if (own) return;
+      if (m.closest(FLAT)) return void enter(unitOf(frame));
       passed.delete(m);
       const p: Pic = { m, frame, top: 0, h: 0, last: "" };
       place(p);
@@ -432,7 +442,11 @@ function start() {
   scan();
   root.dataset.sx = "on";
   const stopScroll = scroll((_p: number, info: { y: { current: number } }) => frame(info.y.current));
+  // Set by the cleanup: a late callback (fonts loading) mustn't paint
+  // masks back onto text the cleanup has just cleared.
+  let stopped = false;
   const onResize = () => {
+    if (stopped) return;
     remeasure();
     frame(scrollY);
   };
@@ -450,6 +464,7 @@ function start() {
   frame(scrollY);
 
   return () => {
+    stopped = true;
     stopScroll();
     removeEventListener("resize", onResize);
     clearTimeout(pending);

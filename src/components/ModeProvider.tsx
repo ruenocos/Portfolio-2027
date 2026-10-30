@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useSyncExternalStore } from "react";
+import motionTokens from "../../design/motion-tokens.json";
 import { MODE_KEY, paintThemeColor, resolveMode, type Mode } from "@/lib/mode";
 
 // The current mode lives on <html data-mode>. This keeps it in step with
@@ -15,11 +16,11 @@ function apply() {
   const root = document.documentElement;
   const mode = resolveMode();
   if (root.dataset.mode === mode) return;
-  // Cross-fade every colour token for the length of the mode easing.
+  // Cross-fade the colour tokens for the length of the mode easing (globals.css).
   root.classList.add("mode-fade");
   root.dataset.mode = mode;
   paintThemeColor(mode);
-  window.setTimeout(() => root.classList.remove("mode-fade"), 600);
+  window.setTimeout(() => root.classList.remove("mode-fade"), motionTokens.easing.mode.ms);
   listeners.forEach((fn) => fn());
 }
 

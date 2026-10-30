@@ -1,4 +1,4 @@
-import type { Project } from "@/components/parts/ProjectRow";
+import type { Project } from "@/content/types";
 import { FALLBACK_CASES } from "./cases";
 
 // The home's three rows in code. A project shows only once it has a case;

@@ -6,8 +6,8 @@ import { Pin } from "@/components/canvas/Pin";
 import { Hop } from "@/components/shell/Hop";
 import { useBeat } from "@/components/canvas/useBeat";
 import { useMotion } from "@/components/useMotion";
-import type { ToolId } from "@/lib/tools";
-import { live, select, showPin, wait, wessel, type XY } from "@/lib/wessel";
+import type { Project } from "@/content/types";
+import { live, pointerRightOf, select, showPin, waitTillClear, wait, wessel, type XY } from "@/lib/wessel";
 import motionTokens from "../../../design/motion-tokens.json";
 import { magnet } from "@/lib/magnet";
 import { MediaFill } from "./Media";
@@ -16,26 +16,6 @@ import { finePointer, narrow } from "@/lib/media";
 
 const NEED = motionTokens.wessel.need.projectRow;
 const PIN_MS = motionTokens.wessel.pin.showMs;
-
-export type Project = {
-  title: string;
-  /** Set for Dutch titles, so hyphens:auto can break the long compounds. */
-  lang?: string;
-  summary: string;
-  timeline: string;
-  role: string;
-  tools: ToolId[];
-  /** peek: the small copy of the loop, for thumbnails (Work's rows). */
-  media: { poster?: string; video?: string; videoAv1?: string; focus?: string; peek?: string; peekAv1?: string };
-  /** The case page. */
-  href: string;
-  /** Read out for the media link, e.g. "De Saak case study. Design, dev and SEO, 2023 to now." */
-  label: string;
-  /** Wessel's pin on the media. spot: where it lands, a little off, like it was dropped by hand. */
-  note?: { text: string; spot?: { fx: number; dy: number; rot: number } };
-  /** Which of these fields are placeholder copy (DESIGN.md §2.8). */
-  mock?: ("summary" | "role" | "note" | "media")[];
-};
 
 // Leans toward your pointer while it's over the row's side columns, with a
 // little tilt, like a card picked up off the desk. Holds still over the
@@ -117,6 +97,9 @@ function ProjectRow({
         wessel.press(false);
         return;
       }
+      // Pointing at the picture yourself: he gives you a moment first.
+      await waitTillClear(m);
+      live(g);
       placePin();
       el.hidden = false;
       el.style.visibility = "hidden";
@@ -133,15 +116,13 @@ function ProjectRow({
       await wait(150);
       wessel.press(false);
       await wait(250);
-      // He lifts off just above his pin, clear of its text, with his tag
-      // on its usual side like everywhere else.
-      await wessel.go(
-        () => {
-          const r = el.querySelector(".bub")!.getBoundingClientRect();
-          return [r.left + 24, el.getBoundingClientRect().top - 40];
-        },
-        { k: 160, timeout: 700 },
-      );
+      // He lifts off above his pin, far enough that his tag clears it,
+      // with the tag leaning away from your pointer.
+      const lift = (): XY => {
+        const r = el.querySelector(".bub")!.getBoundingClientRect();
+        return [r.left + 24, el.getBoundingClientRect().top - 64];
+      };
+      await wessel.go(lift, { k: 160, timeout: 700, lean: pointerRightOf(lift()[0]) });
     },
     // Calm: his pin is simply there, where he'd have dropped it.
     still() {

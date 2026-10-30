@@ -9,15 +9,6 @@
     gap: 24px;
     padding: var(--spacing-section) var(--spacing-inset) var(--spacing-inset);
   }
-  /* A little air between the filter and the rows, with the list's name in it. */
-  .wgap > * {
-    height: 40px;
-  }
-  .wgap > .cell {
-    display: flex;
-    align-items: center;
-    padding-inline: var(--spacing-inset);
-  }
   .wfbar {
     display: flex;
     align-items: center;
@@ -71,7 +62,8 @@
   .arow > .cell {
     display: flex;
     align-items: center;
-    padding: 22px var(--spacing-inset);
+    min-height: 96px;
+    padding: 24px var(--spacing-inset);
   }
   .arow[hidden] {
     display: none;
@@ -122,33 +114,16 @@
   }
   .arow .ay {
     color: var(--mute);
-    font-family: var(--font-mono);
-    font-size: var(--type-label-size);
-    letter-spacing: 0.04em;
-    line-height: 20px;
     font-variant-numeric: tabular-nums;
   }
   .arow .ap > span {
     color: var(--mute);
   }
-  .arow .tool {
-    --s: 24px;
-  }
-  /* At rest every chip sits in one even tone (plain greyscale left Figma
-     near-invisible in dark and Claude ghosted in light); colour on hover. */
+  /* At rest the chips are plain greyscale, crisp, at full strength (the
+     ring on every chip keeps dark ones from sinking); colour on hover. */
   .arow .tool img {
-    filter: grayscale(1) contrast(0.6) brightness(1.1);
-    opacity: 0.7;
-    mix-blend-mode: luminosity;
-    transition:
-      filter var(--dur-ui) var(--ease-ui),
-      opacity var(--dur-ui) var(--ease-ui);
-  }
-  /* Dark: grey logos on near-black need more light and contrast to read
-     at rest (Figma's glyph sits on its own dark tile). */
-  html[data-mode="dark"] .arow:not(:hover, :focus-within) .tool img {
-    filter: grayscale(1) contrast(1.8) brightness(1.35);
-    opacity: 0.9;
+    filter: grayscale(1);
+    transition: filter var(--dur-ui) var(--ease-ui);
   }
   /* Tools stay above the row's link cover on mouse devices, so their
      names show on hover. */
@@ -164,8 +139,6 @@
   }
   .arow:is(:hover, :focus-within) .tool img {
     filter: none;
-    opacity: 1;
-    mix-blend-mode: normal;
   }
   .arow .ac {
     position: relative;

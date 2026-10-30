@@ -5,7 +5,7 @@ import { Hop } from "@/components/shell/Hop";
 import { useEffect, useRef } from "react";
 import { MediaFill } from "@/components/parts/Media";
 import { SIZES } from "@/lib/image";
-import type { Project } from "@/components/parts/ProjectRow";
+import type { Project } from "@/content/types";
 import { Tools } from "@/components/parts/Tools";
 import { useMotion } from "@/components/useMotion";
 import { magnet } from "@/lib/magnet";
@@ -38,7 +38,8 @@ function usePeekMagnet() {
 
 /**
  * Work row (compact): Work is an overview, so every project is one ruled
- * line on the home project rows' thirds; the big rows stay on home. Title | year | role + tools. The media
+ * line on the home project rows' thirds, in the same type and chips as those
+ * rows; the big rows stay on home. Title | year | role + tools. The media
  * peeks up in the middle column while you point at the row, with your grape
  * selection, leaning toward your pointer like the home cards. Phones get
  * a small thumbnail instead of the peek.
@@ -49,7 +50,7 @@ export function WorkRow({ project: p, hidden, leaving }: { project: Project; hid
   return (
     <article className="arow" data-hop-host hidden={hidden} data-leaving={leaving || undefined}>
       <div className="cell al">
-        <h3 className="text-lead" lang={p.lang}>
+        <h3 className="text-title" lang={p.lang}>
           {/* The title is the row's target; its hit area stretches over the whole
               row. No arrow or underline: it hops, and your "View case" tag says the rest. */}
           <Link href={p.href} className="hit" data-you="View case" aria-label={p.label}>
@@ -60,7 +61,7 @@ export function WorkRow({ project: p, hidden, leaving }: { project: Project; hid
         </h3>
       </div>
       <div className="cell ac">
-        <span className="ay">{p.timeline}</span>
+        <span className="ay text-label">{p.timeline}</span>
         <span ref={peek} className="media apk" data-ratio="portrait" aria-hidden="true">
           <MediaFill
             poster={p.media.poster}
@@ -72,7 +73,7 @@ export function WorkRow({ project: p, hidden, leaving }: { project: Project; hid
         </span>
       </div>
       <div className="cell ap">
-        <span className="text-small">{p.role}</span>
+        <span className="text-body">{p.role}</span>
         <Tools ids={p.tools} />
       </div>
     </article>

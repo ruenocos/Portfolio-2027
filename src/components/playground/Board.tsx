@@ -4,7 +4,7 @@ import { useEffect, useRef } from "react";
 import { useBeat } from "@/components/canvas/useBeat";
 import { useMotion } from "@/components/useMotion";
 import type { Post } from "@/content/playground";
-import { announce, getMotion, subscribeMotion } from "@/lib/motion";
+import { announce, isCalm, subscribeMotion } from "@/lib/motion";
 import { live, wait, wessel, type XY } from "@/lib/wessel";
 import { clamp, easeInOutCubic } from "@/lib/math";
 import { narrow, pickVideo } from "@/lib/media";
@@ -22,6 +22,9 @@ type Item = {
   yy: number;
   lx: number;
   ly: number;
+  /** The last written spot, so a still tile isn't written again. */
+  wx: number;
+  wy: number;
   visible: boolean;
 };
 type Col = { x: number; items: Item[]; height: number };
@@ -35,7 +38,7 @@ const seeded = (seed: number) => () => {
   t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
   return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
 };
-const calm = () => getMotion().calm;
+const calm = isCalm;
 
 function postEl(post: Post) {
   const f = document.createElement("figure");
@@ -170,6 +173,16 @@ export function Board({ posts }: { posts: Post[] }) {
     let mptr: XY | null = null;
     let first = true;
     let raf = 0;
+    // The loop sleeps while nothing moves and while the board is off screen;
+    // wake() restarts it (input, Wessel's next job, back in view).
+    let inView = true;
+    let sleepTimer = 0;
+    const wake = () => {
+      clearTimeout(sleepTimer);
+      if (raf || !inView) return;
+      last = performance.now();
+      raf = requestAnimationFrame(frame);
+    };
     // A post open in the shared viewer: the board holds still under it.
     let opened = false;
     let hovered: Item | null = null;
@@ -285,7 +298,7 @@ export function Board({ posts }: { posts: Post[] }) {
         // Load-in: a wave from the top-left corner, on first paint only.
         el.style.setProperty("--d", first && !calm() ? `${Math.min(900, Math.hypot(col.x, y) * 0.45)}ms` : "0ms");
         const tile = el.querySelector<HTMLElement>(".pi")!;
-        col.items.push({ el, tile, post, y, h, video: el.querySelector("video"), x: 0, yy: 0, lx: 0, ly: 0, visible: false });
+        col.items.push({ el, tile, post, y, h, video: el.querySelector("video"), x: 0, yy: 0, lx: 0, ly: 0, wx: NaN, wy: NaN, visible: false });
         tops[c] = y + h + gapY;
       }
       cols.forEach((col, c) => (col.height = tops[c]));
@@ -306,7 +319,10 @@ export function Board({ posts }: { posts: Post[] }) {
     // His hello comes first (the arrival beat below): he leaves the board
     // alone until it's done, or after a while if it never plays.
     let hello = true;
-    later(() => (hello = false), 6000);
+    later(() => {
+      hello = false;
+      wake();
+    }, 6000);
     let pausedTill = 0;
     let target: XY | null = null;
     let driving = false;
@@ -368,6 +384,7 @@ export function Board({ posts }: { posts: Post[] }) {
             }
           }
         if (best) Object.assign(job, { stage: "hello", item: best, shown: false });
+        wake();
         return best;
       },
       ok: (item) => job.stage === "hello" && job.item === item && wesOn(),
@@ -376,9 +393,13 @@ export function Board({ posts }: { posts: Post[] }) {
         const r = boardEl.getBoundingClientRect();
         return [r.left + (item.x + item.lx + colW * 0.72) * z, r.top + (item.yy + item.ly + item.h * 0.8) * z];
       },
-      show: () => (job.shown = job.stage === "hello"),
+      show: () => {
+        job.shown = job.stage === "hello";
+        wake();
+      },
       end: () => {
         hello = false;
+        wake();
         if (job.stage !== "hello") return;
         Object.assign(job, { stage: "rest", item: null, shown: false, t: performance.now() + 900 });
       },
@@ -515,6 +536,9 @@ export function Board({ posts }: { posts: Post[] }) {
       const viewW = vw();
       const viewH = vh();
       const lean = mptr && t > movingTill && !opened && !quiet;
+      // The board's top on screen: a tile only plays while it's in the window too.
+      const boardTop = boardEl.getBoundingClientRect().top;
+      let leaning = false;
       // The tile under your pointer, worked out here: the board moves under a
       // still mouse too (wheel, drift), and CSS :hover only catches up on the
       // next mouse move.
@@ -525,10 +549,16 @@ export function Board({ posts }: { posts: Post[] }) {
           const y = mod(item.y + panY + item.h, col.height) - item.h;
           item.x = x;
           item.yy = y;
-          item.el.style.transform = `translate(${x}px,${y}px)`;
-          // A column only a few px in reads as a sliver on the frame line.
-          item.el.style.visibility = x + colW < 3 || x > viewW - 3 ? "hidden" : "";
-          const visible = x > -colW && x < viewW && y > -item.h && y < viewH;
+          // Only what moved is written: a still board writes nothing.
+          if (x !== item.wx || y !== item.wy) {
+            item.wx = x;
+            item.wy = y;
+            item.el.style.transform = `translate(${x}px,${y}px)`;
+            // A column only a few px in reads as a sliver on the frame line.
+            item.el.style.visibility = x + colW < 3 || x > viewW - 3 ? "hidden" : "";
+          }
+          const visible =
+            x > -colW && x < viewW && y > -item.h && y < viewH && boardTop + (y + item.h) * z > 0 && boardTop + y * z < innerHeight;
           if (item.video && visible !== item.visible) {
             if (visible && !quiet) {
               if (!item.video.src && item.video.dataset.src) item.video.src = item.video.dataset.src;
@@ -554,6 +584,7 @@ export function Board({ posts }: { posts: Post[] }) {
             }
           }
           if (Math.abs(lx - item.lx) + Math.abs(ly - item.ly) > 0.3) {
+            leaning = true;
             item.lx = lx;
             item.ly = ly;
             item.tile.style.translate = `${lx.toFixed(1)}px ${ly.toFixed(1)}px`;
@@ -568,8 +599,19 @@ export function Board({ posts }: { posts: Post[] }) {
         dispatchEvent(new Event("wsl:look"));
       }
       // The canvas dots move and scale with the board, like Figma's.
-      boardEl.style.backgroundPosition = `${(panX * z).toFixed(1)}px ${(panY * z).toFixed(1)}px`;
+      const dots = `${(panX * z).toFixed(1)}px ${(panY * z).toFixed(1)}px`;
+      if (dots !== boardEl.style.backgroundPosition) boardEl.style.backgroundPosition = dots;
       wTick(t, viewW, viewH);
+      // Asleep once the pan, zoom, lean and squash have settled and Wessel
+      // has no job running; if he has one coming, wake for it.
+      const settled =
+        !dragging && tz === z && Math.abs(tx - panX) + Math.abs(ty - panY) <= 0.3 && (quiet || Math.abs(vx) + Math.abs(vy) <= 0.02) && t >= movingTill && !leaning;
+      const working = wesOn() && !opened && job.stage !== "rest";
+      if (!inView || (settled && !working)) {
+        raf = 0;
+        if (inView && wesOn() && !opened && !hello) sleepTimer = window.setTimeout(wake, Math.max(16, Math.max(job.t, pausedTill) - t));
+        return;
+      }
       raf = requestAnimationFrame(frame);
     };
 
@@ -614,6 +656,7 @@ export function Board({ posts }: { posts: Post[] }) {
         tileFor: (i) => tileOf(pieces[i]),
         onClose: () => {
           opened = false;
+          wake();
           boardEl.focus({ preventScroll: true });
         },
       });
@@ -623,6 +666,7 @@ export function Board({ posts }: { posts: Post[] }) {
     // ---------- input ----------
     const poke = () => {
       pause();
+      wake();
     };
     // Two fingers pinch to zoom around their middle.
     const pts = new Map<number, XY>();
@@ -789,8 +833,12 @@ export function Board({ posts }: { posts: Post[] }) {
       if (e.pointerType !== "mouse") return;
       const r = boardEl.getBoundingClientRect();
       mptr = [(e.clientX - r.left) / z, (e.clientY - r.top) / z];
+      wake();
     };
-    const leave = () => (mptr = null);
+    const leave = () => {
+      mptr = null;
+      wake();
+    };
     let rz = 0;
     // Only a new width rebuilds the board (a phone's address bar changes
     // only the height).
@@ -807,6 +855,7 @@ export function Board({ posts }: { posts: Post[] }) {
         build();
         panX = tx = offsetX;
         panY = ty = gapY + TOP;
+        wake();
       }, 200);
     };
 
@@ -836,17 +885,33 @@ export function Board({ posts }: { posts: Post[] }) {
       cols.forEach((c) =>
         c.items.forEach((item) => {
           if (!item.video) return;
-          if (item.visible && !q) item.video.play().catch(() => {});
+          if (item.visible && inView && !q) item.video.play().catch(() => {});
           else item.video.pause();
         }),
       );
+      wake();
     });
-    raf = requestAnimationFrame((t) => {
-      last = t;
-      frame(t);
+    // Off screen (scrolled to the footer): every loop pauses and the board
+    // loop sleeps. Back in view, the next frame plays what's visible again.
+    const seen = new IntersectionObserver(([entry]) => {
+      inView = entry.isIntersecting;
+      if (inView) return wake();
+      cols.forEach((c) =>
+        c.items.forEach((item) => {
+          item.video?.pause();
+          item.visible = false;
+        }),
+      );
     });
+    seen.observe(boardEl);
+    // Scrolling the page moves the board in and out of Wessel's reach.
+    addEventListener("scroll", wake, { passive: true });
+    wake();
     return () => {
       offMotion();
+      seen.disconnect();
+      removeEventListener("scroll", wake);
+      clearTimeout(sleepTimer);
       clearTimeout(said);
       cancelAnimationFrame(raf);
       clearTimeout(rz);
