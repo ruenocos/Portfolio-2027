@@ -1,37 +1,32 @@
 "use client";
 
-import { useRef, useState, useSyncExternalStore } from "react";
+import { useRef, useState } from "react";
 import type { CaseMedia } from "@/content/cases";
 import { SIZES, srcSet } from "@/lib/image";
 
-export type CompareLook = "slider" | "history";
-
-/** The look picked for the preview board (?compare=history); slider by default. */
-const pickLook = (): CompareLook => {
-  try {
-    return new URLSearchParams(location.search).get("compare") === "history" ? "history" : "slider";
-  } catch {
-    return "slider";
-  }
-};
-
-// The look never changes during a visit: nothing to subscribe to.
-const still = () => () => {};
-
 function Pic({ m }: { m: CaseMedia }) {
   // eslint-disable-next-line @next/next/no-img-element -- lib/image does the sizes
-  return <img src={m.src} srcSet={m.src ? srcSet(m.src) : undefined} sizes={SIZES.figure} alt={m.alt} width={m.width} height={m.height} loading="lazy" decoding="async" draggable={false} />;
+  return (
+    <img
+      src={m.src}
+      srcSet={m.src ? srcSet(m.src) : undefined}
+      sizes={SIZES.figure}
+      alt={m.alt}
+      width={m.width}
+      height={m.height}
+      loading="lazy"
+      decoding="async"
+      draggable={false}
+    />
+  );
 }
 
 /**
- * Before and after in one frame. "slider": drag the divider (or use the
- * arrow keys on it); the grape knob is yours. "history": a Figma-style
- * version list on the frame, pick one and the picture swaps.
+ * Before and after in one frame: drag the divider (or use the arrow keys on
+ * it); the grape knob is yours.
  */
-export function Compare({ before, after, labels, caption }: { before: CaseMedia; after: CaseMedia; labels: [string, string]; caption?: string }) {
-  const look = useSyncExternalStore(still, pickLook, () => "slider" as const);
+export function Compare({ before, after, labels }: { before: CaseMedia; after: CaseMedia; labels: [string, string] }) {
   const [at, setAt] = useState(50);
-  const [showing, setShowing] = useState<0 | 1>(1);
   const box = useRef<HTMLDivElement>(null);
 
   const move = (clientX: number) => {
@@ -53,60 +48,48 @@ export function Compare({ before, after, labels, caption }: { before: CaseMedia;
   };
 
   return (
-    <figure className="cmp" data-look={look} data-enter>
-      {look === "slider" ? (
-        <div ref={box} className="cfr" style={{ aspectRatio: `${after.width}/${after.height}` }} onPointerDown={drag}>
-          <Pic m={after} />
-          <div className="cbefore" style={{ clipPath: `inset(0 ${100 - at}% 0 0)` }}>
-            <Pic m={before} />
-          </div>
-          <span className="clab text-micro-caps" data-side="before" aria-hidden="true">
-            {labels[0]}
-          </span>
-          <span className="clab text-micro-caps" data-side="after" aria-hidden="true">
-            {labels[1]}
-          </span>
-          <div
-            className="cdiv"
-            style={{ left: `${at}%` }}
-            role="slider"
-            tabIndex={0}
-            aria-label={`${labels[0]} and ${labels[1]}: how much of ${labels[0].toLowerCase()} shows`}
-            aria-valuemin={0}
-            aria-valuemax={100}
-            aria-valuenow={Math.round(at)}
-            onKeyDown={(e) => {
-              const d = { ArrowLeft: -5, ArrowRight: 5, Home: -100, End: 100 }[e.key];
-              if (d == null) return;
-              e.preventDefault();
-              setAt((v) => Math.max(0, Math.min(100, v + d)));
-            }}
-          >
-            <span className="cknob" aria-hidden="true">
-              <svg viewBox="0 0 16 16">
-                <path d="M6 4.5 2.5 8 6 11.5M10 4.5 13.5 8 10 11.5" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-            </span>
-          </div>
+    <figure className="cmp" data-enter>
+      <div ref={box} className="cfr" style={{ aspectRatio: `${after.width}/${after.height}` }} onPointerDown={drag}>
+        <Pic m={after} />
+        <div className="cbefore" style={{ clipPath: `inset(0 ${100 - at}% 0 0)` }}>
+          <Pic m={before} />
         </div>
-      ) : (
-        <div className="cfr" style={{ aspectRatio: `${after.width}/${after.height}` }}>
-          <div className="cswap" data-showing={showing}>
-            <Pic m={before} />
-            <Pic m={after} />
-          </div>
-          <div className="chist" role="radiogroup" aria-label="Version">
-            <p className="text-micro-caps text-mute">Version history</p>
-            {([1, 0] as const).map((i) => (
-              <button key={i} type="button" role="radio" aria-checked={showing === i} className="cver text-small" onClick={() => setShowing(i)}>
-                <span className="cdot" aria-hidden="true" />
-                {labels[i]}
-              </button>
-            ))}
-          </div>
+        <span className="clab text-micro-caps" data-side="before" aria-hidden="true">
+          {labels[0]}
+        </span>
+        <span className="clab text-micro-caps" data-side="after" aria-hidden="true">
+          {labels[1]}
+        </span>
+        <div
+          className="cdiv"
+          style={{ left: `${at}%` }}
+          role="slider"
+          tabIndex={0}
+          aria-label={`${labels[0]} and ${labels[1]}: how much of ${labels[0].toLowerCase()} shows`}
+          aria-valuemin={0}
+          aria-valuemax={100}
+          aria-valuenow={Math.round(at)}
+          onKeyDown={(e) => {
+            const d = { ArrowLeft: -5, ArrowRight: 5, Home: -100, End: 100 }[e.key];
+            if (d == null) return;
+            e.preventDefault();
+            setAt((v) => Math.max(0, Math.min(100, v + d)));
+          }}
+        >
+          <span className="cknob" aria-hidden="true">
+            <svg viewBox="0 0 16 16">
+              <path
+                d="M6 4.5 2.5 8 6 11.5M10 4.5 13.5 8 10 11.5"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </span>
         </div>
-      )}
-      {caption && <figcaption className="text-label text-mute">{caption}</figcaption>}
+      </div>
     </figure>
   );
 }

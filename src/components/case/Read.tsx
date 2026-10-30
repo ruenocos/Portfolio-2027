@@ -20,7 +20,7 @@ const REST_X = 110;
 // A section's media: the single figure (the first way to add one) as a
 // full row, then its media rows.
 const rowsOf = (s: CaseSection): CaseRow[] => [
-  ...(s.figure ? [{ key: `${s.key}-figure`, kind: "row" as const, layout: "full" as const, items: [{ ...s.figure, panel: false }] }] : []),
+  ...(s.figure ? [{ key: `${s.key}-figure`, kind: "row" as const, layout: "full" as const, items: [{ src: s.figure.src, alt: s.figure.alt, width: s.figure.width, height: s.figure.height }] }] : []),
   ...(s.rows ?? []),
 ];
 
@@ -51,7 +51,6 @@ export function Read({ sections }: { sections: CaseSection[] }) {
           srcSet: m.src ? srcSet(m.src) : undefined,
           video: m.video,
           alt: m.alt,
-          caption: m.caption,
           width: m.width,
           height: m.height,
         }))

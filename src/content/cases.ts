@@ -7,16 +7,13 @@ export type CaseMedia = {
   src?: string;
   video?: string;
   alt: string;
-  caption?: string;
   width: number;
   height: number;
-  /** Seat it on a quiet panel with room around it (raw screenshots). */
-  panel?: boolean;
 };
 /** A row in a section: 1, 2 or 3 across, or a before/after compare. */
 export type CaseRow =
   | { key: string; kind: "row"; layout: "full" | "half" | "third"; items: CaseMedia[] }
-  | { key: string; kind: "compare"; before: CaseMedia; after: CaseMedia; labels: [string, string]; caption?: string };
+  | { key: string; kind: "compare"; before: CaseMedia; after: CaseMedia; labels: [string, string] };
 
 export type CaseSection = {
   key: string;

@@ -174,7 +174,7 @@ function toRows(media: MediaDoc[] | null | undefined): CaseRow[] {
       const before = side(m.before);
       const after = side(m.after);
       if (!before || !after) return [];
-      return [{ key: m._key, kind: "compare", before, after, labels: [m.beforeLabel || "Before", m.afterLabel || "After"], caption: m.caption ?? undefined }];
+      return [{ key: m._key, kind: "compare", before, after, labels: [m.beforeLabel || "Before", m.afterLabel || "After"] }];
     }
     const items = (m.items ?? []).filter((it) => (it.src?.asset || it.video) && it.alt);
     if (!items.length) return [];
@@ -191,10 +191,8 @@ function toRows(media: MediaDoc[] | null | undefined): CaseRow[] {
           src: pic(it.src, w, ratio),
           video: it.video ?? undefined,
           alt: it.alt!,
-          caption: it.caption ?? undefined,
           width: ratio ? w : (it.width ?? 1600),
           height: ratio ? Math.round(w / ratio) : (it.height ?? 1000),
-          panel: it.panel ?? true,
         })),
       },
     ];

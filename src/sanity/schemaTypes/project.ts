@@ -19,18 +19,10 @@ const caseMedia = defineArrayMember({
     }),
     defineField({ name: "video", title: "Loop", type: "file", options: { accept: "video/mp4,video/webm" }, description: "Muted, loops. Optional." }),
     defineField({ name: "alt", type: "string", description: "What it shows, for screen readers.", validation: (rule) => rule.required() }),
-    defineField({ name: "caption", type: "string" }),
-    defineField({
-      name: "panel",
-      title: "On a panel",
-      type: "boolean",
-      initialValue: true,
-      description: "Seats it on a quiet panel with room around it. Turn off for photos and pictures that already have their own background.",
-    }),
   ],
   validation: (rule) =>
     rule.custom((v: { image?: unknown; video?: unknown } | undefined) => (v?.image || v?.video ? true : "Add a picture or a loop")),
-  preview: { select: { title: "alt", subtitle: "caption", media: "image" } },
+  preview: { select: { title: "alt", media: "image" } },
 });
 
 // A row of 1, 2 or 3 across. Pictures in a 2 or 3 row share the first one's shape.
@@ -76,9 +68,8 @@ const compareRow = defineArrayMember({
     defineField({ name: "after", type: "image", fields: [defineField({ name: "alt", type: "string", validation: (rule) => rule.required() })], validation: (rule) => rule.required() }),
     defineField({ name: "beforeLabel", type: "string", initialValue: "Before" }),
     defineField({ name: "afterLabel", type: "string", initialValue: "After" }),
-    defineField({ name: "caption", type: "string" }),
   ],
-  preview: { select: { title: "caption", media: "after" }, prepare: ({ title, media }: { title?: string; media?: unknown }) => ({ title: "Before / after", subtitle: title, media: media as never }) },
+  preview: { select: { media: "after" }, prepare: ({ media }: { media?: unknown }) => ({ title: "Before / after", media: media as never }) },
 });
 
 // A project: one row on Home and Work (DESIGN.md §6, Project row) and its

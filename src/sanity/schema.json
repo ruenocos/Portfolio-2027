@@ -992,20 +992,6 @@
                                     },
                                     "optional": true
                                   },
-                                  "caption": {
-                                    "type": "objectAttribute",
-                                    "value": {
-                                      "type": "string"
-                                    },
-                                    "optional": true
-                                  },
-                                  "panel": {
-                                    "type": "objectAttribute",
-                                    "value": {
-                                      "type": "boolean"
-                                    },
-                                    "optional": true
-                                  },
                                   "_type": {
                                     "type": "objectAttribute",
                                     "value": {
@@ -1168,13 +1154,6 @@
                             "optional": true
                           },
                           "afterLabel": {
-                            "type": "objectAttribute",
-                            "value": {
-                              "type": "string"
-                            },
-                            "optional": true
-                          },
-                          "caption": {
                             "type": "objectAttribute",
                             "value": {
                               "type": "string"

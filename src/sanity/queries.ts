@@ -51,10 +51,10 @@ export const CASE_QUERY = defineQuery(`*[_type == "project" && slug.current == $
   "sections": sections[]{ _key, name, heading, body, note,
     "figure": figure{ "src": asset->url, alt, caption, "width": asset->metadata.dimensions.width, "height": asset->metadata.dimensions.height },
     "media": media[]{ _key, _type, layout,
-      items[]{ "src": image${pic}, "width": image.asset->metadata.dimensions.width, "height": image.asset->metadata.dimensions.height, "video": video.asset->url, alt, caption, panel },
+      items[]{ "src": image${pic}, "width": image.asset->metadata.dimensions.width, "height": image.asset->metadata.dimensions.height, "video": video.asset->url, alt },
       "before": before{ "src": asset->url, alt, "width": asset->metadata.dimensions.width, "height": asset->metadata.dimensions.height },
       "after": after{ "src": asset->url, alt, "width": asset->metadata.dimensions.width, "height": asset->metadata.dimensions.height },
-      beforeLabel, afterLabel, caption } }
+      beforeLabel, afterLabel } }
 }`);
 export const CASE_SLUGS_QUERY = defineQuery(`*[_type == "project" && ${hasCase}].slug.current`);
 

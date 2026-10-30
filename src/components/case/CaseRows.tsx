@@ -27,23 +27,20 @@ function Tile({
   pin?: ReactNode;
 }) {
   return (
-    <figure className="ctile" data-panel={m.panel || undefined}>
-      <div className="cpan">
-        <button
-          type="button"
-          className="media cmed"
-          data-ratio="free"
-          data-vi={vi}
-          data-you="Open"
-          style={{ aspectRatio: `${m.width}/${m.height}` }}
-          aria-label={`Open: ${m.alt}`}
-          onClick={(e) => open(vi, e.currentTarget)}
-        >
-          {/* Loops in a case run at 1×: they're cut as screen recordings, not mood. */}
-          <MediaFill poster={m.src} video={m.video} alt={m.alt} rate={1} sizes={SIZE[layout]} />
-        </button>
-      </div>
-      {m.caption && <figcaption className="text-label text-mute">{m.caption}</figcaption>}
+    <figure className="ctile">
+      <button
+        type="button"
+        className="media cmed"
+        data-ratio="free"
+        data-vi={vi}
+        data-you="Open"
+        style={{ aspectRatio: `${m.width}/${m.height}` }}
+        aria-label={`Open: ${m.alt}`}
+        onClick={(e) => open(vi, e.currentTarget)}
+      >
+        {/* Loops in a case run at 1×: they're cut as screen recordings, not mood. */}
+        <MediaFill poster={m.src} video={m.video} alt={m.alt} rate={1} sizes={SIZE[layout]} />
+      </button>
       {pin}
     </figure>
   );
@@ -71,7 +68,7 @@ export function CaseRows({
     <div className="crows">
       {rows.map((r) =>
         r.kind === "compare" ? (
-          <Compare key={r.key} before={r.before} after={r.after} labels={r.labels} caption={r.caption} />
+          <Compare key={r.key} before={r.before} after={r.after} labels={r.labels} />
         ) : (
           <div key={r.key} className="crow" data-layout={r.layout} data-enter>
             {r.items.map((m, i) => (

@@ -128,7 +128,7 @@ export function useReel(
     opened.current = true;
     loop.current?.pause();
     const done = openViewer({
-      items: [{ kind: "video", video: full.video, src: full.poster, alt: "Reel", caption: "Reel", width: 16, height: 9, sound: true }],
+      items: [{ kind: "video", video: full.video, src: full.poster, alt: "Reel", width: 16, height: 9, sound: true }],
       index: 0,
       from: reel.current,
       onClose: () => {
