@@ -1,6 +1,6 @@
-/* Playground (v08): a title row, then the looping masonry board. It reads
-   like a Figma canvas: frame names over the tiles, the one you're over in
-   grape (yours), and only Wessel selects. */
+/* Playground: a title row, then the looping masonry board. It reads like a
+   Figma canvas: the tile you're over in grape (yours), and only Wessel
+   selects. */
 
 @layer components {
   /* Title row + board fill the screen under the header, ruled by a hairline. */

@@ -12,19 +12,14 @@ import { playHello } from "./hero/hello";
 import { Letters, prepName, unprepName, useFitName } from "./hero/name";
 import { useIdleNod, type IdleNod } from "./hero/nod";
 import { useReel } from "./hero/useReel";
-
-const clock = new Intl.DateTimeFormat("en-GB", { hour: "2-digit", minute: "2-digit", timeZone: "Europe/Amsterdam" });
-const zone = () =>
-  new Intl.DateTimeFormat("en-GB", { timeZone: "Europe/Amsterdam", timeZoneName: "short" })
-    .formatToParts(new Date())
-    .find((p) => p.type === "timeZoneName")?.value ?? "";
+import { localTime } from "@/lib/clock";
 
 /** Local time, live, after hydration (so the server never renders a stale one). */
 function LocalTime() {
   const time = useRef<HTMLTimeElement>(null);
   useEffect(() => {
     const tick = () => {
-      if (time.current) time.current.textContent = `${clock.format(new Date())} ${zone()}`;
+      if (time.current) time.current.textContent = localTime();
     };
     tick();
     const id = setInterval(tick, 15_000);

@@ -18,7 +18,7 @@ const FRAME: Record<DioKind, { n: number; alt: string }> = {
   ai: { n: 14, alt: "One block goes into a machine and comes out as a batch" },
 };
 const NEED = 0.6;
-// Below 900 the three cards are a swipe deck, one at a time (mobile check v02, F1).
+// Below 900 the three cards are a swipe deck, one at a time.
 const deck = narrow;
 const ctr = (el: Element, fx = 0.55, fy = 0.6) => (): XY => {
   const r = el.getBoundingClientRect();

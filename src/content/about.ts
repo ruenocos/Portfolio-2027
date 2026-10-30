@@ -12,14 +12,13 @@ export type AboutContent = {
   stickers: Sticker[];
 };
 
-// About v07 (studio/web/hifi/about, approved by Wons 2026-10-27). All of
-// it is Wons's own: facts and dates from his LinkedIn (wessel-work-history).
+// All of it is Wons's own: facts and dates from his LinkedIn.
 export const FALLBACK_ABOUT: AboutContent = {
   hello: "Hi, I’m Wessel.",
   lead: "I studied design at Mediacollege and learned motion from a lot of YouTube. These days I do both at WP Masters.",
   photos: [
-    // Wons's own photos (2026-10-27). Not the Home deck's: no image appears on
-    // two pages (Wons, 2026-10-28). Alt text describes, it doesn't caption.
+    // Wons's own photos, not the Home deck's: no image appears on two pages.
+    // Alt text describes, it doesn't caption.
     { src: "/media/about-cat-bed.jpg", alt: "Wessel on the bed, a ginger cat beside him" },
     { src: "/media/about-cat-cushion.jpg", alt: "A ginger cat on the sofa with a crocheted coaster on its head" },
     { src: "/media/about-cat-paw.jpg", alt: "A ginger cat stretching one paw out on a striped blanket" },
@@ -38,10 +37,8 @@ export const FALLBACK_ABOUT: AboutContent = {
     { when: "2017 – 2020", place: "ROC Horizon College", role: "Applicatie & Media ontwikkeling" },
   ],
   stickers: [
-    // Off screen v12 (2026-10-28): the original board in three sizes, the
-    // big themes large and the single games small. MoveEeE dropped at
-    // Wons's ask; Codenames, Ticket to Ride and Exploding Kittens are
-    // suggestions Wons invited ("add some more board game names").
+    // Three sizes: the big themes large, the single games small. Codenames,
+    // Ticket to Ride and Exploding Kittens are suggestions Wons asked for.
     { text: "Sports", tone: "tang", size: "l" },
     { text: "Board games", tone: "grape", size: "l" },
     { text: "Friends", tone: "ink", size: "l" },

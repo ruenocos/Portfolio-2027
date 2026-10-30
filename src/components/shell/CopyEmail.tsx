@@ -7,7 +7,7 @@ import { isBusy, select, wessel } from "@/lib/wessel";
 /**
  * The email is its own copy button: click it and it's on your clipboard.
  * Wessel comes over, selects it and hits ⌘C with you; your tag says
- * "Copied". Feedback lines are in Wessel's voice (from the prototype). If
+ * "Copied". Feedback lines are in Wessel's voice. If
  * the clipboard is blocked, the address gets selected instead.
  */
 export function CopyEmail({ email }: { email: string }) {

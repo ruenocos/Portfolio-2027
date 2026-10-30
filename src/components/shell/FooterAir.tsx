@@ -7,7 +7,7 @@ import { SectionLabel } from "@/components/parts/SectionLabel";
 // isn't drawn there. Read from the path, not from a `:has(.bk)` rule: the
 // router keeps pages you've left in the DOM, and a selector that has to tell
 // a hidden page from a showing one made every inline style write on the
-// site restyle the whole document (the scroll lag of 2026-10-29).
+// site restyle the whole document (visible scroll lag).
 export function FooterAir() {
   if (usePathname() === "/") return null;
   return (

@@ -1,4 +1,4 @@
-/* Home sections (DESIGN.md §5–§7, prototype v90): hero, About deck,
+/* Home sections (DESIGN.md §5–§7): hero, About deck,
    Focus, archive hand, bookend, plus the marks Wessel puts on the page
    while he works them. Type comes from the text-* utilities. */
 
@@ -649,22 +649,6 @@
     background: var(--tang);
     animation: hig 700ms var(--ease-ui) both;
   }
-  .ovl > .hi-chip {
-    position: absolute;
-    z-index: 6;
-  }
-  .hi-chip b {
-    font-weight: 500;
-    color: var(--tang-ink);
-  }
-  .sweep {
-    position: absolute;
-    height: 2px;
-    background: var(--tang);
-    transition:
-      transform 700ms var(--ease-ui),
-      opacity 200ms;
-  }
   /* ⌘C / ⌘V riding along with Wessel's pointer. */
   .cur .wchip {
     position: absolute;
@@ -679,7 +663,7 @@
 
   /* ---------- below 900 ---------- */
   @media (width < 900px) {
-    /* Phones: the reel row (mobile check v02, option A). Wessel Oud on one
+    /* Phones: the reel row. Wessel Oud on one
        line, the reel as its own full-width tile under it, the role below.
        The hero sizes to that content instead of a fixed height. */
     .hero {
@@ -826,9 +810,6 @@
     .tracks .obj {
       pointer-events: none;
       touch-action: auto;
-    }
-    .lyr {
-      left: var(--spacing-inset);
     }
     .arch {
       height: 520px;

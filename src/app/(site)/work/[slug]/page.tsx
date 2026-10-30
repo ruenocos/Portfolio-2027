@@ -24,11 +24,11 @@ export async function generateMetadata({ params }: PageProps<"/work/[slug]">): P
 }
 
 /**
- * Case page (case-study-spec v02): crumb → opening (title | lead) → header
+ * Case page: crumb → opening (title | lead) → header
  * video → facts → the read → the next project, then the footer (its air
- * row is the spec's 240px gap). Fully prerendered per slug, with no
+ * row is the 240px gap). Fully prerendered per slug, with no
  * Suspense fallback: a streamed hole showed an empty page (header and
- * cursors only) on load and between cases (Wons 2026-10-28).
+ * cursors only) on load and between cases.
  */
 export default async function CasePage({ params }: PageProps<"/work/[slug]">) {
   const { slug } = await params;
@@ -36,8 +36,7 @@ export default async function CasePage({ params }: PageProps<"/work/[slug]">) {
   const [c, projects] = await Promise.all([getCase(slug, o), getWork(o)]);
   if (!c) notFound();
 
-  // Where this project sits in the work, and the one after it (every
-  // project has a page, so Next always opens one).
+  // Where this case sits in the work, and the one after it.
   const i = projects.findIndex((p) => p.href === `/work/${slug}`);
   const after = i >= 0 ? projects[(i + 1) % projects.length] : undefined;
   const crumb = {
@@ -55,7 +54,7 @@ export default async function CasePage({ params }: PageProps<"/work/[slug]">) {
         <div className="copen" data-solo={!c.lead && !c.intro ? "" : undefined}>
           <div className="cell ot">
             <span data-enter>
-              <SectionLabel as="p" name={c.sections.length ? "Case" : "Project"} />
+              <SectionLabel as="p" name="Case" />
             </span>
             <h1 id="ttl" className="text-statement" lang={c.lang} data-enter>
               {c.title}
@@ -105,23 +104,20 @@ export default async function CasePage({ params }: PageProps<"/work/[slug]">) {
         </section>
       )}
       <Facts items={c.facts} />
-      {/* The short page (no case written yet) has no read. */}
-      {c.sections.length > 0 && (
-        <section className="frame" data-row data-steps aria-label="Case study">
-          <div className="side" />
-          <Read sections={c.sections} />
-          <div className="side" />
-        </section>
-      )}
+      <section className="frame" data-row data-steps aria-label="Case study">
+        <div className="side" />
+        <Read sections={c.sections} />
+        <div className="side" />
+      </section>
       {/* The next project as its own row, so the page ends on a door, not a bar. */}
       {crumb.next && after && (
         <>
           <Divider label={{ name: "Next project" }} />
-          <ProjectRows projects={[after]} label="Next project" next />
+          <ProjectRows projects={[after]} label="Next project" />
         </>
       )}
       {/* No bar at the end: the Next row is the way on and Work in the
-          header is the way back (Wons 2026-10-28). */}
+          header is the way back. */}
     </>
   );
 }

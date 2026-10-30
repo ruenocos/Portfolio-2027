@@ -9,7 +9,6 @@ import { ProjectRows } from "@/components/parts/ProjectRow";
 import { getHome } from "@/content/get";
 import { getDraftFetchOptions } from "@/sanity/live";
 
-// Page meta from the approved copy (home-copy_v01.md, S16).
 export const metadata: Metadata = {
   title: { absolute: "Wessel Oud · UI/UX and motion designer" },
   description:

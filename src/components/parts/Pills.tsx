@@ -1,5 +1,4 @@
-// Pills and chips (DESIGN.md §6). One component per kind; the prototype's
-// copies are merged into these (component-inventory_v01.md, merge list).
+// Pills and chips (DESIGN.md §6). One component per kind.
 
 type Children = { children: React.ReactNode; className?: string };
 
@@ -17,7 +16,7 @@ export function GrapePill({ children, size = "small", className = "" }: Children
   );
 }
 
-/** Outline pill: tap = a 44-tall button face (Copy email). The About status is a plain line now (Status). */
+/** Outline pill: tap = a 44-tall button face (Copy email). */
 export function OutlinePill({ children, tap = false, className = "" }: Children & { tap?: boolean }) {
   return (
     <span className={`opill ${tap ? "text-link" : "text-label"} ${className}`} data-tap={tap ? "" : undefined}>

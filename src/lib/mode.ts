@@ -20,7 +20,7 @@ export function resolveMode(): Mode {
 export const modeScript = `try{document.documentElement.dataset.mode=(${resolveMode.toString()})()}catch(e){}`;
 
 // The browser chrome (phone address bar) takes the canvas colour of the mode.
-export const CANVAS: Record<Mode, string> = {
+const CANVAS: Record<Mode, string> = {
   light: tokens.color.light.canvas.$value,
   dark: tokens.color.dark.canvas.$value,
 };

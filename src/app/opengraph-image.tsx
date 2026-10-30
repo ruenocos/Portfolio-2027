@@ -4,7 +4,7 @@ import { FACE, FEATURES } from "@/lib/smiley";
 
 // The link preview for every page (Slack, LinkedIn, iMessage, X). The hero's
 // name with the smiley where the reel sits: "Wessel [smiley] Oud", nothing
-// else (Wons, 2026-10-28). Platforms print the title and description under
+// else. Platforms print the title and description under
 // it. Light mode, built once.
 
 export const alt = "Wessel Oud, with his smiley logo between the two names";

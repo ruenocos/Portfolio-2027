@@ -4,8 +4,7 @@ import { useEffect } from "react";
 
 const AWAY = "Psst, come back · Wessel Oud";
 
-// While the tab is in the background its title calls you back (Wons,
-// 2026-10-28); the page's own title returns with you.
+// While the tab is in the background its title calls you back; the page's own title returns with you.
 export function AwayTitle() {
   useEffect(() => {
     let was = "";

@@ -61,7 +61,9 @@ for (const loop of loops) {
   let copies = uploaded.get(loop.ref);
   if (!copies) {
     const src = join(dir, `${loop.ref}.mp4`);
-    writeFileSync(src, Buffer.from(await (await fetch(loop.url)).arrayBuffer()));
+    const download = await fetch(loop.url);
+    if (!download.ok) throw new Error(`download ${loop.url}: ${download.status}`);
+    writeFileSync(src, Buffer.from(await download.arrayBuffer()));
     const srcSize = statSync(src).size;
     copies = { _type: "videoCopies", from: loop.ref };
     const sizes = {};
@@ -70,10 +72,11 @@ for (const loop of loops) {
       execFileSync("ffmpeg", ["-v", "error", "-y", "-i", src, ...ENCODE[kind], "-pix_fmt", "yuv420p", "-an", "-movflags", "+faststart", out], { stdio: "pipe" });
       const size = statSync(out).size;
       // Each copy is measured against what it stands in for: the AV1 small
-      // copy against the H.264 small one, the rest against the upload.
+      // copy against the H.264 small one (none without it: the site only
+      // plays it in place of that one), the rest against the upload.
       const against = kind === "smallAv1" ? sizes.small : srcSize;
-      sizes[kind] = size;
       const kept = !!against && size < against * KEEP_BELOW;
+      if (kept) sizes[kind] = size;
       console.log(`  ${loop._id} ${kind}: ${Math.round(srcSize / 1024)} -> ${Math.round(size / 1024)} KB${kept ? "" : " (not kept)"}`);
       if (!kept || DRY) continue;
       const res = await fetch(api(`/assets/files/${DATASET}?filename=${encodeURIComponent(`${loop.ref}-${kind}.mp4`)}`), {

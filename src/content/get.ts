@@ -8,7 +8,7 @@ import { FALLBACK_HOME, type HomeContent, type Track } from "./home";
 import { FALLBACK_ABOUT, type AboutContent, type Sticker } from "./about";
 import { FALLBACK_CASES, type Case, type CaseSection } from "./cases";
 import { FALLBACK_POSTS, PLAYGROUND_TARGET, type Post } from "./playground";
-import { FALLBACK_PROJECTS } from "./projects";
+import { FALLBACK_FEATURED, FALLBACK_PROJECTS } from "./projects";
 
 /** A Sanity image as the queries return it: the asset plus the Studio's crop and focal point. */
 type Pic = { asset?: { _ref: string }; crop?: object; hotspot?: object };
@@ -23,8 +23,7 @@ type Row = {
   tools?: string[];
   note?: string;
   label?: string;
-  hasCase?: boolean;
-  slug?: string;
+  slug: string;
   poster?: Pic;
   video?: string;
   videoAv1?: string;
@@ -63,7 +62,7 @@ const SPOTS = [
 const isLorem = (s?: string) => !!s && /lorem ipsum|dolor sit|20XX/i.test(s);
 
 function rowMock(r: Row): Project["mock"] {
-  const fb = FALLBACK_PROJECTS.find((p) => p.href === `/work/${r.slug}`);
+  const fb = FALLBACK_FEATURED.find((p) => p.href === `/work/${r.slug}`);
   const same = (f: "summary" | "role" | "note", v?: string) =>
     !!fb?.mock?.includes(f) && v === (f === "note" ? fb.note?.text : fb[f]);
   const fields = (["summary", "role", "note"] as const).filter((f) => {
@@ -83,16 +82,16 @@ function toProject(r: Row, i: number): Project {
     role: r.role ?? "",
     tools: knownTools(r.tools ?? []),
     media: { poster: pic(r.poster, 1040, PORTRAIT), video: r.video, videoAv1: r.videoAv1, peek: r.peek, peekAv1: r.peekAv1 },
-    // Every project has a page; without a written case it's the short one.
-    href: r.slug ? `/work/${r.slug}` : undefined,
+    href: `/work/${r.slug}`,
     label: r.label || `${r.title}, ${r.timeline}.`,
     note: r.note ? { text: r.note, spot: SPOTS[i % SPOTS.length] } : undefined,
   };
 }
 
 // The year a project last ran: "2023–now" is this year, "2026" is 2026,
-// a placeholder like "20XX" has none and sorts last.
-function endYear(timeline: string): number {
+// a placeholder like "20XX" (or no timeline yet) has none and sorts last.
+function endYear(timeline: string | null): number {
+  if (!timeline) return -Infinity;
   if (/now/i.test(timeline)) return Infinity;
   const years = timeline.match(/\d{4}/g);
   return years ? Math.max(...years.map(Number)) : -Infinity;
@@ -128,7 +127,7 @@ export async function getHome(o: FetchOptions = published): Promise<HomeContent>
   let doc: HomeDoc | null = null;
   let rows: Row[] = [];
   try {
-    const { data } = await cachedSanity({ query: HOME_QUERY, perspective: o.perspective, variant: o.variant, stega: o.stega });
+    const { data } = await cachedSanity({ query: HOME_QUERY, ...o });
     const d = data as unknown as { home: HomeDoc | null; projects: Row[] | null };
     doc = d.home;
     rows = homeRows((d.home?.featured ?? []).filter((r): r is Row => !!r?.title), d.projects ?? []);
@@ -167,7 +166,7 @@ export async function getHome(o: FetchOptions = published): Promise<HomeContent>
 export async function getWork(o: FetchOptions = published): Promise<Project[]> {
   let rows: Row[] | null = null;
   try {
-    const { data } = await cachedSanity({ query: WORK_QUERY, perspective: o.perspective, variant: o.variant, stega: o.stega });
+    const { data } = await cachedSanity({ query: WORK_QUERY, ...o });
     rows = data as unknown as Row[] | null;
   } catch (e) {
     console.warn("Work: Sanity unavailable, using the fallback content.", e);
@@ -239,42 +238,21 @@ function toCase(slug: string, d: CaseDoc): Case {
 }
 
 /**
- * A case page: Sanity once it has the story, the mock draft until then. A
- * project without either gets the short page: its row's title, summary,
- * video and facts, no read.
+ * A case page: Sanity's once it has a written section. A project Sanity
+ * doesn't have (or Sanity unreachable) falls back to the case in code.
  */
 export async function getCase(slug: string, o: FetchOptions = published): Promise<Case | null> {
   try {
-    const { data } = await cachedSanity({ query: CASE_QUERY, params: { slug }, perspective: o.perspective, variant: o.variant, stega: o.stega });
+    const { data } = await cachedSanity({ query: CASE_QUERY, params: { slug }, ...o });
     const d = data as unknown as CaseDoc | null;
-    if (d?.sections?.some((s) => s.name && s.heading)) return toCase(slug, d);
+    if (d) return d.sections?.some((s) => s.name && s.heading) ? toCase(slug, d) : null;
   } catch (e) {
     console.warn(`Case ${slug}: Sanity unavailable, using the fallback content.`, e);
   }
-  const fb = FALLBACK_CASES.find((c) => c.slug === slug);
-  if (fb) return fb;
-  const p = (await getWork(o)).find((x) => x.href === `/work/${slug}`);
-  return p ? shortCase(slug, p) : null;
+  return FALLBACK_CASES.find((c) => c.slug === slug) ?? null;
 }
 
-function shortCase(slug: string, p: Project): Case {
-  return {
-    slug,
-    title: p.title,
-    lang: p.lang,
-    lead: "",
-    intro: p.summary,
-    facts: [
-      { label: "Role", value: p.role || undefined },
-      { label: "Scope", value: undefined },
-      { label: "Timeline", value: p.timeline || undefined },
-    ],
-    hero: { poster: p.media.poster, video: p.media.video, alt: "", caption: "" },
-    sections: [],
-  };
-}
-
-/** Case pages to prebuild: one per project, plus the drafts in code. */
+/** Case pages to prebuild: Sanity's, plus the cases in code. */
 export async function caseSlugs(): Promise<string[]> {
   let live: string[] = [];
   try {
@@ -282,8 +260,7 @@ export async function caseSlugs(): Promise<string[]> {
   } catch (e) {
     console.warn("Case slugs: Sanity unavailable, using the fallback list.", e);
   }
-  const code = FALLBACK_PROJECTS.flatMap((p) => (p.href ? [p.href.replace("/work/", "")] : []));
-  return [...new Set([...FALLBACK_CASES.map((c) => c.slug), ...code, ...live])];
+  return [...new Set([...FALLBACK_CASES.map((c) => c.slug), ...live])];
 }
 
 type AboutDoc = {
@@ -295,12 +272,12 @@ type AboutDoc = {
   stickers?: { text?: string; tone?: Sticker["tone"]; size?: Sticker["size"] }[];
 };
 
-/** About: Sanity first, the approved v07 copy for whatever is still empty. */
+/** About: Sanity first, the approved copy for whatever is still empty. */
 export async function getAbout(o: FetchOptions = published): Promise<AboutContent> {
   const f = FALLBACK_ABOUT;
   let d: AboutDoc = {};
   try {
-    const { data } = await cachedSanity({ query: ABOUT_QUERY, perspective: o.perspective, variant: o.variant, stega: o.stega });
+    const { data } = await cachedSanity({ query: ABOUT_QUERY, ...o });
     d = (data as unknown as AboutDoc | null) ?? {};
   } catch (e) {
     console.warn("About: Sanity unavailable, using the fallback content.", e);
@@ -332,10 +309,10 @@ export async function getAbout(o: FetchOptions = published): Promise<AboutConten
   };
 }
 
-/** Playground posts: Sanity's, or the v08 placeholders while there are none. */
+/** Playground posts: Sanity's, or the placeholders while there are none. */
 export async function getPosts(o: FetchOptions = published): Promise<Post[]> {
   try {
-    const { data } = await cachedSanity({ query: PLAYGROUND_QUERY, perspective: o.perspective, variant: o.variant, stega: o.stega });
+    const { data } = await cachedSanity({ query: PLAYGROUND_QUERY, ...o });
     const rows = (data as unknown as { title: string; src: string; video?: string; videoAv1?: string; w?: number; h?: number }[] | null) ?? [];
     if (rows.length) {
       const real: Post[] = rows.map((r) => ({ title: r.title, src: img(r.src, 640), video: r.video, videoAv1: r.videoAv1, ar: r.w && r.h ? r.w / r.h : 1 }));

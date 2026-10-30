@@ -1,4 +1,4 @@
-// Home's first-visit intro, "Iris" (DESIGN.md §8, build-plan_v03): a
+// Home's first-visit intro, "Iris" (DESIGN.md §8): a
 // tangerine sheet covers the page from the first paint, Wessel's sharpie
 // smiley draws itself on it, flies into the header logo, and a round hole
 // that follows it opens the sheet onto the finished page. The page itself
@@ -38,7 +38,7 @@ function bezier(x1: number, y1: number, x2: number, y2: number) {
 }
 const [u1, u2, u3, u4] = motionTokens.easing.ui.bezier;
 const ui = bezier(u1, u2, u3, u4);
-// "move" is the intro's in-out (the prototype's), not a house token yet.
+// "move" is the intro's own in-out, not a house token.
 const move = bezier(0.65, 0, 0.35, 1);
 const back = (x: number) => {
   const s = 1.5;
@@ -301,9 +301,6 @@ export function playIntro(): Promise<void> {
     }
   }));
 }
-
-/** Ends the intro at once (the home page unmounting mid-intro). */
-export const endIntro = () => stop();
 
 /** The hero holds the intro while it's mounted. Leaving home mid-intro
  *  ends it; a remount (dev, or a cached route coming back) doesn't. */

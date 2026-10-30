@@ -5,7 +5,7 @@ export type CaseSection = {
   key: string;
   /** The layer name in the panel and the section label. */
   name: string;
-  /** A short claim, not the name again (Wons 2026-10-27). */
+  /** A short claim, not the name again. */
   heading: string;
   body: string;
   figure?: CaseFigure;
@@ -29,8 +29,8 @@ export type Case = {
 
 const M = "/media/de-saak";
 
-// De Saak v01 (studio/web/hifi/case, spec v02). The wording is mock, drafted
-// from desaak.com and Wons's notes, until Wons rewrites it. The result
+// De Saak. The wording is mock, drafted from desaak.com and Wons's notes,
+// until he rewrites it. The result
 // numbers are real: Google Search Console, from Wons, 26 Oct 2025 to 21 Oct 2026.
 export const FALLBACK_CASES: Case[] = [
   {

@@ -12,7 +12,7 @@ const RATE = motionTokens.video.playbackRate;
 // Plays a muted loop only while it's on screen, at 0.75×, and never while
 // calm (Pause motion or reduced motion): then the poster shows instead.
 // The video's source loads only when it comes near the screen.
-export function useInViewVideo(rate = RATE) {
+function useInViewVideo(rate = RATE) {
   const video = useRef<HTMLVideoElement>(null);
   const { calm } = useMotion();
   const [on, setOn] = useState(false);
@@ -62,7 +62,7 @@ export function useInViewVideo(rate = RATE) {
   return [video, on] as const;
 }
 
-export type MediaSrc = {
+type MediaSrc = {
   poster?: string;
   video?: string;
   /** The loop's AV1 copy: played instead where the browser supports it. */
