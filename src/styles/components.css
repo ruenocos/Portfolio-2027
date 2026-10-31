@@ -22,6 +22,54 @@
     color: var(--tang-ink);
   }
 
+  /* ---------- text stacks: space by relationship (DESIGN.md §5) ----------
+     Things that belong together sit closer than things that don't, so each
+     item says how it relates to the one above (data-gap) instead of the
+     stack using one gap for everything. Where two items meet, the text is
+     trimmed to cap height and baseline, so the token is the gap you see;
+     the stack's outer edges keep their line height and cell padding reads
+     as before. Trim skips flex boxes, so items are plain blocks. */
+  .stack {
+    display: flex;
+    flex-direction: column;
+  }
+  .stack > * {
+    text-box-edge: cap alphabetic;
+  }
+  .stack > :not(:first-child) {
+    text-box-trim: trim-start;
+  }
+  .stack > :not(:last-child) {
+    text-box-trim: trim-end;
+  }
+  .stack > :not(:first-child, :last-child) {
+    text-box-trim: trim-both;
+  }
+  .stack > [data-gap="line"]:not(:first-child) {
+    margin-top: var(--spacing-stack-line);
+  }
+  .stack > [data-gap="label"]:not(:first-child) {
+    margin-top: var(--spacing-stack-label);
+  }
+  .stack > [data-gap="para"]:not(:first-child) {
+    margin-top: var(--spacing-stack-para);
+  }
+  .stack > [data-gap="pair"]:not(:first-child) {
+    margin-top: var(--spacing-stack-pair);
+  }
+  .stack > [data-gap="group"]:not(:first-child) {
+    margin-top: var(--spacing-stack-group);
+  }
+  .stack .slab {
+    display: block;
+  }
+  .stack .slab > .br:first-child {
+    margin-inline-end: 0.6em;
+  }
+  .stack .slab > .br:nth-child(2) {
+    margin-inline-start: 0.6em;
+  }
+
   /* ---------- divider row: the label sits bottom-left of a dotted band ---------- */
   .divider > .cell {
     height: var(--spacing-divider);
@@ -519,16 +567,9 @@
   }
   .facts > .cell {
     padding: 40px var(--spacing-inset);
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
   }
   .facts dt {
     color: var(--mute);
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    min-height: 22px;
   }
   .facts dt .mock {
     padding: 1px 6px;
@@ -540,7 +581,6 @@
   }
   .facts .sub {
     color: var(--mute);
-    margin-top: 6px;
   }
 
   /* ---------- Wessel's canvas: cursors, pins, selections, redlines ---------- */

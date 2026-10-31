@@ -202,19 +202,11 @@
     align-items: center;
   }
   .atext {
-    display: flex;
-    flex-direction: column;
     align-items: flex-start;
-    gap: 32px;
     max-width: 600px;
     min-width: 0;
   }
-  .atext .intro {
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-  }
-  .atext .intro p {
+  .atext > p {
     max-width: 31em;
   }
   .atext h3 {
@@ -364,7 +356,6 @@
     padding: 64px 28px;
     display: flex;
     flex-direction: column;
-    gap: 8px;
     outline: none;
   }
   .fig:focus-visible {
@@ -375,7 +366,7 @@
   .fig .obj {
     position: relative;
     height: 210px;
-    margin-bottom: 12px;
+    margin-bottom: 20px;
     display: grid;
     place-items: center;
     cursor: pointer;
@@ -392,16 +383,19 @@
   .fig .iso * {
     vector-effect: non-scaling-stroke;
   }
+  /* Title and line meet trimmed, so the pair gap is the gap you see. */
   .fig h3 {
     margin: 0;
+    text-box: trim-end cap alphabetic;
     transition: color var(--dur-ui) var(--ease-ui);
   }
   .fig[data-on="true"] h3 {
     color: var(--grape);
   }
   .fig p {
-    margin: 0;
+    margin: var(--spacing-stack-pair) 0 0;
     max-width: 340px;
+    text-box: trim-start cap alphabetic;
   }
 
   /* ---------- archive: a hand of cards ---------- */

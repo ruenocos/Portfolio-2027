@@ -54,16 +54,14 @@ export function About({ about: c }: { about: HomeContent["about"] }) {
     <section className="frame" data-row aria-label="About">
       <div className="side" />
       <div ref={cell} className="cell about">
-        <div className="atext" data-enter>
+        <div className="atext stack" data-enter>
           <h3 className="text-headline">{c.opener}</h3>
-          <div className="intro">
-            {c.intro.split(/\n\s*\n/).map((p) => (
-              <p key={p} className="text-body text-mute">
-                {p}
-              </p>
-            ))}
-          </div>
-          <TextLink href="/about" label="More about me" arrow="right" />
+          {c.intro.split(/\n\s*\n/).map((p, i) => (
+            <p key={p} className="text-body text-mute" data-gap={i ? "para" : "pair"}>
+              {p}
+            </p>
+          ))}
+          <TextLink href="/about" label="More about me" arrow="right" gap="pair" />
         </div>
         {/* The button's name says which photo is on top, so the alt texts are read. */}
         <button

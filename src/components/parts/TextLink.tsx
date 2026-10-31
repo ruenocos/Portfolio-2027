@@ -12,12 +12,15 @@ export function TextLink({
   arrow,
   className = "",
   title,
+  gap,
 }: {
   href: string;
   label: string;
   arrow?: ArrowDir;
   className?: string;
   title?: string;
+  /** Its gap in a text stack (data-gap). */
+  gap?: string;
 }) {
   const external = /^https?:/.test(href);
   const mark = arrow && (
@@ -35,19 +38,19 @@ export function TextLink({
   const cls = `tlink text-link ${className}`;
   if (external)
     return (
-      <a className={cls} href={href} target="_blank" rel="noopener" title={title}>
+      <a className={cls} href={href} target="_blank" rel="noopener" title={title} data-gap={gap}>
         {inner}
         <span className="sr-only"> (opens in a new tab)</span>
       </a>
     );
   if (href.startsWith("#"))
     return (
-      <a className={cls} href={href} title={title}>
+      <a className={cls} href={href} title={title} data-gap={gap}>
         {inner}
       </a>
     );
   return (
-    <Link className={cls} href={href} title={title}>
+    <Link className={cls} href={href} title={title} data-gap={gap}>
       {inner}
     </Link>
   );

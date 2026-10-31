@@ -26,14 +26,14 @@ export default async function AboutPage() {
       <section className="frame" data-row aria-labelledby="ab-hi">
         <div className="side" />
         <div className="abhero">
-          <div className="cell say">
+          <div className="cell say stack">
             <h1 id="ab-hi" className="text-statement" data-enter>
               {c.hello}
             </h1>
-            <p className="text-lead" data-enter>
+            <p className="text-lead" data-gap="pair" data-enter>
               {c.lead}
             </p>
-            <Status className="text-mute" />
+            <Status className="text-mute" gap="group" />
           </div>
           <PhotoStack photos={c.photos} />
         </div>
