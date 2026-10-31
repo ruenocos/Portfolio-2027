@@ -99,44 +99,29 @@ function postEl(post: Post) {
  * Playground: one big masonry on a pannable board that loops back to where
  * it started, sideways and down. Drag (with a throw), wheel or trackpad,
  * arrow keys; tap a post (or Enter for the middle one) to lift it open. At
- * rest it settles on whole columns. Wessel drives it: he grabs a post that's
- * half out of view, drags it in, and selects it. He never opens one; that's
- * yours. Touch anything and he lets go and waits. Pause: still. Like a Figma
- * canvas, the tile you're over turns grape (yours). On arrival Wessel says
- * hello by selecting one tile in view, real size label and all.
+ * rest it settles on whole columns. Wessel drives it, one move per job: he
+ * clicks a post that's half out of view (it selects, real size label and
+ * all), drags it in, and lets go (the selection goes with it). He never
+ * opens one; that's yours. Touch anything and he lets go and waits. Pause:
+ * still. Like a Figma canvas, the tile you're over turns grape (yours). His
+ * first job is his arrival beat.
  */
 type Hello = {
-  pick: () => Item | null;
-  ok: (item: Item) => boolean;
-  at: (item: Item) => XY | null;
-  show: () => void;
+  /** Starts his first job now; resolves once he has let go. */
+  run: () => Promise<void>;
   end: () => void;
 };
 
 export function Board({ posts }: { posts: Post[] }) {
   const hi = useRef<Hello | null>(null);
-  // His arrival beat: glide to a tile in view, select it, hold, let go.
+  // His arrival beat is his first job: select a post, drag it, let go.
   // Paused or reduced motion: no beat (and no selection).
   const cvRef = useBeat<HTMLDivElement>({
     async day(g) {
       await wait(1000);
       live(g);
-      const b = hi.current;
-      const item = b?.pick();
-      if (!b || !item) return b?.end();
-      try {
-        await wessel.go(() => b.at(item), { k: 220, timeout: 1400 });
-        live(g);
-        if (!b.ok(item)) return;
-        wessel.press(true);
-        b.show();
-        await wait(120);
-        wessel.press(false);
-        await wait(1200);
-        live(g);
-      } finally {
-        b.end();
-      }
+      await hi.current?.run();
+      live(g);
     },
     still: () => hi.current?.end(),
     reset: () => hi.current?.end(),
@@ -167,7 +152,8 @@ export function Board({ posts }: { posts: Post[] }) {
     let ty = 0;
     let vx = 0;
     let vy = 0;
-    let last = performance.now();
+    // 0 = the loop just woke: its first frame counts as one 60fps frame.
+    let last = 0;
     let dragging = false;
     let movingTill = 0;
     let mptr: XY | null = null;
@@ -180,7 +166,7 @@ export function Board({ posts }: { posts: Post[] }) {
     const wake = () => {
       clearTimeout(sleepTimer);
       if (raf || !inView) return;
-      last = performance.now();
+      last = 0;
       raf = requestAnimationFrame(frame);
     };
     // A post open in the shared viewer: the board holds still under it.
@@ -205,6 +191,37 @@ export function Board({ posts }: { posts: Post[] }) {
     let zAt: XY | null = null;
     const vw = () => boardEl.clientWidth / z;
     const vh = () => boardEl.clientHeight / z;
+    // At a limit, one more zoom the same way stretches the board a little
+    // past it and it springs back, like a rubber band: this is as far as it
+    // goes. The stretch is a fraction of the scale, around the pointer.
+    const STRETCH = 0.05;
+    let bz = 0;
+    let bzv = 0;
+    let bzPull = 0;
+    let bzRaw = 0;
+    let bzTill = 0;
+    let bzAt: XY | null = null;
+    let bOx = 0;
+    let bOy = 0;
+    // dir: -1 out, 1 in; amt: how far past the limit you tried (log scale),
+    // added up while you keep trying, or `set` for a pinch that says it whole.
+    const stretch = (dir: number, amt: number, at: XY | null, set = false) => {
+      if (calm()) return;
+      if (Math.sign(bzPull) !== dir) bzRaw = 0;
+      bzRaw = set ? amt : bzRaw + amt;
+      bzPull = dir * STRETCH * (1 - Math.exp(-bzRaw / 0.15));
+      bzTill = performance.now() + 110;
+      bzAt = at;
+      wake();
+    };
+    const paintZoom = () => {
+      const s = 1 + bz;
+      const [px, py] = bzAt ?? [boardEl.clientWidth / 2, boardEl.clientHeight / 2];
+      bOx = bz ? px * (1 - s) : 0;
+      bOy = bz ? py * (1 - s) : 0;
+      world.style.transform = bz ? `translate(${bOx.toFixed(2)}px,${bOy.toFixed(2)}px) scale(${z * s})` : z === 1 ? "" : `scale(${z})`;
+      boardEl.style.setProperty("--z", String(z * s));
+    };
     // Keeps the board point under `at` (screen px in the board) in place.
     const zoomTo = (nz: number, at: XY | null) => {
       const [px, py] = at ?? [boardEl.clientWidth / 2, boardEl.clientHeight / 2];
@@ -214,13 +231,13 @@ export function Board({ posts }: { posts: Post[] }) {
       tx += px * k;
       ty += py * k;
       z = nz;
-      world.style.transform = z === 1 ? "" : `scale(${z})`;
-      boardEl.style.setProperty("--z", String(z));
+      paintZoom();
       if (zoomLabel) zoomLabel.textContent = `${Math.round(z * 100)}%`;
     };
     // The first row starts under the title chip, not behind it.
     const TOP = narrow() ? 56 : 64;
     const zoomStep = (d: number) => {
+      if (d < 0 ? tz <= ZMIN + 1e-3 : tz >= ZMAX - 1e-3) return stretch(Math.sign(d), 0.3, null);
       tz = d > 0 ? (STEPS.find((s) => s > tz + 0.01) ?? ZMAX) : ([...STEPS].reverse().find((s) => s < tz - 0.01) ?? ZMIN);
       zAt = null;
     };
@@ -315,14 +332,21 @@ export function Board({ posts }: { posts: Post[] }) {
       return r.top < innerHeight * 0.5 && r.bottom > innerHeight * 0.6;
     };
     const wesOn = () => !mode.current.still && !narrow() && onScreen();
-    const job = { stage: "rest", t: performance.now() + 900, item: null as Item | null, drop: [0, 0], from: [0, 0], grip: [0, 0], t0: 0, dur: 0, shown: false };
-    // His hello comes first (the arrival beat below): he leaves the board
-    // alone until it's done, or after a while if it never plays.
+    const job = { stage: "rest", t: performance.now() + 900, item: null as Item | null, drop: [0, 0], from: [0, 0], grip: [0, 0], t0: 0, dur: 0 };
+    // His arrival beat runs his first job: until then he leaves the board
+    // alone (or for a while, if the beat never plays).
     let hello = true;
     later(() => {
       hello = false;
       wake();
     }, 6000);
+    // The arrival beat waits on this: it's called once he's back at rest.
+    let done: (() => void) | null = null;
+    const finish = () => {
+      const d = done;
+      done = null;
+      d?.();
+    };
     let pausedTill = 0;
     let target: XY | null = null;
     let driving = false;
@@ -345,17 +369,6 @@ export function Board({ posts }: { posts: Post[] }) {
       const [x, y] = wessel.pos();
       return Math.hypot(t[0] - x, t[1] - y);
     };
-    const pause = () => {
-      pausedTill = performance.now() + 6000;
-      if (job.stage === "drag") {
-        tx = panX;
-        ty = panY;
-      }
-      wessel.press(false);
-      job.stage = "rest";
-      job.t = pausedTill;
-      job.item = null;
-    };
     const sel = (item: Item | null) => {
       if (!item) return wsel.removeAttribute("data-on");
       wsel.style.transform = `translate(${(item.x + item.lx) * z - 4}px,${(item.yy + item.ly) * z - 4}px)`;
@@ -364,56 +377,57 @@ export function Board({ posts }: { posts: Post[] }) {
       szp.textContent = `${colW} × ${item.h}`;
       wsel.dataset.on = "";
     };
-    // The hello beat's handles: a tile to pick, where to point, show, done.
+    // The post in his hand keeps its size while the rest of the board squashes.
+    let held: Item | null = null;
+    const hold = (item: Item | null) => {
+      held?.el.removeAttribute("data-held");
+      item?.el.setAttribute("data-held", "");
+      held = item;
+    };
+    const rest = (t: number) => {
+      wessel.press(false);
+      hold(null);
+      sel(null);
+      job.stage = "rest";
+      job.item = null;
+      job.t = t;
+      finish();
+    };
+    const pause = () => {
+      pausedTill = performance.now() + 6000;
+      if (job.stage === "drag") {
+        tx = panX;
+        ty = panY;
+      }
+      rest(pausedTill);
+    };
     hi.current = {
-      pick: () => {
-        if (!wesOn() || opened || dragging) return null;
-        const viewW = vw();
-        const viewH = vh();
-        let best: Item | null = null;
-        let bd = Infinity;
-        // A real piece, whole on screen, near the middle; not the one you're on.
-        for (const col of cols)
-          for (const item of col.items) {
-            if (item === hovered || !(item.post.src || item.post.video) || item.post.mock) continue;
-            if (item.x < 24 || item.x + colW > viewW - 24 || item.yy < 24 || item.yy + item.h > viewH - 48) continue;
-            const d = Math.hypot(item.x + colW / 2 - viewW * 0.55, item.yy + item.h / 2 - viewH * 0.45);
-            if (d < bd) {
-              bd = d;
-              best = item;
-            }
-          }
-        if (best) Object.assign(job, { stage: "hello", item: best, shown: false });
+      run: () => {
+        hello = false;
         wake();
-        return best;
-      },
-      ok: (item) => job.stage === "hello" && job.item === item && wesOn(),
-      at: (item) => {
-        if (job.stage !== "hello" || job.item !== item || !wesOn()) return null;
-        const r = boardEl.getBoundingClientRect();
-        return [r.left + (item.x + item.lx + colW * 0.72) * z, r.top + (item.yy + item.ly + item.h * 0.8) * z];
-      },
-      show: () => {
-        job.shown = job.stage === "hello";
-        wake();
+        if (!wesOn() || opened || dragging || performance.now() < pausedTill) return Promise.resolve();
+        finish();
+        return new Promise<void>((res) => {
+          done = res;
+          if (job.stage === "rest") job.t = performance.now();
+        });
       },
       end: () => {
         hello = false;
+        finish();
         wake();
-        if (job.stage !== "hello") return;
-        Object.assign(job, { stage: "rest", item: null, shown: false, t: performance.now() + 900 });
       },
     };
+    // One move per job: reach a post, click it (it selects), drag it in,
+    // let go (the selection goes with the release), rest, and again.
     const wTick = (now: number, viewW: number, viewH: number) => {
       if (!wesOn()) {
-        sel(null);
         if (driving) {
           driving = false;
           target = null;
           wessel.free();
         }
-        job.stage = "rest";
-        job.t = now + 900;
+        rest(now + 900);
         return;
       }
       if (now < pausedTill || dragging || opened) {
@@ -421,12 +435,7 @@ export function Board({ posts }: { posts: Post[] }) {
         wessel.press(false);
         return;
       }
-      if (job.stage === "hello") {
-        sel(job.shown ? job.item : null);
-        return;
-      }
       if (job.stage === "rest") {
-        sel(null);
         if (now < job.t || hello) return;
         // A post that's half out of view, and a calm spot to bring it to.
         const c: Item[] = [];
@@ -440,6 +449,8 @@ export function Board({ posts }: { posts: Post[] }) {
         );
         if (!c.length) {
           job.t = now + 700;
+          // Nothing to bring in yet: the arrival beat doesn't wait on it.
+          finish();
           return;
         }
         const item = c[Math.floor(Math.random() * c.length)];
@@ -451,21 +462,22 @@ export function Board({ posts }: { posts: Post[] }) {
         return;
       }
       const item = job.item;
-      if (!item) {
-        job.stage = "rest";
-        return;
-      }
+      if (!item) return rest(now + 900);
       if (job.stage === "reach") {
         target = [item.x + job.grip[0], item.yy + job.grip[1]];
         if (dist() < 4 || now - job.t0 > 1600) {
+          // The click selects it, like in Figma; a beat to read before he drags.
           wessel.press(true);
+          hold(item);
+          sel(item);
           job.stage = "grab";
-          job.t = now + 180;
+          job.t = now + 320;
         }
         return;
       }
       if (job.stage === "grab") {
         target = [item.x + job.grip[0], item.yy + job.grip[1]];
+        sel(item);
         if (now > job.t) {
           job.stage = "drag";
           job.t0 = now;
@@ -481,34 +493,38 @@ export function Board({ posts }: { posts: Post[] }) {
         panX = tx = job.from[0] + job.drop[0] * k;
         panY = ty = job.from[1] + job.drop[1] * k;
         target = [item.x + job.grip[0], item.yy + job.grip[1]];
-        if (k >= 1) {
-          wessel.press(false);
-          job.stage = "select";
-          job.t = now + 2000;
-          void wessel.go(drive, { k: 180 });
-        }
-        return;
-      }
-      if (job.stage === "select") {
-        if (now < movingTill) return;
         sel(item);
-        target = [item.x + item.lx + colW - 14, item.yy + item.ly + item.h - 10];
-        if (now > job.t) {
-          sel(null);
-          job.stage = "rest";
-          job.t = now + 900;
+        if (k >= 1) {
+          // He lets go where he dropped it: the selection fades with the
+          // release and he parks there until his next job.
+          driving = false;
+          target = null;
+          wessel.free();
+          rest(now + 2600);
         }
       }
     };
 
     // ---------- the board loop ----------
     const frame = (t: number) => {
-      const dt = Math.min(48, t - last);
+      // A rAF time can be older than the performance.now() of the wake that
+      // asked for it; a dt of zero or less read as "moving fast" and squashed
+      // every card for a beat each time the loop woke.
+      const dt = last ? clamp(t - last, 1, 48) : 16;
       last = t;
       const ox = panX;
       const oy = panY;
       const quiet = calm();
       if (tz !== z) zoomTo(quiet || Math.abs(tz - z) < 0.002 ? tz : z + (tz - z) * Math.min(1, (0.2 * dt) / 16), zAt);
+      if (bz || bzv || bzPull) {
+        // Held while you keep pushing, then it springs back with a small overshoot.
+        if (t > bzTill) bzPull = bzRaw = 0;
+        const s = dt / 1000;
+        bzv += (380 * (bzPull - bz) - 20 * bzv) * s;
+        bz += bzv * s;
+        if (quiet || (!bzPull && Math.abs(bz) < 4e-4 && Math.abs(bzv) < 4e-3)) bz = bzv = bzPull = 0;
+        paintZoom();
+      }
       if (!dragging && !opened) {
         if (Math.abs(tx - panX) + Math.abs(ty - panY) > 0.3) {
           // Smooth wheel.
@@ -599,13 +615,13 @@ export function Board({ posts }: { posts: Post[] }) {
         dispatchEvent(new Event("wsl:look"));
       }
       // The canvas dots move and scale with the board, like Figma's.
-      const dots = `${(panX * z).toFixed(1)}px ${(panY * z).toFixed(1)}px`;
+      const dots = `${(panX * z * (1 + bz) + bOx).toFixed(1)}px ${(panY * z * (1 + bz) + bOy).toFixed(1)}px`;
       if (dots !== boardEl.style.backgroundPosition) boardEl.style.backgroundPosition = dots;
       wTick(t, viewW, viewH);
       // Asleep once the pan, zoom, lean and squash have settled and Wessel
       // has no job running; if he has one coming, wake for it.
       const settled =
-        !dragging && tz === z && Math.abs(tx - panX) + Math.abs(ty - panY) <= 0.3 && (quiet || Math.abs(vx) + Math.abs(vy) <= 0.02) && t >= movingTill && !leaning;
+        !dragging && tz === z && !bz && !bzPull && Math.abs(tx - panX) + Math.abs(ty - panY) <= 0.3 && (quiet || Math.abs(vx) + Math.abs(vy) <= 0.02) && t >= movingTill && !leaning;
       const working = wesOn() && !opened && job.stage !== "rest";
       if (!inView || (settled && !working)) {
         raf = 0;
@@ -700,8 +716,11 @@ export function Board({ posts }: { posts: Post[] }) {
         if (pinch && pts.size === 2) {
           const { d, mid } = spread();
           const r = boardEl.getBoundingClientRect();
-          tz = clamp((pinch.z * d) / Math.max(1, pinch.d), ZMIN, ZMAX);
+          const want = (pinch.z * d) / Math.max(1, pinch.d);
+          tz = clamp(want, ZMIN, ZMAX);
           zAt = [mid[0] - r.left, mid[1] - r.top];
+          if (want < ZMIN) stretch(-1, Math.log(ZMIN / want), zAt, true);
+          else if (want > ZMAX) stretch(1, Math.log(want / ZMAX), zAt, true);
           moved = Infinity;
           return;
         }
@@ -755,8 +774,11 @@ export function Board({ posts }: { posts: Post[] }) {
       if (e.ctrlKey || e.metaKey) {
         // A trackpad pinch (or ⌘/Ctrl + wheel) zooms around the pointer.
         const r = boardEl.getBoundingClientRect();
-        tz = clamp(tz * Math.exp(-e.deltaY * (e.deltaMode === 1 ? 0.05 : 0.01)), ZMIN, ZMAX);
+        const want = tz * Math.exp(-e.deltaY * (e.deltaMode === 1 ? 0.05 : 0.01));
         zAt = [e.clientX - r.left, e.clientY - r.top];
+        if (want < ZMIN && tz <= ZMIN + 1e-3) stretch(-1, Math.log(ZMIN / want), zAt);
+        else if (want > ZMAX && tz >= ZMAX - 1e-3) stretch(1, Math.log(want / ZMAX), zAt);
+        tz = clamp(want, ZMIN, ZMAX);
         poke();
         return;
       }
@@ -850,6 +872,7 @@ export function Board({ posts }: { posts: Post[] }) {
         rw = boardEl.clientWidth;
         job.stage = "rest";
         job.item = null;
+        bz = bzv = bzPull = bzRaw = 0;
         z = tz = 1;
         zoomTo(1, null);
         build();
@@ -924,6 +947,7 @@ export function Board({ posts }: { posts: Post[] }) {
       boardEl.removeEventListener("pointerleave", leave);
       removeEventListener("resize", resize);
       if (driving) wessel.free();
+      finish();
       hi.current = null;
       world.textContent = "";
       // Leaving the page keeps this DOM alive but hidden, and coming back

@@ -133,6 +133,10 @@
     scale: 0.95;
     transition-delay: 0ms;
   }
+  /* The post in Wessel's hand keeps its size, so his selection hugs it. */
+  .pgcv[data-moving] .post.in[data-held] .pi {
+    scale: 1;
+  }
   .pgcv .pi :is(img, video) {
     display: block;
     width: 100%;
