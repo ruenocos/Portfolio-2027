@@ -152,7 +152,8 @@ export function Board({ posts }: { posts: Post[] }) {
     let ty = 0;
     let vx = 0;
     let vy = 0;
-    let last = performance.now();
+    // 0 = the loop just woke: its first frame counts as one 60fps frame.
+    let last = 0;
     let dragging = false;
     let movingTill = 0;
     let mptr: XY | null = null;
@@ -165,7 +166,7 @@ export function Board({ posts }: { posts: Post[] }) {
     const wake = () => {
       clearTimeout(sleepTimer);
       if (raf || !inView) return;
-      last = performance.now();
+      last = 0;
       raf = requestAnimationFrame(frame);
     };
     // A post open in the shared viewer: the board holds still under it.
@@ -506,7 +507,10 @@ export function Board({ posts }: { posts: Post[] }) {
 
     // ---------- the board loop ----------
     const frame = (t: number) => {
-      const dt = Math.min(48, t - last);
+      // A rAF time can be older than the performance.now() of the wake that
+      // asked for it; a dt of zero or less read as "moving fast" and squashed
+      // every card for a beat each time the loop woke.
+      const dt = last ? clamp(t - last, 1, 48) : 16;
       last = t;
       const ox = panX;
       const oy = panY;
