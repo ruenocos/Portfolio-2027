@@ -81,6 +81,16 @@ async function settle(p, height) {
   await wait(800);
 }
 
+// Console errors that don't change what the page shows, so they aren't
+// counted: Vercel's analytics scripts only exist on Vercel (404 on a local
+// build), and Sanity CORS only allows wesseloud.cv, so on a preview the
+// browser blocks Sanity Live's event stream.
+const PRODUCTION = /(^|\.)wesseloud\.cv$/.test(new URL(BASE).hostname);
+function noise(m) {
+  const text = m.text() + " " + (m.location()?.url ?? "");
+  return text.includes("/_vercel/") || (!PRODUCTION && /api\.sanity\.io\/.*\/live\/events/.test(text));
+}
+
 const slug = (path) => (path === "/" ? "home" : path.slice(1).replace(/\//g, "-"));
 
 mkdirSync(OUT, { recursive: true });
@@ -112,7 +122,7 @@ async function run(size, mode) {
     const p = await ctx.newPage();
     const errors = [];
     p.on("pageerror", (e) => errors.push(e.message));
-    p.on("console", (m) => m.type() === "error" && errors.push(m.text()));
+    p.on("console", (m) => m.type() === "error" && !noise(m) && errors.push(m.text()));
     const file = `${slug(path)}_${size.name}-${mode}`;
     const res = await p.goto(BASE + path, { waitUntil: "networkidle", timeout: 60000 }).catch((e) => {
       errors.push(`goto: ${e.message}`);
