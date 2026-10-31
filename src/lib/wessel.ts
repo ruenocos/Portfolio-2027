@@ -625,7 +625,9 @@ function plan(to: () => XY | null, k: number) {
     const dy = e[1] - a[1];
     const h1 = [a[0] + dx * along + dy * across, a[1] + dy * along - dx * across];
     const h2 = [e[0] - dx * along + dy * across, e[1] - dy * along - dx * across];
-    return bezierAt(minJerk(Math.max(0, t)), a, h1, h2, e);
+    const [x, y] = bezierAt(minJerk(Math.max(0, t)), a, h1, h2, e);
+    // The swing out never takes him past the side of the screen.
+    return [clamp(x, 12, innerWidth - 12), y];
   };
 }
 
@@ -772,11 +774,14 @@ function watchEdge(el: HTMLElement, edge: HTMLElement) {
     if (edge.dataset.on !== String(away)) edge.dataset.on = String(away);
   };
   const io = new IntersectionObserver(([e]) => show(e), { rootMargin: `${-header()}px 0px 0px 0px` });
-  io.observe(el);
+  // His arrow decides: tucked under the header with only his name showing,
+  // he's gone as far as you can tell, so the tag shows.
+  const arrow = el.querySelector(".ptr") ?? el;
+  io.observe(arrow);
   // A resize or a switch to calm changes where (or whether) the tag goes.
   const again = () => {
     if (!last) return;
-    const r = el.getBoundingClientRect();
+    const r = arrow.getBoundingClientRect();
     show({ isIntersecting: r.bottom > header() && r.top < innerHeight, boundingClientRect: r });
   };
   // After a resize he re-parks over a few frames: place it again once he has.
@@ -813,7 +818,16 @@ export function attachWessel(el: HTMLElement, edge?: HTMLElement | null) {
   flipped = false;
   el.dataset.hide = "true";
   measureLabel();
-  const wakeOnResize = () => (measureScreen(), wake());
+  const wakeOnResize = () => {
+    measureScreen();
+    // A narrower window makes the page longer or shorter: his parked spot
+    // stays on the page and on screen.
+    if (cursor.anchor) {
+      const end = document.documentElement.scrollHeight - 60;
+      cursor.anchor = [Math.min(cursor.anchor[0], innerWidth - 16 + scrollX), Math.min(cursor.anchor[1], end)];
+    }
+    wake();
+  };
   addEventListener("resize", wakeOnResize);
   // Parked and settled, the page carries him and scrolling needs no frames.
   // On a job, landing, or holding his screen spot after a page change, it does.
@@ -844,7 +858,7 @@ export function attachWessel(el: HTMLElement, edge?: HTMLElement | null) {
     // stayed put a long while (arriving mid-read reads as barging in).
     const since = performance.now() - rejoinedAt;
     if (!calm() && since < wesselMotion.park.rejoinCooldownMs) {
-      rejoinSoon = window.setTimeout(rejoin, wesselMotion.park.rejoinFallbackMs - since);
+      rejoinSoon = window.setTimeout(rejoin, wesselMotion.park.rejoinFallbackMs - wesselMotion.park.rejoinMs);
       return;
     }
     rejoinedAt = performance.now();
@@ -852,7 +866,7 @@ export function attachWessel(el: HTMLElement, edge?: HTMLElement | null) {
     // In calm he doesn't travel, so he can take the far side: the one your
     // scroll moves him away from last.
     const fromTop = cursor.y < top;
-    const y = top + (H - top) * (calm() ? (fromTop ? 0.72 : 0.38) : fromTop ? 0.38 : 0.72);
+    const y = top + (H - top) * (calm() ? (fromTop ? 0.85 : 0.38) : fromTop ? 0.38 : 0.72);
     // He comes in down the right edge (the margin on desktop), off the work
     // and the copy; his own x is often the image column.
     const x = innerWidth - parkInset();
