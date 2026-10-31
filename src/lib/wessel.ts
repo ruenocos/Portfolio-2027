@@ -24,7 +24,7 @@
 import motionTokens from "../../design/motion-tokens.json";
 import { isCalm, subscribeMotion } from "./motion";
 import { smileySvg } from "./smiley";
-import { bezierAt, clamp, easeInOutCubic, lerp, minJerk } from "./math";
+import { bezierAt, clamp, cssBezier, easeInOutCubic, lerp, minJerk } from "./math";
 import { headerHeight, narrow } from "./media";
 import { getLenis } from "./scroll";
 
@@ -343,6 +343,18 @@ function clearSpot([x, y]: XY): { at: XY; fold: boolean } {
   return { at: [innerWidth - 22, y], fold: true };
 }
 
+/** Moves his tag to the other side of his arrow: it slides across from
+ *  where it was instead of jumping (the label would flick under your eye). */
+function swapSides(el: HTMLElement, flip: boolean) {
+  const lab = el.querySelector<HTMLElement>(".lab");
+  const before = lab?.getBoundingClientRect().left;
+  el.dataset.flip = String(flip);
+  if (!lab || before === undefined || calm()) return;
+  const dx = before - lab.getBoundingClientRect().left;
+  const ui = motionTokens.easing.ui;
+  lab.animate([{ translate: `${dx}px 0` }, { translate: "0 0" }], { duration: ui.ms, easing: cssBezier(ui.bezier) });
+}
+
 function fold(on: boolean) {
   if (cursor.el && (cursor.el.dataset.fold === "true") !== on) cursor.el.dataset.fold = String(on);
 }
@@ -567,7 +579,7 @@ function tick(frameTime: number) {
   // it doesn't flick back and forth along the edge.
   const room = innerWidth - cursor.x - labelW;
   const flip = cursor.lean || room < (flipped ? 40 : 20);
-  if (flip !== flipped) el.dataset.flip = String((flipped = flip));
+  if (flip !== flipped) swapSides(el, (flipped = flip));
   draw(el);
   if (debug) logFrame(frameTime, tx, ty, driving ? "job" : still ? "calm" : holding ? "hold" : "park");
   // A job that holds him still outside a beat (the case read panel resting
@@ -596,8 +608,11 @@ function plan(to: () => XY | null, k: number) {
   const ms =
     clamp(trips.baseMs + trips.perDoublingMs * Math.log2(distance / trips.from + 1), trips.minMs, trips.maxMs) *
     clamp(Math.sqrt(springs.beat.k / k), 0.7, 1.4);
-  // The start rides with the page, so a scroll mid-trip doesn't kink the curve.
-  const a0: XY = [cursor.x, cursor.y + scrollY];
+  // The start moves with the end: carried along when the page scrolls the
+  // target, still when the target stays put (a sticky panel), so a scroll
+  // mid-trip neither kinks the curve nor drags him away and back.
+  let a: XY = [cursor.x, cursor.y];
+  let last: XY | null = null;
   const t0 = performance.now();
   const angle = (trips.arcDeg * Math.PI) / 180;
   const along = Math.cos(angle) / 3;
@@ -610,6 +625,8 @@ function plan(to: () => XY | null, k: number) {
     if (!t1) return null;
     const e: XY = [t1[0], softClamp(t1[1], header() + 24, screenHeight() - 40)];
     trip.end = e;
+    if (last) a = [a[0] + e[0] - last[0], a[1] + e[1] - last[1]];
+    last = e;
     const t = (performance.now() - t0) / ms;
     if (t >= 1 || cursor.trip !== trip || calm()) {
       if (cursor.trip === trip) {
@@ -620,7 +637,6 @@ function plan(to: () => XY | null, k: number) {
     }
     // Both handles a third of the way along, turned the same way off the
     // line: the path swings out a little and comes in straight.
-    const a: XY = [a0[0], a0[1] - scrollY];
     const dx = e[0] - a[0];
     const dy = e[1] - a[1];
     const h1 = [a[0] + dx * along + dy * across, a[1] + dy * along - dx * across];
