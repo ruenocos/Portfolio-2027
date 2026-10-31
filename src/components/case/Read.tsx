@@ -1,5 +1,6 @@
 "use client";
 
+import { scroll } from "motion";
 import { useEffect, useRef, useState } from "react";
 import { Pin } from "@/components/canvas/Pin";
 import { MockTag } from "@/components/parts/Pills";
@@ -67,31 +68,45 @@ export function Read({ sections }: { sections: CaseSection[] }) {
       tileFor: (i) => root.current?.querySelector<HTMLElement>(`[data-vi="${i}"]`) ?? null,
     });
 
-  // Which section you're in, and how far through the read.
+  // Which section you're in, and how far through the read. Positions are
+  // measured when the read changes size, and each scroll frame only does
+  // sums on the scroll value motion has already read: measuring every
+  // section per frame forced a style pass in the middle of each one.
   useEffect(() => {
     const read = root.current!;
     const arts = [...read.querySelectorAll<HTMLElement>(".sc")];
-    let raf = 0;
-    const tick = () => {
-      raf = 0;
+    let tops: number[] = [];
+    let readTop = 0;
+    let readH = 1;
+    const measure = () => {
+      const y = scrollY;
+      tops = arts.map((s) => s.getBoundingClientRect().top + y);
+      const r = read.getBoundingClientRect();
+      readTop = r.top + y;
+      readH = r.height || 1;
+    };
+    const at = (y: number) => {
       const vh = innerHeight;
       let a = -1;
-      arts.forEach((s, i) => {
-        if (s.getBoundingClientRect().top < vh * LINE) a = i;
+      tops.forEach((t, i) => {
+        if (t - y < vh * LINE) a = i;
       });
-      const r = read.getBoundingClientRect();
+      const top = readTop - y;
       setCur(a);
-      setInside(r.top < vh && r.bottom > vh * 0.5);
-      setPct(Math.max(0, Math.min(100, Math.round(((vh * LINE - r.top) / r.height) * 100))));
+      setInside(top < vh && top + readH > vh * 0.5);
+      setPct(Math.max(0, Math.min(100, Math.round(((vh * LINE - top) / readH) * 100))));
     };
-    const on = () => (raf ||= requestAnimationFrame(tick));
-    tick();
-    addEventListener("scroll", on, { passive: true });
-    addEventListener("resize", on);
+    measure();
+    at(scrollY);
+    const resized = new ResizeObserver(() => {
+      measure();
+      at(scrollY);
+    });
+    resized.observe(read);
+    const stop = scroll((_p: number, info: { y: { current: number } }) => at(info.y.current));
     return () => {
-      removeEventListener("scroll", on);
-      removeEventListener("resize", on);
-      cancelAnimationFrame(raf);
+      stop();
+      resized.disconnect();
     };
   }, []);
 

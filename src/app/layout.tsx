@@ -3,6 +3,7 @@ import { Bricolage_Grotesque, Geist_Mono, Instrument_Serif } from "next/font/goo
 import { KeepHtml } from "@/components/KeepHtml";
 import { ModeProvider } from "@/components/ModeProvider";
 import { snapshotScript } from "@/lib/html";
+import { routeScript } from "@/lib/page";
 import { bootScript, motionScript } from "@/lib/motion";
 import { CANVAS, modeScript, themeColorScript } from "@/lib/mode";
 import { SITE_URL, mocksScript } from "@/lib/site";
@@ -37,7 +38,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         {/* Sets the mode and the motion state before the first paint,
             so dark never flashes light and a paused visit never moves. */}
         <meta name="theme-color" content={CANVAS.light} />
-        <script dangerouslySetInnerHTML={{ __html: [modeScript, themeColorScript, bootScript, motionScript, mocksScript, snapshotScript].join(";") }} />
+        <script dangerouslySetInnerHTML={{ __html: [modeScript, themeColorScript, bootScript, motionScript, mocksScript, routeScript, snapshotScript].join(";") }} />
       </head>
       <body>
         <KeepHtml />

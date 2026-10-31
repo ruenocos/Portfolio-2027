@@ -75,7 +75,7 @@ export function About({ about: c }: { about: HomeContent["about"] }) {
           {c.photos.map((p, i) => (
             <span key={p.src} className="dk" data-p={order.indexOf(i)} data-out={out === i ? "" : undefined}>
               {/* eslint-disable-next-line @next/next/no-img-element -- Sanity's CDN sizes these */}
-              <img src={p.src} srcSet={srcSet(p.src)} sizes={SIZES.deck} alt="" draggable={false} loading={i ? "lazy" : undefined} decoding="async" />
+              <img src={p.src} srcSet={srcSet(p.src)} sizes={SIZES.deck} alt="" draggable={false} loading="lazy" decoding="async" />
             </span>
           ))}
           <span className="cnt text-label" aria-hidden="true">

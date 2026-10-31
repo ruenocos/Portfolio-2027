@@ -27,10 +27,24 @@ export function resized(src: string, w: number): string | undefined {
   return undefined;
 }
 
+/** How many pixels wide a Sanity picture really is (its file name says,
+ *  or the crop's rect), so no copy asks for more than are there. */
+function sourceWidth(src: string): number {
+  if (!src.startsWith("https://cdn.sanity.io/")) return Infinity;
+  const u = new URL(src);
+  const rect = u.searchParams.get("rect")?.split(",");
+  if (rect?.length === 4) return Number(rect[2]) || Infinity;
+  return Number(u.pathname.match(/-(\d+)x\d+\.\w+$/)?.[1]) || Infinity;
+}
+
 /** A srcset for a picture, or undefined when nothing can resize it. */
 export function srcSet(src: string | undefined): string | undefined {
   if (!src) return undefined;
-  const set = WIDTHS.map((w) => [resized(src, w), w] as const).filter(([u]) => u);
+  const max = sourceWidth(src);
+  // The widths it has, plus the full width when it falls between two.
+  const widths = WIDTHS.filter((w) => w < max);
+  if (max !== Infinity) widths.push(max);
+  const set = widths.map((w) => [resized(src, w), w] as const).filter(([u]) => u);
   return set.length ? set.map(([u, w]) => `${u} ${w}w`).join(", ") : undefined;
 }
 

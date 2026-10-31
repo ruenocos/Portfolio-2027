@@ -539,7 +539,7 @@
     .hd > div {
       transition: height 220ms var(--ease-ui);
     }
-    :root:has(.hd[data-past="true"]) {
+    :root[data-past="true"] {
       --spacing-header: 64px;
     }
     .hd .home {
@@ -787,9 +787,14 @@
 
 /* ---------- motion states ---------- */
 
-/* Before the house entrance picks the first screen up (set in <head>). */
-html.entering main [data-row] > .cell {
-  opacity: 0;
+/* Before the house entrance picks the first screen up (set in <head>).
+   The content inside each tile, exactly what lib/entrance moves: hiding a
+   tile itself shows the hairline colour through it (a beige slab), and
+   rows whose tiles sit one level down (case opening, Work's list, About)
+   would paint in full first. 0.01, not 0: the browser counts the first
+   paint as the largest one instead of waiting for the fade to finish. */
+html.entering main [data-row] .cell > * {
+  opacity: 0.01;
 }
 
 /* Paused or reduced: things land at once. Colour still cross-fades, but

@@ -54,7 +54,7 @@ function postEl(post: Post) {
     Object.assign(video, { muted: true, loop: true, playsInline: true, preload: "none" });
     // Fetched the first time the tile comes on screen (the board repeats
     // tiles, so loading them all up front pulled the same files many times).
-    video.dataset.src = pickVideo(post.video, post.videoAv1);
+    video.dataset.src = post.tile ? pickVideo(post.tile, post.tileAv1) : pickVideo(post.video, post.videoAv1);
     if (post.src) video.poster = post.src;
     video.setAttribute("aria-hidden", "true");
     video.addEventListener("loadeddata", () => video.classList.add("ok"));

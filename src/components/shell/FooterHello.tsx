@@ -7,6 +7,7 @@ import { SectionLabel } from "@/components/parts/SectionLabel";
 import { getMotion } from "@/lib/motion";
 import { finePointer, headerHeight, narrow } from "@/lib/media";
 import { isBusy, live, wait, wessel, type XY } from "@/lib/wessel";
+import { onPage } from "@/lib/page";
 
 // The footer's hello: the email across the full width, its letters leaning
 // up and turning grape toward a pointer (yours, or Wessel's). Once per page
@@ -311,7 +312,7 @@ function Hello({ email }: { email: string }) {
         live(g);
       }
       // One mover at a time: stickers still landing above (About) go first.
-      for (let i = 0; i < 12 && document.querySelector("main [data-landing]"); i++) {
+      for (let i = 0; i < 12 && onPage("main [data-landing]"); i++) {
         await wait(100);
         live(g);
       }

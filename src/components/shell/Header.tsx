@@ -11,6 +11,7 @@ import { PauseButton } from "./PauseButton";
 import { useMotion } from "@/components/useMotion";
 import { Smiley } from "./Smiley";
 import { STACK_PX } from "@/lib/media";
+import { onPage, routeOf } from "@/lib/page";
 
 // The sticky header. The "Wessel" wordmark slides in once a page's hero
 // ([data-hero]) has scrolled away; pages without a hero show it at once.
@@ -31,14 +32,30 @@ export function Header() {
   const panel = useRef<HTMLElement>(null);
 
   useEffect(() => {
-    const hero = document.querySelector("[data-hero]");
+    document.documentElement.dataset.route = routeOf(pathname);
+    const hero = onPage("[data-hero]");
     if (!hero) return;
-    const io = new IntersectionObserver(([e]) => setHeroIn(e.isIntersecting), {
+    // A report already queued when you leave still arrives after disconnect():
+    // it's about the last page's hero, so it's dropped.
+    let live = true;
+    const io = new IntersectionObserver(([e]) => live && setHeroIn(e.isIntersecting), {
       rootMargin: "-90px 0px 0px 0px",
     });
     io.observe(hero);
-    return () => io.disconnect();
+    return () => {
+      live = false;
+      io.disconnect();
+    };
   }, [pathname]);
+
+  // On <html>, so the phone bar's height token can follow it without a
+  // :has() on the root, which restyles the whole page whenever it's checked.
+  // Only home has a hero: elsewhere the bar is always past it, whatever a
+  // late report about home's (now hidden) hero says.
+  const past = pathname !== "/" || !heroIn;
+  useEffect(() => {
+    document.documentElement.dataset.past = String(past);
+  }, [past]);
 
   // The phone menu: locks page scroll, moves focus in and back,
   // closes on Esc, a link, the empty canvas or a resize past 900.
@@ -66,7 +83,10 @@ export function Header() {
       e.preventDefault();
       const i = items.indexOf(document.activeElement as HTMLElement);
       const n = items.length;
-      items[i < 0 ? 0 : (i + (e.shiftKey ? n - 1 : 1)) % n].focus({ preventScroll: true });
+      const to = items[i < 0 ? 0 : (i + (e.shiftKey ? n - 1 : 1)) % n];
+      to.focus({ preventScroll: true });
+      // A short window (or 200% zoom) scrolls the panel: keep focus in sight.
+      if (panel.current!.contains(to)) to.scrollIntoView({ block: "nearest" });
     };
     const wide = matchMedia(`(width >= ${STACK_PX}px)`);
     const resize = () => wide.matches && setOpen(false);
@@ -103,7 +123,7 @@ export function Header() {
 
   return (
     <>
-      <header className="hd frame" data-past={!heroIn}>
+      <header className="hd frame" data-past={past}>
         <div className="side" />
         <div className="bar">
           <Link href="/" className="home" aria-label="Wessel Oud, home" onClick={homeClick}>
@@ -154,6 +174,8 @@ export function Header() {
       <nav
         ref={panel}
         id="mnav"
+        // Stopped Lenis eats every wheel unless told: the panel scrolls itself.
+        data-lenis-prevent
         className="mnav"
         aria-label="Menu"
         data-open={open}

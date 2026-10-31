@@ -80,7 +80,8 @@ export function announce(text: string) {
  *  lib/intro/iris). Decided before the first paint, so the tangerine sheet
  *  (CSS, until the intro takes over) is the very first thing you see. Only
  *  on a fresh, visible, top-of-page load of "/", never paused, reduced,
- *  saveData, a deep link or a back/forward restore. If the intro never takes
+ *  saveData, a deep link or a back/forward restore. A key, click or tap
+ *  before the JS is there marks it "skip": no intro. If the intro never takes
  *  over (no JS, a render error) the flag clears itself at intro.watchdogS. Runs before
  *  motionScript, which then skips the house entrance. */
 export const BOOT_KEY = "wsl-boot";
@@ -94,7 +95,7 @@ export function markHelloSeen() {
     sessionStorage.setItem(HELLO_KEY, "1");
   } catch {}
 }
-export const bootScript = `try{var h=document.documentElement,n=performance.getEntriesByType("navigation")[0],c=navigator.connection;if(location.pathname==="/"&&!location.hash&&!sessionStorage.getItem("${BOOT_KEY}")&&localStorage.getItem("${PAUSE_KEY}")!=="1"&&!matchMedia("(prefers-reduced-motion: reduce)").matches&&!(c&&c.saveData)&&!(n&&n.type==="back_forward")&&document.visibilityState!=="hidden"){h.dataset.boot="pending";setTimeout(function(){if(h.dataset.boot==="pending")delete h.dataset.boot},${motionTokens.intro.watchdogS * 1000})}}catch(e){}`;
+export const bootScript = `try{var h=document.documentElement,n=performance.getEntriesByType("navigation")[0],c=navigator.connection;if(location.pathname==="/"&&!location.hash&&!sessionStorage.getItem("${BOOT_KEY}")&&localStorage.getItem("${PAUSE_KEY}")!=="1"&&!matchMedia("(prefers-reduced-motion: reduce)").matches&&!(c&&c.saveData)&&!(n&&n.type==="back_forward")&&document.visibilityState!=="hidden"){h.dataset.boot="pending";setTimeout(function(){if(h.dataset.boot==="pending")delete h.dataset.boot},${motionTokens.intro.watchdogS * 1000});var e=["keydown","pointerdown","touchstart","wheel"],s=function(){if(h.dataset.boot==="pending")h.dataset.boot="skip";e.forEach(function(t){removeEventListener(t,s,true)})};e.forEach(function(t){addEventListener(t,s,{capture:true,passive:true})})}}catch(e){}`;
 // Runs in <head> before the first paint, next to the mode script.
 // "entering" hides the first screen until the house entrance picks it up
 // (the inline script after the page, lib/entrance);

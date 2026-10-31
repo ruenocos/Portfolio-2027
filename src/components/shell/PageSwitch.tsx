@@ -4,6 +4,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef } from "react";
 import { getMotion } from "@/lib/motion";
 import { getLenis } from "@/lib/scroll";
+import { onPage } from "@/lib/page";
 import { holdWessel } from "@/lib/wessel";
 import motionTokens from "../../../design/motion-tokens.json";
 import { cssBezier } from "@/lib/math";
@@ -25,8 +26,24 @@ function target(e: MouseEvent): URL | null {
   return url;
 }
 
-type Leaving = { veil?: HTMLElement; hash: string; timer: number };
+type Leaving = { veil?: HTMLElement; hash: string; timer: number; slow?: boolean };
 let out: Leaving | null = null;
+
+const lift = (veil: HTMLElement) =>
+  veil
+    .animate([{ opacity: 1 }, { opacity: 0 }], { duration: IN, easing: ease, fill: "forwards" })
+    .finished.then(() => veil.remove(), () => veil.remove());
+
+// The new page is slow to come: uncover the page you're on so it can be
+// read and scrolled meanwhile. The change still lands (arrive) when it
+// commits, and another click may go somewhere else instead.
+function wait() {
+  if (!out) return;
+  out.slow = true;
+  getLenis()?.start();
+  if (out.veil) lift(out.veil);
+  out.veil = undefined;
+}
 
 // The new page has committed: jump to the top (or the link's anchor) while
 // covered, then lift the veil while the new rows rise in.
@@ -36,16 +53,12 @@ function arrive() {
   out = null;
   clearTimeout(leaving.timer);
   const lenis = getLenis();
-  const spot = leaving.hash && document.getElementById(decodeURIComponent(leaving.hash.slice(1)));
+  const spot = leaving.hash && onPage(`#${CSS.escape(decodeURIComponent(leaving.hash.slice(1)))}`);
   if (spot) spot.scrollIntoView();
   else if (lenis) lenis.scrollTo(0, { immediate: true, force: true });
   else scrollTo(0, 0);
   lenis?.start();
-  const veil = leaving.veil;
-  if (veil)
-    veil
-      .animate([{ opacity: 1 }, { opacity: 0 }], { duration: IN, easing: ease, fill: "forwards" })
-      .finished.then(() => veil.remove(), () => veil.remove());
+  if (leaving.veil) lift(leaving.veil);
 }
 
 // The page change: plays the way out, then routes. When the new page has
@@ -60,14 +73,15 @@ export function PageSwitch() {
       const url = target(e);
       if (!url) return;
       e.preventDefault();
-      if (out) return;
+      if (out && !out.slow) return;
+      if (out) clearTimeout(out.timer);
       holdWessel();
       const go = () => router.push(url.pathname + url.search + url.hash, { scroll: false });
       const leaving: Leaving = { hash: url.hash, timer: 0 };
       out = leaving;
       // Calm: no veil, but the new page still opens at its top (arrive).
       if (getMotion().calm) {
-        leaving.timer = window.setTimeout(arrive, 4000);
+        leaving.timer = window.setTimeout(wait, 4000);
         return go();
       }
 
@@ -82,15 +96,15 @@ export function PageSwitch() {
       // Case to case, the case bar holds still: the veil starts under it
       // while it sits at the top of the screen.
       const bar = /^\/work\/[^/]+$/.test(location.pathname) && /^\/work\/[^/]+$/.test(url.pathname)
-        ? document.querySelector("main .crumb")?.getBoundingClientRect()
+        ? onPage("main .crumb")?.getBoundingClientRect()
         : null;
       // It starts under the bar's bottom hairline too, so the line stays.
       if (bar && bar.top >= 0 && bar.top < 120) veil.style.top = `calc(${bar.bottom}px + var(--spacing-hairline))`;
       document.body.append(veil);
       leaving.veil = veil;
       veil.animate([{ opacity: 0 }, { opacity: 1 }], { duration: OUT, easing: ease, fill: "forwards" });
-      // If the route never commits, don't leave the page covered.
-      leaving.timer = window.setTimeout(arrive, 4000);
+      // If the route is slow or never commits, don't leave the page covered.
+      leaving.timer = window.setTimeout(wait, 4000);
       setTimeout(go, OUT);
     };
     document.addEventListener("click", onClick, true);

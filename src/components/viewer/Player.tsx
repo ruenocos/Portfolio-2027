@@ -57,6 +57,9 @@ export function Player({
   const track = useRef<HTMLDivElement>(null);
   const wrap = useRef<HTMLDivElement>(null);
   const [playing, setPlaying] = useState(false);
+  // A file that won't load: the poster stays and says so, instead of
+  // controls that look ready and read 0:00 / 0:00.
+  const [failed, setFailed] = useState(false);
   const [time, setTime] = useState(0);
   const [dur, setDur] = useState(0);
   const [muted, setMuted] = useState(!sound);
@@ -153,7 +156,13 @@ export function Player({
   const p = dur ? time / dur : 0;
 
   return (
-    <div ref={wrap} className="plyr" data-idle={(idle && playing) || undefined} data-playing={playing || undefined}>
+    <div
+      ref={wrap}
+      className="plyr"
+      data-idle={(idle && playing) || undefined}
+      data-playing={playing || undefined}
+      data-failed={failed || undefined}
+    >
       <video
         ref={video}
         src={src}
@@ -168,7 +177,13 @@ export function Player({
         onPause={() => setPlaying(false)}
         onLoadedMetadata={(e) => setDur(e.currentTarget.duration)}
         onTimeUpdate={(e) => !playing && setTime(e.currentTarget.currentTime)}
+        onError={() => setFailed(true)}
       />
+      {failed && (
+        <p className="pfail text-micro" role="status">
+          This video didn&rsquo;t load. Try again in a bit.
+        </p>
+      )}
       <div className="pbar" onPointerDown={(e) => e.stopPropagation()}>
         <button type="button" className="pbtn" aria-label={playing ? "Pause" : "Play"} onClick={toggle} data-on={playing || undefined}>
           <Icon name={playing ? "pause" : "play"} />

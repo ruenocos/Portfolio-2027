@@ -76,7 +76,9 @@ function houseEntrance(c: EntranceConfig, hold = false) {
   steps.slice(0, 12).forEach(({ blocks, gap }, i) => {
     if (i > 0 && i <= c.maxSteps) d += gap;
     for (const el of blocks) {
-      el.animate([{ opacity: 0 }, { opacity: 1 }], { duration: c.fade.ms, delay: d, easing: c.fade.ease, fill: "backwards" });
+      // From 0.01, like the CSS that held it: looks the same, and the
+      // browser takes the first paint as the largest one.
+      el.animate([{ opacity: 0.01 }, { opacity: 1 }], { duration: c.fade.ms, delay: d, easing: c.fade.ease, fill: "backwards" });
       el.animate([{ translate: `0 ${c.rise.distance}` }, { translate: "0 0" }], {
         duration: c.rise.ms,
         delay: d,

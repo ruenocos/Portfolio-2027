@@ -94,6 +94,8 @@ export default async function CasePage({ params }: PageProps<"/work/[slug]">) {
                 poster={c.hero.poster}
                 video={c.hero.video}
                 videoAv1={c.hero.videoAv1}
+                videoSmall={c.hero.videoSmall}
+                videoSmallAv1={c.hero.videoSmallAv1}
                 alt={c.hero.alt}
                 rate={1}
               />

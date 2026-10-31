@@ -47,7 +47,8 @@ export const WORK_QUERY = defineQuery(`*[_type == "project" && ${hasCase}] | ord
 
 export const CASE_QUERY = defineQuery(`*[_type == "project" && slug.current == $slug][0]{
   title, lang, lead, intro, role, scope, timeline,
-  "hero": { "video": hero.video.asset->url, "videoAv1": ${copy("hero.video", "av1")}, "poster": hero.poster${pic}, "alt": hero.alt, "caption": hero.caption },
+  "hero": { "video": hero.video.asset->url, "videoAv1": ${copy("hero.video", "av1")},
+    "videoSmall": ${copy("hero.video", "small")}, "videoSmallAv1": ${copy("hero.video", "smallAv1")}, "poster": hero.poster${pic}, "alt": hero.alt, "caption": hero.caption },
   "sections": sections[]{ _key, name, heading, body, note,
     "figure": figure{ "src": asset->url, alt, caption, "width": asset->metadata.dimensions.width, "height": asset->metadata.dimensions.height },
     "media": media[]{ _key, _type, layout,
@@ -68,5 +69,6 @@ export const ABOUT_QUERY = defineQuery(`*[_type == "about" && _id == "about"][0]
 
 export const PLAYGROUND_QUERY = defineQuery(`*[_type == "playgroundPiece" && defined(image.asset)] | order(orderRank){
   title, "src": image.asset->url, "video": video.asset->url, "videoAv1": ${copy("video", "av1")},
+  "tile": ${copy("video", "small")}, "tileAv1": ${copy("video", "smallAv1")},
   "w": image.asset->metadata.dimensions.width, "h": image.asset->metadata.dimensions.height
 }`);
