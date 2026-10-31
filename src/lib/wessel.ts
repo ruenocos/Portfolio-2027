@@ -747,7 +747,11 @@ function watchEdge(el: HTMLElement, edge: HTMLElement) {
       edge.dataset.side = r.top < header() ? "up" : "down";
       // Phones: the arrow alone, in the side gutter nearest him (the copy
       // runs edge to edge, a tag would sit on it).
-      edge.style.left = narrow() ? `${r.left < innerWidth / 2 ? 2 : innerWidth - 20}px` : `${clamp(r.left, 12, innerWidth - 120)}px`;
+      // Desktop: at his x, kept inside the content column (not the dotted margin).
+      const side = parseFloat(getComputedStyle(edge).getPropertyValue("--spacing-side")) || 16;
+      edge.style.left = narrow()
+        ? `${r.left < innerWidth / 2 ? 2 : innerWidth - 20}px`
+        : `${clamp(r.left, side, innerWidth - side - edge.offsetWidth)}px`;
     }
     if (edge.dataset.on !== String(away)) edge.dataset.on = String(away);
   };
@@ -796,6 +800,25 @@ export function attachWessel(el: HTMLElement, edge?: HTMLElement | null) {
     if (cursor.drive || cursor.hold || !cursor.parked || cursor.distance >= 0.5 || cursor.speed >= 4) wake();
   };
   addEventListener("scroll", wakeOnScroll, { passive: true });
+  // Left far behind (a long scroll with no job on the way) and the page has
+  // come to rest: he rejoins you once, a trip in from the edge he went out
+  // by, and parks pinned again where he lands. Never while you scroll.
+  let rejoinSoon = 0;
+  const rejoin = () => {
+    const H = screenHeight();
+    if (calm() || cursor.drive || cursor.hold || !cursor.shown || el.dataset.hide === "true") return;
+    if (cursor.y > -H && cursor.y < 2 * H) return;
+    cursor.anchor = null;
+    const trip = wessel.go(() => home(), { timeout: 1600 });
+    const drive = cursor.drive;
+    // A job that starts on the way takes over; otherwise he parks on arrival.
+    trip.then(() => cursor.drive === drive && wessel.free());
+  };
+  const rejoinLater = () => {
+    clearTimeout(rejoinSoon);
+    rejoinSoon = window.setTimeout(rejoin, wesselMotion.park.rejoinMs);
+  };
+  addEventListener("scroll", rejoinLater, { passive: true });
   const unwatch = edge ? watchEdge(el, edge) : () => {};
   // A font swap can change his tag's width.
   document.fonts?.ready.then(() => (measureLabel(), wake()));
@@ -821,6 +844,8 @@ export function attachWessel(el: HTMLElement, edge?: HTMLElement | null) {
     offWake();
     removeEventListener("resize", wakeOnResize);
     removeEventListener("scroll", wakeOnScroll);
+    removeEventListener("scroll", rejoinLater);
+    clearTimeout(rejoinSoon);
     unwatch();
     cancelAnimationFrame(raf);
     raf = 0;
