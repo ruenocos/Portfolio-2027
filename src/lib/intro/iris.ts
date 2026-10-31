@@ -165,9 +165,11 @@ export function playIntro(): Promise<void> {
     stop = finish;
     if (!root.dataset.boot) return resolve();
     // Pause or reduced motion switched on since the first paint, too late
-    // (JS arrived after the CSS failsafe cleared the sheet), or a background
-    // tab, or already scrolled (a restored scroll): the finished page, no intro.
-    if (getMotion().calm || performance.now() > I.failsafeS * 1000 || document.hidden || scrollY > 0) return finish();
+    // (JS arrived after the CSS failsafe cleared the sheet), a key, click or
+    // tap before the JS was there to catch it ("skip", from the head
+    // script), or a background tab, or already scrolled (a restored
+    // scroll): the finished page, no intro.
+    if (root.dataset.boot === "skip" || getMotion().calm || performance.now() > I.failsafeS * 1000 || document.hidden || scrollY > 0) return finish();
     // JS came late: the sheet has been up a while already, so no ready gate.
     const late = performance.now() > I.gate.lateS * 1000;
 

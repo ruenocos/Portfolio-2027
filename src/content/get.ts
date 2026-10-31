@@ -223,6 +223,8 @@ function toCase(slug: string, d: CaseDoc): Case {
       ? {
           video: d.hero.video ?? undefined,
           videoAv1: d.hero.videoAv1 ?? undefined,
+          videoSmall: d.hero.videoSmall ?? undefined,
+          videoSmallAv1: d.hero.videoSmallAv1 ?? undefined,
           poster,
           alt: d.hero.alt ?? "",
           caption: d.hero.caption ?? "",
@@ -328,6 +330,8 @@ export async function getPosts(o: FetchOptions = published): Promise<Post[]> {
         src: img(r.src, 640),
         video: r.video ?? undefined,
         videoAv1: r.videoAv1 ?? undefined,
+        tile: r.tile ?? undefined,
+        tileAv1: r.tileAv1 ?? undefined,
         ar: r.w && r.h ? r.w / r.h : 1,
       }));
       // Until there are enough, previews top the board up with the prompt

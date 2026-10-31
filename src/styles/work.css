@@ -232,7 +232,7 @@
 /* Phones: no room for him beside the rows, so on Work and the case he
    stays off the page (as in the prototype) instead of sitting on copy. */
 @media (width < 900px) {
-  body:has(main .whero, main .rd, main .copen) .cur.wes {
+  html[data-route="work"] .cur.wes {
     display: none;
   }
 }

@@ -6,6 +6,9 @@ export type Post = {
   video?: string;
   /** The loop's AV1 copy, for browsers that play it. */
   videoAv1?: string;
+  /** A copy at tile size, for the board; the open view plays the full one. */
+  tile?: string;
+  tileAv1?: string;
   /** Width / height. */
   ar: number;
   /** Placeholder (no real experiment yet): a tinted card with a mock tag. */

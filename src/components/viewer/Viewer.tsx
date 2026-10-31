@@ -1,16 +1,22 @@
 "use client";
 
+import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import motionTokens from "../../../design/motion-tokens.json";
 import { Arrow } from "@/components/parts/Arrow";
 import { narrow } from "@/lib/media";
 import { getMotion } from "@/lib/motion";
+import { getLenis } from "@/lib/scroll";
 import { onViewer, type ViewerRequest } from "@/lib/viewer";
 import { Player } from "./Player";
 
 // Room the media leaves for the chrome: Close on top, the counter
 // under it, the step buttons at the sides (phones swipe instead).
 const ROOM = { top: 72, bottom: 88, side: 88, sidePhone: 16 };
+// A phone on its side has ~390px of height: the chrome floats over the
+// picture's corners instead, or the picture gets under half the screen.
+const SHORT_PX = 500;
+const ROOM_SHORT = 12;
 // How long the frame takes to drop back into its tile (viewer.css).
 const CLOSE_MS = motionTokens.easing["viewer-close"].ms;
 
@@ -20,12 +26,14 @@ type Box = { x: number; y: number; w: number; h: number };
 function fit(w: number, h: number): Box {
   const phone = narrow();
   const side = phone ? ROOM.sidePhone : ROOM.side;
+  const short = innerHeight < SHORT_PX;
+  const top = short ? ROOM_SHORT : ROOM.top;
   const W = innerWidth - side * 2;
-  const H = innerHeight - ROOM.top - ROOM.bottom;
+  const H = innerHeight - top - (short ? ROOM_SHORT : ROOM.bottom);
   const s = Math.min(W / w, H / h);
   const bw = Math.round(w * s);
   const bh = Math.round(h * s);
-  return { x: Math.round((innerWidth - bw) / 2), y: Math.round(ROOM.top + (H - bh) / 2), w: bw, h: bh };
+  return { x: Math.round((innerWidth - bw) / 2), y: Math.round(top + (H - bh) / 2), w: bw, h: bh };
 }
 
 /**
@@ -46,6 +54,7 @@ export function Viewer() {
   // first frame of the flight, under the full picture or the video.
   const [fromSrc, setFromSrc] = useState<string | null>(null);
   const closing = useRef(false);
+  const pathname = usePathname();
 
   const item = req?.items[index];
   const many = (req?.items.length ?? 0) > 1;
@@ -92,6 +101,11 @@ export function Viewer() {
     delete d.dataset.closing;
     d.showModal();
     document.documentElement.classList.add("viewer-open");
+    // The page under the wash holds still, so closing lands back on the tile.
+    getLenis()?.stop();
+    // Its own history entry: Back (a phone's back gesture above all) closes
+    // the picture instead of leaving the page behind it.
+    history.pushState({ viewer: true }, "");
     if (getMotion().calm) {
       requestAnimationFrame(() => setOn(true));
       return;
@@ -111,6 +125,9 @@ export function Viewer() {
     const f = frame.current;
     if (!d?.open || !req || closing.current) return;
     closing.current = true;
+    // Closed by Close, Esc or the wash: drop the entry it pushed, so Back
+    // after that leaves the page as expected.
+    if (history.state?.viewer) history.back();
     d.dataset.closing = "";
     setZoom(null);
     setOn(false);
@@ -122,6 +139,7 @@ export function Viewer() {
         d.close();
         if (f) f.style.transform = "";
         document.documentElement.classList.remove("viewer-open");
+        getLenis()?.start();
         tile?.focus({ preventScroll: true });
         req.onClose?.();
         setReq(null);
@@ -129,6 +147,20 @@ export function Viewer() {
       calm ? 0 : CLOSE_MS,
     );
   }, [req, index, box]);
+
+  // Back closes it; so does any page change that gets past it.
+  useEffect(() => {
+    if (!req) return;
+    const back = () => !history.state?.viewer && close();
+    addEventListener("popstate", back);
+    return () => removeEventListener("popstate", back);
+  }, [req, close]);
+  const shown = useRef(pathname);
+  useEffect(() => {
+    if (shown.current === pathname) return;
+    shown.current = pathname;
+    close();
+  }, [pathname, close]);
 
   const step = useCallback(
     (d: number) => {
@@ -242,7 +274,11 @@ export function Viewer() {
             )}
           </div>
           {many && (
-            <p className="vcount text-micro" aria-live="polite" style={{ left: box.x, top: box.y + box.h + 12, width: box.w }}>
+            <p
+              className="vcount text-micro"
+              aria-live="polite"
+              style={innerHeight < SHORT_PX ? undefined : { left: box.x, top: box.y + box.h + 12, width: box.w }}
+            >
               {index + 1} / {req.items.length}
             </p>
           )}

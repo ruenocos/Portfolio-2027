@@ -27,10 +27,14 @@ type TypedFetch = <const Q extends string>(
   options: FetchOptions & { query: Q; params?: QueryParams },
 ) => Promise<{ data: ClientReturn<Q, unknown> }>;
 
+/** On every cached Sanity read, so a publish can refresh them all at once
+ *  (app/api/revalidate, called by Sanity's webhook). */
+export const SANITY_TAG = "sanity";
+
 // The one shared cache boundary for Sanity content.
 export const cachedSanity = (async (options) => {
   "use cache";
-  return sanityFetch(options);
+  return sanityFetch({ ...options, tags: [SANITY_TAG] });
 }) as StrictDefinedFetchType as TypedFetch;
 
 export interface FetchOptions {

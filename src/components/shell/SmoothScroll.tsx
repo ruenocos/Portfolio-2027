@@ -2,11 +2,12 @@
 
 import Lenis from "lenis";
 import { usePathname } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { setLenis, getLenis } from "@/lib/scroll";
 import { useMotion } from "@/components/useMotion";
 import motionTokens from "../../../design/motion-tokens.json";
 import { finePointer } from "@/lib/media";
+import { isCalm } from "@/lib/motion";
 
 const { lerp, wheelMultiplier } = motionTokens.scroll.lenis;
 
@@ -16,8 +17,9 @@ export function SmoothScroll() {
   const pathname = usePathname();
 
   useEffect(() => {
-    if (calm || !finePointer())
-      return;
+    // isCalm too: while hydrating, useMotion still gives the server's answer
+    // (full motion), and a Lenis made for that one render resets the scroll.
+    if (calm || isCalm() || !finePointer()) return;
     const lenis = new Lenis({
       lerp,
       wheelMultiplier,
@@ -49,10 +51,14 @@ export function SmoothScroll() {
     };
   }, [calm]);
 
-  // A new page starts at the top, without gliding there.
+  // A new page starts at the top, without gliding there. Not the page you
+  // loaded: a refresh (or a reload from Back) keeps the place the browser
+  // restored.
+  const shown = useRef(pathname);
   useEffect(() => {
-    if (!location.hash)
-      getLenis()?.scrollTo(0, { immediate: true, force: true });
+    if (shown.current === pathname) return;
+    shown.current = pathname;
+    if (!location.hash) getLenis()?.scrollTo(0, { immediate: true, force: true });
   }, [pathname]);
 
   return null;

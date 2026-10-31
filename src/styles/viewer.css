@@ -2,6 +2,13 @@
    of the tile you pressed, the player bar, and the chrome around it. */
 
 @layer components {
+  /* The page under the wash holds still (touch scroll included, which
+     Lenis doesn't handle); the gutter stays so nothing shifts sideways. */
+  html.viewer-open {
+    overflow: hidden;
+    overscroll-behavior: none;
+    scrollbar-gutter: stable;
+  }
   .vwr {
     position: fixed;
     inset: 0;
@@ -136,6 +143,22 @@
     transition:
       opacity var(--dur-ui) var(--ease-ui),
       translate var(--dur-spring) var(--ease-spring);
+  }
+  .plyr[data-failed] .pbar {
+    display: none;
+  }
+  .pfail {
+    position: absolute;
+    left: 50%;
+    bottom: 16px;
+    translate: -50% 0;
+    margin: 0;
+    padding: 8px 14px;
+    border-radius: var(--radius-pill);
+    background: var(--canvas);
+    border: 1px solid var(--line);
+    box-shadow: var(--shadow-outline);
+    white-space: nowrap;
   }
   .plyr[data-idle] .pbar {
     opacity: 0;
@@ -296,6 +319,15 @@
     position: absolute;
     top: 14px;
     right: var(--spacing-inset);
+  }
+
+  /* A phone on its side: the counter floats top left, opposite Close. */
+  @media (height < 500px) {
+    .vcount {
+      top: 14px;
+      left: var(--spacing-inset);
+      text-align: left;
+    }
   }
 
   @media (width < 900px) {

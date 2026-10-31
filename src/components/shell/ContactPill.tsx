@@ -1,8 +1,10 @@
 "use client";
 
 import { Arrow } from "@/components/parts/Arrow";
+import { scroll } from "motion";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
+import { onPage } from "@/lib/page";
 
 // How far the page has to move before a change of direction counts.
 const REVERSE_PX = 24;
@@ -35,19 +37,12 @@ export function ContactPill() {
     let reading = false;
     let lastY = scrollY;
     const sync = () => setOn(!heroIn && !endIn && !reading);
-    const direction = () => {
-      const dy = scrollY - lastY;
-      if (Math.abs(dy) < REVERSE_PX) return;
-      lastY = scrollY;
-      if (reading !== dy > 0) {
-        reading = dy > 0;
-        sync();
-      }
-    };
-    addEventListener("scroll", direction, { passive: true });
-    const hero = document.querySelector("[data-hero]");
-    const end = document.getElementById("contact");
+    const hero = onPage("[data-hero]");
+    const end = onPage("#contact");
+    let live = true;
     const io = new IntersectionObserver((entries) => {
+      // A report queued before you left still arrives after disconnect().
+      if (!live) return;
       for (const e of entries) {
         if (e.target === end) endIn = e.isIntersecting;
         else heroIn = e.isIntersecting;
@@ -56,19 +51,24 @@ export function ContactPill() {
     });
     if (hero) io.observe(hero);
     if (end) io.observe(end);
-    // No hero: the pill comes once the first screen has scrolled by.
-    const scroll = () => {
-      heroIn = scrollY < innerHeight * 0.8;
+    // The scroll value motion reads once per frame for everyone: reading
+    // scrollY in a scroll handler forced a style pass mid-frame.
+    const moved = (y: number) => {
+      // No hero: the pill comes once the first screen has scrolled by.
+      if (!hero) heroIn = y < innerHeight * 0.8;
+      const dy = y - lastY;
+      if (Math.abs(dy) >= REVERSE_PX) {
+        lastY = y;
+        reading = dy > 0;
+      }
       sync();
     };
-    if (!hero) {
-      scroll();
-      addEventListener("scroll", scroll, { passive: true });
-    }
+    if (!hero) moved(scrollY);
+    const stop = scroll((_p: number, info: { y: { current: number } }) => moved(info.y.current));
     return () => {
+      live = false;
       io.disconnect();
-      removeEventListener("scroll", scroll);
-      removeEventListener("scroll", direction);
+      stop();
     };
   }, [pathname]);
 

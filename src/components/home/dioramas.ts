@@ -6,7 +6,8 @@
 //   motion  the smiley rides a pen-tool bezier; the pointer scrubs it
 //   ai      one smiley duplicates into a neat set of nine (also the D key)
 // Not React: each scene redraws its SVG from a few springs, only while on
-// screen and only while something is moving. Calm shows end states.
+// screen and only while something is moving (the motion scene moves its
+// smiley instead of redrawing). Calm shows end states.
 
 import { isCalm } from "@/lib/motion";
 import { FEATURES } from "@/lib/smiley";
@@ -184,9 +185,28 @@ const bez = (u: number): Pt => {
     m * m * m * A[1] + 3 * m * m * u * C1[1] + 3 * m * u * u * C2[1] + u * u * u * B[1],
   ];
 };
+// The motion scene's smiley and its shadow are drawn once and then only
+// moved: the projection is affine, so riding the curve is a plain
+// translate. Rewriting the whole SVG every frame of an endless loop cost
+// a quarter of the main thread while you read Focus.
+const MZ = 0.46;
+const TOKEN_HOME = IP(0, 0, 0);
+const MOVING_TOKEN = token(0, 0, 0, 0.75, 0.36);
+
+function motionPose(t: number) {
+  const [x, y] = bez(easeInOutCubic(t));
+  const hop = Math.sin(Math.PI * t) * 1.4;
+  const [px, py] = IP(x, y, MZ);
+  const [tx, ty] = IP(x, y, MZ + hop);
+  return {
+    shadow: `translate(${px.toFixed(1)},${py.toFixed(1)}) scale(${((10 - hop * 2) / 10).toFixed(3)},${((5.6 - hop) / 5.6).toFixed(3)})`,
+    token: `translate(${(tx - TOKEN_HOME[0]).toFixed(1)},${(ty - TOKEN_HOME[1]).toFixed(1)})`,
+  };
+}
+
 function drawMotion({ t }: Scene) {
   let s = plate();
-  const z = 0.46;
+  const z = MZ;
   const path: Pt[] = [];
   for (let i = 0; i <= 40; i++) {
     const [x, y] = bez(i / 40);
@@ -213,11 +233,9 @@ function drawMotion({ t }: Scene) {
     const [x, y] = bez(easeInOutCubic(g));
     s += ghostDisc(x, y, z + Math.sin(Math.PI * g) * 1.4, 0.75, 0.5);
   }
-  const [x, y] = bez(easeInOutCubic(t));
-  const hop = Math.sin(Math.PI * t) * 1.4;
-  const [px, py] = IP(x, y, z);
-  s += `<ellipse cx="${px.toFixed(1)}" cy="${py.toFixed(1)}" rx="${(10 - hop * 2).toFixed(1)}" ry="${(5.6 - hop).toFixed(1)}" fill="var(--ink)" opacity=".08"/>`;
-  s += token(x, y, z + hop, 0.75, 0.36);
+  const pose = motionPose(t);
+  s += `<ellipse data-shadow cx="0" cy="0" rx="10" ry="5.6" fill="var(--ink)" opacity=".08" transform="${pose.shadow}"/>`;
+  s += `<g data-token transform="${pose.token}">${MOVING_TOKEN}</g>`;
   return s;
 }
 
@@ -266,7 +284,23 @@ export function createDio(kind: DioKind, svg: SVGSVGElement): Dio {
     }, ms);
     timers.add(id);
   };
-  const render = () => (svg.innerHTML = shown = DRAW[kind](S));
+  // The motion scene, once drawn, only moves its smiley (see motionPose).
+  let moving: { shadow: Element; token: Element; at: number } | null = null;
+  const draw = () => {
+    if (moving) {
+      if (moving.at === S.t) return;
+      const pose = motionPose(S.t);
+      moving.shadow.setAttribute("transform", pose.shadow);
+      moving.token.setAttribute("transform", pose.token);
+      moving.at = S.t;
+      return;
+    }
+    const scene = DRAW[kind](S);
+    if (scene === shown) return;
+    svg.innerHTML = shown = scene;
+    if (kind === "motion")
+      moving = { shadow: svg.querySelector("[data-shadow]")!, token: svg.querySelector("[data-token]")!, at: S.t };
+  };
 
   let visible = false;
   let raf = 0;
@@ -288,8 +322,7 @@ export function createDio(kind: DioKind, svg: SVGSVGElement): Dio {
     }
     // Only a changed scene is written; the rest at the end of the loop
     // sleeps on a timer instead of redrawing the same frame.
-    const scene = DRAW[kind](S);
-    if (scene !== shown) svg.innerHTML = shown = scene;
+    draw();
     if (rest && !busy) {
       raf = 0;
       last = 0;
@@ -304,7 +337,7 @@ export function createDio(kind: DioKind, svg: SVGSVGElement): Dio {
     // Calm: springs land on their end state at once.
     if (calm()) {
       S.springs.forEach((s) => s.step(0));
-      return render();
+      return draw();
     }
     if (visible) raf ||= requestAnimationFrame(frame);
   };
@@ -313,7 +346,7 @@ export function createDio(kind: DioKind, svg: SVGSVGElement): Dio {
     if (visible) kick();
   });
   io.observe(svg);
-  render();
+  draw();
 
   return {
     get on() {
@@ -327,7 +360,7 @@ export function createDio(kind: DioKind, svg: SVGSVGElement): Dio {
         S.springs.forEach((s, i) => later(() => ((s.to = on ? 1 : 0), kick()), on ? 120 + i * 80 : (8 - i) * 30));
       if (kind === "motion" && calm()) S.t = 1;
       kick();
-      render();
+      draw();
     },
     tap() {
       if (kind === "ux") {
@@ -343,7 +376,7 @@ export function createDio(kind: DioKind, svg: SVGSVGElement): Dio {
       S.scrub = t != null;
       if (t != null) S.t = t;
       kick();
-      render();
+      draw();
     },
     destroy() {
       io.disconnect();
