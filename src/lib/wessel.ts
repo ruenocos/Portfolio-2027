@@ -591,7 +591,8 @@ function plan(to: () => XY | null, k: number) {
   const ms =
     clamp(trips.baseMs + trips.perDoublingMs * Math.log2(distance / trips.from + 1), trips.minMs, trips.maxMs) *
     clamp(Math.sqrt(springs.beat.k / k), 0.7, 1.4);
-  const a: XY = [cursor.x, cursor.y];
+  // The start rides with the page, so a scroll mid-trip doesn't kink the curve.
+  const a0: XY = [cursor.x, cursor.y + scrollY];
   const t0 = performance.now();
   const angle = (trips.arcDeg * Math.PI) / 180;
   const along = Math.cos(angle) / 3;
@@ -614,6 +615,7 @@ function plan(to: () => XY | null, k: number) {
     }
     // Both handles a third of the way along, turned the same way off the
     // line: the path swings out a little and comes in straight.
+    const a: XY = [a0[0], a0[1] - scrollY];
     const dx = e[0] - a[0];
     const dy = e[1] - a[1];
     const h1 = [a[0] + dx * along + dy * across, a[1] + dy * along - dx * across];
@@ -820,16 +822,32 @@ export function attachWessel(el: HTMLElement, edge?: HTMLElement | null) {
   // parks pinned again just inside it. Never while you scroll. In calm he's
   // simply there (no travel).
   let rejoinSoon = 0;
+  let rejoinedAt = -Infinity;
   const rejoin = () => {
     catchUp();
     const H = screenHeight();
     if (cursor.drive || cursor.hold || !cursor.shown || el.dataset.hide === "true") return;
-    if (cursor.y > header() - 8 && cursor.y < H + 8) return;
+    // Only once he's well out of view: just tucked under an edge, the tag
+    // says where he is and a hop back at every stop would read as a tic.
     const top = header();
-    const y = cursor.y < top ? top + (H - top) * 0.2 : H * 0.8;
-    const side = narrow() ? 24 : 120;
-    cursor.anchor = [clamp(cursor.x, side, innerWidth - side) + scrollX, y + scrollY];
-    if (calm()) return wake();
+    const out = Math.max(top - cursor.y, cursor.y - H);
+    if (!calm() && out < (H - top) * wesselMotion.park.rejoinOut) return;
+    // Not at every stop: once he's caught up, he lets you read a while.
+    // (In calm he can't travel or show a tag, so he's always just there.)
+    if (!calm() && performance.now() - rejoinedAt < wesselMotion.park.rejoinCooldownMs) return;
+    rejoinedAt = performance.now();
+    // Deep enough in that the next small scroll doesn't tuck him away again.
+    const y = cursor.y < top ? top + (H - top) * 0.38 : top + (H - top) * 0.72;
+    // Desktop: he comes in down the right margin, off the work and the copy
+    // (his own x is often the image column). Phones have no margin to spare.
+    const x = narrow() ? clamp(cursor.x, 24, innerWidth - 24) : innerWidth - 64;
+    if (!calm()) cursor.x = x;
+    cursor.anchor = [x + scrollX, y + scrollY];
+    if (calm()) {
+      // No travel in calm: he fades in at the spot (a fade isn't motion).
+      el.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 240, easing: "ease-out" });
+      return wake();
+    }
     const trip = wessel.go(() => home(), { timeout: 1600 });
     const drive = cursor.drive;
     // A job that starts on the way takes over; otherwise he parks on arrival.

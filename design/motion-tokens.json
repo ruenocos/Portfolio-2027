@@ -163,8 +163,10 @@
       "phone": { "accel": 6000, "top": 1600 }
     },
     "park": {
-      "$description": "2026-10-31 (Wons picked A, pinned to the page): between jobs he parks where he worked, in page coordinates, and the page carries him; nothing follows your scroll. Out of view, a tag at the screen edge (.wedge) shows where he went; his next job brings him back in on a trip from that edge. Replaces follow (drag 0.55, touch ride, 25-70% band). rejoinMs: out of view with no job on the way and the page still this long, he rejoins (a trip in from the edge) and parks pinned where he lands.",
-      "rejoinMs": 1200
+      "$description": "2026-10-31 (Wons picked A, pinned to the page): between jobs he parks where he worked, in page coordinates, and the page carries him; nothing follows your scroll. Out of view, a tag at the screen edge (.wedge) shows where he went; his next job brings him back in on a trip from that edge. Replaces follow (drag 0.55, touch ride, 25-70% band). rejoinMs: out of view with no job on the way and the page still this long (Lenis's tail adds ~0.8s on desktop), he rejoins down the right margin (phones: at his x); rejoinOut: only once he's this many screens out of view; rejoinCooldownMs: at most once per this long, so he doesn't escort you down the page.",
+      "rejoinMs": 900,
+      "rejoinCooldownMs": 8000,
+      "rejoinOut": 0.6
     },
     "trip": {
       "$description": "2026-10-30 (board NQnv3E…): every move is a planned trip. Time from Fitts's law, ms = base + perDoubling * log2(distance / from + 1), kept between minMs and maxMs and scaled by sqrt(beat k / the move's k). Speed is minimum-jerk along a cubic bezier whose handles are a third of the trip long, turned arcDeg off the straight line to the same side. A stiff spring (k, z) follows the path; the move's own spring lands him. Moves under from px, drags and snaps (k >= 1000) stay plain springs.",
