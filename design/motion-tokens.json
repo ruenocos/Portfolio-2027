@@ -163,9 +163,10 @@
       "phone": { "accel": 6000, "top": 1600 }
     },
     "park": {
-      "$description": "2026-10-31 (Wons picked A, pinned to the page): between jobs he parks where he worked, in page coordinates, and the page carries him; nothing follows your scroll. Out of view, a tag at the screen edge (.wedge) shows where he went; his next job brings him back in on a trip from that edge. Replaces follow (drag 0.55, touch ride, 25-70% band). rejoinMs: out of view with no job on the way and the page still this long (Lenis's tail adds ~0.8s on desktop), he rejoins down the right margin (phones: at his x); rejoinOut: only once he's this many screens out of view; rejoinCooldownMs: at most once per this long, so he doesn't escort you down the page.",
+      "$description": "2026-10-31 (Wons picked A, pinned to the page): between jobs he parks where he worked, in page coordinates, and the page carries him; nothing follows your scroll. Out of view, a tag at the screen edge (.wedge) shows where he went; his next job brings him back in on a trip from that edge. Replaces follow (drag 0.55, touch ride, 25-70% band). rejoinMs: out of view with no job on the way and the page still this long (Lenis's tail adds ~0.8s on desktop), he rejoins down the right edge (the margin on desktop); rejoinOut: only once he's this many screens out of view; rejoinCooldownMs: at most once per this long, so he doesn't escort you down the page; held back, he comes at your next stop, or at rejoinFallbackMs if you stay put.",
       "rejoinMs": 900,
       "rejoinCooldownMs": 8000,
+      "rejoinFallbackMs": 15000,
       "rejoinOut": 0.6
     },
     "trip": {

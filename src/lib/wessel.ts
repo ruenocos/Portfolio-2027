@@ -263,6 +263,9 @@ function softClamp(v: number, lo: number, hi: number) {
 }
 
 // Where he goes when he has no job: his parked spot, pinned to the page.
+/** How far in from the right edge he parks when he rejoins. */
+const parkInset = () => (narrow() ? 32 : 64);
+
 function home(): XY {
   if (cursor.hold) {
     cursor.parked = true;
@@ -271,7 +274,9 @@ function home(): XY {
   // No spot on this page yet: he takes the resting spot where the page is now.
   cursor.anchor ??= [innerWidth - (narrow() ? 64 : 120) + scrollX, screenHeight() * 0.74 + scrollY];
   cursor.parked = true;
-  return offText([cursor.anchor[0] - scrollX, cursor.anchor[1] - scrollY], `p${cursor.anchor[0]},${cursor.anchor[1]},${innerWidth}`);
+  // A narrower window never leaves his spot off its right edge.
+  const x = Math.min(cursor.anchor[0] - scrollX, innerWidth - 16);
+  return offText([x, cursor.anchor[1] - scrollY], `p${x},${cursor.anchor[1]},${innerWidth}`);
 }
 
 // ---------- keeping off what you read ----------
@@ -835,17 +840,22 @@ export function attachWessel(el: HTMLElement, edge?: HTMLElement | null) {
     // Not at every stop: once he's caught up, he lets you read a while, then
     // comes back if you're still there. (In calm he can't travel or show a
     // tag, so he's always just there.)
-    const wait = rejoinedAt + wesselMotion.park.rejoinCooldownMs - performance.now();
-    if (!calm() && wait > 0) {
-      rejoinSoon = window.setTimeout(rejoin, wait);
+    // Held back, he waits for your next stop, or comes anyway if you've
+    // stayed put a long while (arriving mid-read reads as barging in).
+    const since = performance.now() - rejoinedAt;
+    if (!calm() && since < wesselMotion.park.rejoinCooldownMs) {
+      rejoinSoon = window.setTimeout(rejoin, wesselMotion.park.rejoinFallbackMs - since);
       return;
     }
     rejoinedAt = performance.now();
     // Deep enough in that the next small scroll doesn't tuck him away again.
-    const y = cursor.y < top ? top + (H - top) * 0.38 : top + (H - top) * 0.72;
-    // Desktop: he comes in down the right margin, off the work and the copy
-    // (his own x is often the image column). Phones have no margin to spare.
-    const x = narrow() ? clamp(cursor.x, 24, innerWidth - 24) : innerWidth - 64;
+    // In calm he doesn't travel, so he can take the far side: the one your
+    // scroll moves him away from last.
+    const fromTop = cursor.y < top;
+    const y = top + (H - top) * (calm() ? (fromTop ? 0.72 : 0.38) : fromTop ? 0.38 : 0.72);
+    // He comes in down the right edge (the margin on desktop), off the work
+    // and the copy; his own x is often the image column.
+    const x = innerWidth - parkInset();
     if (!calm()) cursor.x = x;
     cursor.anchor = [x + scrollX, y + scrollY];
     if (calm()) {
