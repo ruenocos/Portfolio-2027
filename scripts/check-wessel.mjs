@@ -1,5 +1,7 @@
 // Measures how Wessel's cursor moves while you scroll: jumps, target flips,
-// time off screen, resting on text, and frames spent while nothing moves.
+// time off screen, resting on text, where he is at each rest (on screen, or
+// out of view with or without his edge marker), and frames spent while
+// nothing moves.
 // Needs Playwright with Chromium, and the site running:
 //   npm run dev -- -p 3100        (or next build && next start -p 3100)
 //   node scripts/check-wessel.mjs [http://localhost:3100] [--json out.json]
@@ -62,6 +64,16 @@ function restingOnText() {
   return false;
 }
 
+// At a rest: he's on screen, or out of view with his edge marker showing, or
+// lost (out of view, no marker); hidden = not on this page at all.
+function whereIsHe() {
+  const el = document.querySelector(".cur.wes");
+  if (el.dataset.hide === "true" || getComputedStyle(el).display === "none") return "hidden";
+  const r = el.querySelector(".ptr").getBoundingClientRect();
+  if (r.bottom > 0 && r.top < innerHeight && r.right > 0 && r.left < innerWidth && el.dataset.hide !== "true") return "screen";
+  return document.querySelector(".wedge")?.dataset.on === "true" ? "marker" : "lost";
+}
+
 async function scrollBy(p, phone, dy, stepPx, stepMs) {
   const n = Math.ceil(Math.abs(dy) / stepPx);
   for (let i = 0; i < n; i++) {
@@ -88,10 +100,12 @@ async function run(b, route, device, motion) {
   const H = DEVICES[device].viewport.height;
   const height = await p.evaluate(() => document.documentElement.scrollHeight);
   const rests = [];
+  const seen = { screen: 0, marker: 0, lost: 0, hidden: 0 };
   const rest = async (label) => {
     await wait(1600);
     const on = await p.evaluate(restingOnText);
     if (on !== null) rests.push({ label, on });
+    seen[await p.evaluate(whereIsHe)]++;
   };
   // Down slowly in chunks of about a screen, resting between.
   for (let y = 0; y < height - H; y += H * 0.8) {
@@ -129,8 +143,8 @@ async function run(b, route, device, motion) {
       jumps++;
       jumpAt.push(Math.round(f.sy));
     }
-    const free = (m) => m === "park" || m === "follow" || m === "ride";
-    if (free(f.mode) && free(g.mode) && Math.abs(f.ty - g.ty) > 0.3 * H) flips++;
+    // His parked spot is on the page: a flip is that spot moving on the page.
+    if (f.mode === "park" && g.mode === "park" && Math.abs(f.ty + f.sy - (g.ty + g.sy)) > 0.3 * H) flips++;
     if (f.sy !== g.sy) {
       scrollFrames++;
       if (f.y < 0 || f.y > H) offScreen++;
@@ -149,6 +163,7 @@ async function run(b, route, device, motion) {
     rests: rests.length,
     onText: onText.length,
     onTextSamples: onText.slice(0, 4).map((r) => r.on),
+    seen,
     idleTicksPer3s: idleTicks,
     idleModes,
     errors: errors.slice(0, 3),
@@ -164,7 +179,7 @@ for (const route of ROUTES)
       const r = await run(b, route, device, motion);
       results.push(r);
       console.log(
-        `${route.padEnd(14)} ${device.padEnd(7)} ${motion.padEnd(4)}  jumps ${r.jumps}  flips ${r.flips}  off ${r.offScreenPct}%  on text ${r.onText}/${r.rests}  idle ${r.idleTicksPer3s}${r.idleTicksPer3s ? ` (${r.idleModes.join("/")})` : ""}  ${r.onTextSamples.map((s) => JSON.stringify(s)).join(" ")}${r.errors.length ? "  ERR " + r.errors[0] : ""}`,
+        `${route.padEnd(14)} ${device.padEnd(7)} ${motion.padEnd(4)}  jumps ${r.jumps}  flips ${r.flips}  off ${r.offScreenPct}%  on text ${r.onText}/${r.rests}  seen ${r.seen.screen}/${r.seen.marker}/${r.seen.lost}${r.seen.hidden ? ` (hidden ${r.seen.hidden})` : ""}  idle ${r.idleTicksPer3s}${r.idleTicksPer3s ? ` (${r.idleModes.join("/")})` : ""}  ${r.onTextSamples.map((s) => JSON.stringify(s)).join(" ")}${r.errors.length ? "  ERR " + r.errors[0] : ""}`,
       );
     }
 await b.close();

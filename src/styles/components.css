@@ -636,6 +636,51 @@
   .cur.wes[data-rest="true"] {
     animation: wes-drift 4200ms ease-in-out infinite;
   }
+  /* His spot is out of view (pinned to the page, it scrolled away): a small
+     tag at that edge, at his x, with an arrow that way. */
+  .wedge {
+    position: fixed;
+    z-index: 39;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    height: 22px;
+    padding: 0 8px 0 10px;
+    border-radius: var(--radius-pill);
+    background: var(--tang);
+    color: var(--on-tang);
+    pointer-events: none;
+    white-space: nowrap;
+    opacity: 0;
+    transform: translateY(var(--wedge-in, 0px)) scale(0.9);
+    transition:
+      opacity var(--dur-ui) var(--ease-ui),
+      transform var(--dur-ui) var(--ease-ui);
+  }
+  .wedge svg {
+    width: 10px;
+    height: 10px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.6;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+  .wedge[data-side="up"] {
+    top: calc(var(--spacing-header) + 12px);
+    --wedge-in: -6px;
+  }
+  .wedge[data-side="down"] {
+    bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+    --wedge-in: 6px;
+  }
+  .wedge[data-side="down"] svg {
+    rotate: 180deg;
+  }
+  .wedge[data-on="true"] {
+    opacity: 1;
+    transform: none;
+  }
   .cur.you {
     --c: var(--grape);
     --on: var(--on-grape);

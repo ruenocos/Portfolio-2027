@@ -19,13 +19,14 @@ const LOOK_MS = 120;
 export function CursorLayer() {
   const pathname = usePathname();
   const wes = useRef<HTMLDivElement>(null);
+  const edge = useRef<HTMLDivElement>(null);
   const you = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const el = wes.current;
     if (!el) return;
     el.inert = true;
-    return attachWessel(el);
+    return attachWessel(el, edge.current);
   }, []);
 
   // On home's first visit he makes his entrance once the intro hands over.
@@ -120,6 +121,13 @@ export function CursorLayer() {
     <>
       <div id="cursors" className="cursors">
         <Cursor ref={wes} kind="wes" name="Wessel" />
+      </div>
+      {/* Where Wessel went when his spot is out of view (lib/wessel watchEdge). */}
+      <div ref={edge} className="wedge text-cursor-tag" aria-hidden="true" data-side="up" data-on="false">
+        <b>Wessel</b>
+        <svg viewBox="0 0 10 10" aria-hidden="true">
+          <path d="M5 8.5V1.5M2 4.5l3-3 3 3" />
+        </svg>
       </div>
       <Cursor ref={you} kind="you" name="You" fixed />
     </>

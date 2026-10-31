@@ -162,15 +162,8 @@
       "desktop": { "accel": 9000, "top": 2600 },
       "phone": { "accel": 6000, "top": 1600 }
     },
-    "follow": {
-      "drag": 0.55,
-      "touchSettleMs": 140,
-      "springBoost": "k * min(2.6, 1 + v/1200)",
-      "band": {
-        "$description": "2026-10-30: following, he rides with the page inside this band of the screen and trails from its edge (replaces the 22% / 78% slots).",
-        "top": 0.25,
-        "bottom": 0.7
-      }
+    "park": {
+      "$description": "2026-10-31 (Wons picked A, pinned to the page): between jobs he parks where he worked, in page coordinates, and the page carries him; nothing follows your scroll. Out of view, a tag at the screen edge (.wedge) shows where he went; his next job brings him back in on a trip from that edge. Replaces follow (drag 0.55, touch ride, 25-70% band)."
     },
     "trip": {
       "$description": "2026-10-30 (board NQnv3E…): every move is a planned trip. Time from Fitts's law, ms = base + perDoubling * log2(distance / from + 1), kept between minMs and maxMs and scaled by sqrt(beat k / the move's k). Speed is minimum-jerk along a cubic bezier whose handles are a third of the trip long, turned arcDeg off the straight line to the same side. A stiff spring (k, z) follows the path; the move's own spring lands him. Moves under from px, drags and snaps (k >= 1000) stay plain springs.",
