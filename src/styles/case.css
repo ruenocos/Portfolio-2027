@@ -15,10 +15,6 @@
   }
   .copen > .cell {
     padding: var(--spacing-section) var(--spacing-inset);
-    display: flex;
-    flex-direction: column;
-    justify-content: flex-start;
-    gap: 20px;
   }
   .copen h1 {
     text-wrap: balance;
@@ -107,9 +103,6 @@
   }
   .sc {
     padding: var(--spacing-section) var(--spacing-inset);
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
     scroll-margin-top: var(--spacing-header);
     outline: none;
   }
@@ -125,7 +118,6 @@
   }
   .sc .sl.text-accent {
     max-width: 18em;
-    margin-top: 4px;
     line-height: 1.15;
   }
   .sc figure {
@@ -161,7 +153,6 @@
     display: flex;
     flex-direction: column;
     gap: 24px;
-    margin-top: 20px;
   }
   .crows figure {
     margin: 0;

@@ -66,7 +66,7 @@ export function CaseRows({
 }) {
   let vi = first;
   return (
-    <div className="crows">
+    <div className="crows" data-gap="group">
       {rows.map((r) =>
         r.kind === "compare" ? (
           <Compare key={r.key} before={r.before} after={r.after} labels={r.labels} />

@@ -13,10 +13,7 @@
   }
   .abhero .say {
     padding: var(--spacing-section) var(--spacing-inset);
-    display: flex;
-    flex-direction: column;
     justify-content: center;
-    gap: 24px;
   }
   .abhero .say .text-lead {
     max-width: 34ch;
@@ -232,10 +229,27 @@
     .pstk {
       width: min(260px, 72%);
     }
+    /* Stacked, a row is a text stack: the dates label place and role, the
+       role is the place's own detail line. Its padding matches the label
+       gap, so the space around a row never reads smaller than inside it. */
     .hist > li {
       grid-template-columns: minmax(0, 1fr);
-      gap: 4px;
-      padding: 18px var(--spacing-inset);
+      gap: 0;
+      padding: var(--spacing-stack-label) var(--spacing-inset);
+    }
+    .hist > li > * {
+      text-box-edge: cap alphabetic;
+    }
+    .hist .yr {
+      text-box-trim: trim-end;
+    }
+    .hist .pl {
+      text-box-trim: trim-both;
+      margin-top: var(--spacing-stack-label);
+    }
+    .hist .ro {
+      text-box-trim: trim-start;
+      margin-top: var(--spacing-stack-line);
     }
     .board {
       min-height: 600px;

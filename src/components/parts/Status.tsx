@@ -8,7 +8,7 @@ import { localTime } from "@/lib/clock";
  * still line (no pill, no lamp: it's information, not a button). The time
  * appears after hydration, so the server never renders a stale one.
  */
-export function Status({ className = "" }: { className?: string }) {
+export function Status({ className = "", gap }: { className?: string; gap?: string }) {
   const [time, setTime] = useState<string | null>(null);
   useEffect(() => {
     const tick = () => setTime(localTime());
@@ -20,7 +20,7 @@ export function Status({ className = "" }: { className?: string }) {
     };
   }, []);
   return (
-    <p className={`status text-label ${className}`}>
+    <p className={`status text-label ${className}`} data-gap={gap}>
       Netherlands
       {time && (
         <>

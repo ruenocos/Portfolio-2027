@@ -52,27 +52,27 @@ export default async function CasePage({ params }: PageProps<"/work/[slug]">) {
         <div className="side" />
         {/* Nothing written yet beside the title: it takes the full row. */}
         <div className="copen" data-solo={!c.lead && !c.intro ? "" : undefined}>
-          <div className="cell ot">
+          <div className="cell ot stack">
             <span data-enter>
               <SectionLabel as="p" name="Case" />
             </span>
-            <h1 id="ttl" className="text-statement" lang={c.lang} data-enter>
+            <h1 id="ttl" className="text-statement" lang={c.lang} data-gap="label" data-enter>
               {c.title}
             </h1>
           </div>
-          <div className="cell ol">
+          <div className="cell ol stack">
             {c.lead && (
               <p className="text-lead" data-mock={mock("lead")} data-enter>
                 {c.lead}
               </p>
             )}
             {c.intro && (
-              <p className="text-body text-mute" data-mock={mock("intro")} data-enter>
+              <p className="text-body text-mute" data-mock={mock("intro")} data-gap="pair" data-enter>
                 {c.intro}
               </p>
             )}
             {c.mock?.length ? (
-              <span data-enter data-mock-only>
+              <span data-enter data-mock-only data-gap="pair">
                 <MockTag>Mock copy from desaak.com · to rewrite</MockTag>
               </span>
             ) : null}

@@ -189,7 +189,7 @@ export function Read({ sections }: { sections: CaseSection[] }) {
         </nav>
         <div className="secs">
           {sections.map((s, i) => (
-            <article key={s.key} id={s.key} className="cell sc" tabIndex={-1} aria-labelledby={`h-${s.key}`}>
+            <article key={s.key} id={s.key} className="cell sc stack" tabIndex={-1} aria-labelledby={`h-${s.key}`}>
               {/* Same frame-name label as every other section: { Name }. The
                   # stays in the Layers panel, where it's Figma's frame mark. */}
               <p className="slab text-label" data-enter>
@@ -202,10 +202,10 @@ export function Read({ sections }: { sections: CaseSection[] }) {
                 </span>
                 {s.mock && <MockTag className="ml-2">{s.mock === "wording" ? "Numbers real · wording mock" : "mock"}</MockTag>}
               </p>
-              <h2 id={`h-${s.key}`} className="text-headline" data-enter data-mock={s.mock ? "" : undefined}>
+              <h2 id={`h-${s.key}`} className="text-headline" data-gap="label" data-enter data-mock={s.mock ? "" : undefined}>
                 {s.heading}
               </h2>
-              <p className={`sl ${s.key === "takeaway" ? "text-accent" : "text-body"}`} data-enter data-mock={s.mock ? "" : undefined}>
+              <p className={`sl ${s.key === "takeaway" ? "text-accent" : "text-body"}`} data-gap="pair" data-enter data-mock={s.mock ? "" : undefined}>
                 {s.body}
               </p>
               {media[i].length > 0 && (

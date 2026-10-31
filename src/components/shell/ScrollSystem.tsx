@@ -63,6 +63,9 @@ type Unit = { el: HTMLElement; top: number; h: number };
 
 const LIT = 0.999; // a line this bright counts as lit
 const SOFT_PX = 3; // half the blend between two lines' light
+// Text in a stack is trimmed to cap height and baseline, so its glyphs paint
+// past its box; the mask reaches this far over both edges so none are cut.
+const BLEED_PX = 40;
 // Light is written in 1/64 steps: the eye can't tell them apart, and a
 // scroll frame that changes no step writes nothing (no mask repaint).
 const step64 = (v: number) => (Math.round(v * 64) / 64).toFixed(3);
@@ -213,10 +216,10 @@ function start() {
       const stops: string[] = [];
       a.forEach((v, i) => {
         const c = `rgb(0 0 0 / ${step64(v)})`;
-        const from = i === 0 ? 0 : (t.lines[i - 1].bottom + t.lines[i].top) / 2 + SOFT_PX;
+        const from = i === 0 ? 0 : (t.lines[i - 1].bottom + t.lines[i].top) / 2 + SOFT_PX + BLEED_PX;
         stops.push(`${c} ${from.toFixed(1)}px`);
         if (i < a.length - 1) {
-          const to = (t.lines[i].bottom + t.lines[i + 1].top) / 2 - SOFT_PX;
+          const to = (t.lines[i].bottom + t.lines[i + 1].top) / 2 - SOFT_PX + BLEED_PX;
           stops.push(`${c} ${to.toFixed(1)}px`);
         }
       });
@@ -228,11 +231,20 @@ function start() {
     t.el.style.opacity = next.startsWith("o:") ? next.slice(2) : "";
     t.el.style.maskImage = mask;
     t.el.style.setProperty("-webkit-mask-image", mask);
+    const bleed = mask ? `0 -${BLEED_PX}px` : "";
+    t.el.style.maskPosition = bleed;
+    t.el.style.maskSize = mask ? `100% calc(100% + ${2 * BLEED_PX}px)` : "";
+    t.el.style.maskRepeat = mask ? "no-repeat" : "";
+    t.el.style.maskClip = mask ? "no-clip" : "";
   };
   const clearText = (t: Text) => {
     t.el.style.opacity = "";
     t.el.style.maskImage = "";
     t.el.style.removeProperty("-webkit-mask-image");
+    t.el.style.maskPosition = "";
+    t.el.style.maskSize = "";
+    t.el.style.maskRepeat = "";
+    t.el.style.maskClip = "";
   };
 
   /* ---------- pictures ---------- */

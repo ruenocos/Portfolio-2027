@@ -21,6 +21,11 @@
   --spacing-dot-step: 16px;
   --spacing-hairline: 1px;
   --spacing-tap: 44px;
+  --spacing-stack-line: 12px;
+  --spacing-stack-label: 24px;
+  --spacing-stack-para: 24px;
+  --spacing-stack-pair: 32px;
+  --spacing-stack-group: 64px;
   --ease-ui: cubic-bezier(0.2, 0, 0, 1);
   --ease-spring: linear(0,.06 2%,.24 6%,.52 11%,.84 17%,1.06 23%,1.14 28%,1.15 31%,1.1 37%,1.03 44%,.98 52%,.97 59%,.99 70%,1);
   --ease-enter-opacity: cubic-bezier(0.33, 1, 0.68, 1);
