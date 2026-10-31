@@ -642,7 +642,8 @@
   .wedge {
     position: fixed;
     z-index: 39;
-    left: 0;
+    /* At his x (lib/wessel), inside the content column. */
+    left: clamp(var(--spacing-side), var(--x, 0px), 100% - var(--spacing-side) - var(--w, 0px));
     display: flex;
     align-items: center;
     gap: 2px;
@@ -695,6 +696,9 @@
   /* Phones and tablets: the arrow alone in the side gutter (lib/wessel),
      and above the Contact pill, never beside it. */
   @media (width < 900px) {
+    .wedge {
+      left: var(--x, 0px);
+    }
     .wedge .tag {
       display: none;
     }

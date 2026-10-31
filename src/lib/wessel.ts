@@ -244,6 +244,7 @@ function wake() {
   quietFrames = 0;
   resting(false);
   if (raf || !cursor.el) return;
+  catchUp();
   tick.last = 0;
   raf = requestAnimationFrame(tick);
 }
@@ -420,6 +421,16 @@ function trackScroll(now: number, dt: number) {
   return scrolled;
 }
 let trackedAt = 0;
+/** Asleep, the page carries him but nothing moves his screen spot: it
+ *  catches up here, before a scroll or a job reads it. A job can wake him
+ *  before the scroll event that moved the page has fired. */
+function catchUp() {
+  if (raf) return;
+  const now = performance.now();
+  const dt = Math.min(0.1, Math.max(0.004, (now - (trackedAt || now - 16)) / 1000));
+  trackedAt = now;
+  cursor.y -= trackScroll(now, dt);
+}
 
 function tick(frameTime: number) {
   const el = cursor.el;
@@ -747,11 +758,9 @@ function watchEdge(el: HTMLElement, edge: HTMLElement) {
       edge.dataset.side = r.top < header() ? "up" : "down";
       // Phones: the arrow alone, in the side gutter nearest him (the copy
       // runs edge to edge, a tag would sit on it).
-      // Desktop: at his x, kept inside the content column (not the dotted margin).
-      const side = parseFloat(getComputedStyle(edge).getPropertyValue("--spacing-side")) || 16;
-      edge.style.left = narrow()
-        ? `${r.left < innerWidth / 2 ? 2 : innerWidth - 20}px`
-        : `${clamp(r.left, side, innerWidth - side - edge.offsetWidth)}px`;
+      // Desktop: at his x, kept inside the content column by the CSS.
+      edge.style.setProperty("--x", narrow() ? `${r.left < innerWidth / 2 ? 4 : innerWidth - 22}px` : `${r.left}px`);
+      edge.style.setProperty("--w", `${edge.offsetWidth}px`);
     }
     if (edge.dataset.on !== String(away)) edge.dataset.on = String(away);
   };
@@ -763,11 +772,24 @@ function watchEdge(el: HTMLElement, edge: HTMLElement) {
     const r = el.getBoundingClientRect();
     show({ isIntersecting: r.bottom > header() && r.top < innerHeight, boundingClientRect: r });
   };
-  addEventListener("resize", again);
+  // After a resize he re-parks over a few frames: place it again once he has.
+  let settle = 0;
+  const resized = () => {
+    again();
+    clearTimeout(settle);
+    settle = window.setTimeout(again, 600);
+  };
+  addEventListener("resize", resized);
   const off = subscribeMotion(again);
+  // Hidden (a case page on phones) without leaving the screen: the observer
+  // won't hear of it.
+  const hidden = new MutationObserver(again);
+  hidden.observe(el, { attributes: true, attributeFilter: ["data-hide"] });
   return () => {
     io.disconnect();
-    removeEventListener("resize", again);
+    hidden.disconnect();
+    clearTimeout(settle);
+    removeEventListener("resize", resized);
     off();
   };
 }
@@ -789,26 +811,25 @@ export function attachWessel(el: HTMLElement, edge?: HTMLElement | null) {
   // Parked and settled, the page carries him and scrolling needs no frames.
   // On a job, landing, or holding his screen spot after a page change, it does.
   const wakeOnScroll = () => {
-    if (!raf) {
-      // Asleep, the page carries him; his screen spot follows along here, so
-      // a job that starts later sets off from where he really is.
-      const now = performance.now();
-      const dt = Math.min(0.1, Math.max(0.004, (now - (trackedAt || now - 16)) / 1000));
-      trackedAt = now;
-      cursor.y -= trackScroll(now, dt);
-    }
+    catchUp();
     if (cursor.drive || cursor.hold || !cursor.parked || cursor.distance >= 0.5 || cursor.speed >= 4) wake();
   };
   addEventListener("scroll", wakeOnScroll, { passive: true });
-  // Left far behind (a long scroll with no job on the way) and the page has
-  // come to rest: he rejoins you once, a trip in from the edge he went out
-  // by, and parks pinned again where he lands. Never while you scroll.
+  // Out of view with no job on the way and the page has come to rest: he
+  // rejoins you, a short trip in from the edge he went out by at his x, and
+  // parks pinned again just inside it. Never while you scroll. In calm he's
+  // simply there (no travel).
   let rejoinSoon = 0;
   const rejoin = () => {
+    catchUp();
     const H = screenHeight();
-    if (calm() || cursor.drive || cursor.hold || !cursor.shown || el.dataset.hide === "true") return;
-    if (cursor.y > -H && cursor.y < 2 * H) return;
-    cursor.anchor = null;
+    if (cursor.drive || cursor.hold || !cursor.shown || el.dataset.hide === "true") return;
+    if (cursor.y > header() - 8 && cursor.y < H + 8) return;
+    const top = header();
+    const y = cursor.y < top ? top + (H - top) * 0.2 : H * 0.8;
+    const side = narrow() ? 24 : 120;
+    cursor.anchor = [clamp(cursor.x, side, innerWidth - side) + scrollX, y + scrollY];
+    if (calm()) return wake();
     const trip = wessel.go(() => home(), { timeout: 1600 });
     const drive = cursor.drive;
     // A job that starts on the way takes over; otherwise he parks on arrival.
@@ -819,6 +840,8 @@ export function attachWessel(el: HTMLElement, edge?: HTMLElement | null) {
     rejoinSoon = window.setTimeout(rejoin, wesselMotion.park.rejoinMs);
   };
   addEventListener("scroll", rejoinLater, { passive: true });
+  // Pause can leave him far off screen mid-beat.
+  const offRejoin = subscribeMotion(rejoinLater);
   const unwatch = edge ? watchEdge(el, edge) : () => {};
   // A font swap can change his tag's width.
   document.fonts?.ready.then(() => (measureLabel(), wake()));
@@ -845,6 +868,7 @@ export function attachWessel(el: HTMLElement, edge?: HTMLElement | null) {
     removeEventListener("resize", wakeOnResize);
     removeEventListener("scroll", wakeOnScroll);
     removeEventListener("scroll", rejoinLater);
+    offRejoin();
     clearTimeout(rejoinSoon);
     unwatch();
     cancelAnimationFrame(raf);
@@ -856,8 +880,8 @@ export function attachWessel(el: HTMLElement, edge?: HTMLElement | null) {
 /** A page is about to change: he stays where he is on screen. Taken before
  *  the route swaps, as a shorter new page can clamp the scroll under him. */
 export function holdWessel() {
-  cursor.hold = cursor.el && cursor.el.dataset.hide !== "true" ? [cursor.x, cursor.y] : null;
   wake();
+  cursor.hold = cursor.el && cursor.el.dataset.hide !== "true" ? [cursor.x, cursor.y] : null;
 }
 
 /** A page change: new generation, fresh marks, he forgets his parking spot

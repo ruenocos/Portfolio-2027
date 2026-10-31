@@ -163,7 +163,7 @@
       "phone": { "accel": 6000, "top": 1600 }
     },
     "park": {
-      "$description": "2026-10-31 (Wons picked A, pinned to the page): between jobs he parks where he worked, in page coordinates, and the page carries him; nothing follows your scroll. Out of view, a tag at the screen edge (.wedge) shows where he went; his next job brings him back in on a trip from that edge. Replaces follow (drag 0.55, touch ride, 25-70% band). rejoinMs: left more than a screen behind and the page still this long, he rejoins once (a trip in from the edge) and parks pinned where he lands.",
+      "$description": "2026-10-31 (Wons picked A, pinned to the page): between jobs he parks where he worked, in page coordinates, and the page carries him; nothing follows your scroll. Out of view, a tag at the screen edge (.wedge) shows where he went; his next job brings him back in on a trip from that edge. Replaces follow (drag 0.55, touch ride, 25-70% band). rejoinMs: out of view with no job on the way and the page still this long, he rejoins (a trip in from the edge) and parks pinned where he lands.",
       "rejoinMs": 1200
     },
     "trip": {
