@@ -1,5 +1,7 @@
 // Measures how Wessel's cursor moves while you scroll: jumps, target flips,
-// time off screen, resting on text, and frames spent while nothing moves.
+// time off screen, resting on text, where he is at each rest (on screen, or
+// out of view with or without his edge marker), and frames spent while
+// nothing moves.
 // Needs Playwright with Chromium, and the site running:
 //   npm run dev -- -p 3100        (or next build && next start -p 3100)
 //   node scripts/check-wessel.mjs [http://localhost:3100] [--json out.json]
@@ -62,6 +64,16 @@ function restingOnText() {
   return false;
 }
 
+// At a rest: he's on screen, or out of view with his edge marker showing, or
+// lost (out of view, no marker); hidden = not on this page at all.
+function whereIsHe() {
+  const el = document.querySelector(".cur.wes");
+  if (el.dataset.hide === "true" || getComputedStyle(el).display === "none") return "hidden";
+  const r = el.querySelector(".ptr").getBoundingClientRect();
+  if (r.bottom > 0 && r.top < innerHeight && r.right > 0 && r.left < innerWidth && el.dataset.hide !== "true") return "screen";
+  return document.querySelector(".wedge")?.dataset.on === "true" ? "marker" : "lost";
+}
+
 async function scrollBy(p, phone, dy, stepPx, stepMs) {
   const n = Math.ceil(Math.abs(dy) / stepPx);
   for (let i = 0; i < n; i++) {
@@ -78,6 +90,24 @@ async function run(b, route, device, motion) {
   const ctx = await b.newContext({ ...DEVICES[device], reducedMotion: motion === "calm" ? "reduce" : "no-preference" });
   // No first-visit intro: these runs are about scrolling.
   await ctx.addInitScript(() => sessionStorage.setItem("wsl-boot", "1"));
+  // His arrow's box as drawn, every frame, even while his engine sleeps (the
+  // engine's own frames stop then): what a visitor actually sees.
+  await ctx.addInitScript(() => {
+    window.__wesBox = [];
+    // Sampled just after the frame is painted (a task queued from the frame),
+    // so it sees his engine's update for that frame and the same scroll.
+    const look = (t) => {
+      const el = document.querySelector(".cur.wes");
+      const r = el?.querySelector(".ptr")?.getBoundingClientRect();
+      if (r && window.__wesBox.length < 60000)
+        window.__wesBox.push([t, r.left, r.top, scrollY, el.dataset.hide === "true" || el.dataset.tuck === "true"]);
+    };
+    const frame = (t) => {
+      setTimeout(() => look(t), 0);
+      requestAnimationFrame(frame);
+    };
+    requestAnimationFrame(frame);
+  });
   const p = await ctx.newPage();
   const errors = [];
   p.on("pageerror", (e) => errors.push(e.message));
@@ -88,10 +118,12 @@ async function run(b, route, device, motion) {
   const H = DEVICES[device].viewport.height;
   const height = await p.evaluate(() => document.documentElement.scrollHeight);
   const rests = [];
+  const seen = { screen: 0, marker: 0, lost: 0, hidden: 0 };
   const rest = async (label) => {
     await wait(1600);
     const on = await p.evaluate(restingOnText);
     if (on !== null) rests.push({ label, on });
+    seen[await p.evaluate(whereIsHe)]++;
   };
   // Down slowly in chunks of about a screen, resting between.
   for (let y = 0; y < height - H; y += H * 0.8) {
@@ -109,28 +141,34 @@ async function run(b, route, device, motion) {
   await wait(3000);
   const idleTicks = (await p.evaluate(() => window.__wessel?.ticks ?? 0)) - t0;
   const frames = await p.evaluate(() => window.__wessel?.frames ?? []);
+  const boxes = await p.evaluate(() => window.__wesBox ?? []);
   const idleModes = [...new Set(frames.filter((f) => f.t > frames.at(-1).t - 3000).map((f) => f.mode))];
   await ctx.close();
 
+  // Jumps, from what's drawn: he moves more than 120px in a frame both on
+  // screen and on the page, with one end on screen.
   let jumps = 0;
+  const jumpAt = [];
+  for (let i = 1; i < boxes.length; i++) {
+    const [, x1, y1, s1, h1] = boxes[i];
+    const [, x0, y0, s0, h0] = boxes[i - 1];
+    // Hidden, or the first frame before his engine placed him at all.
+    if (h0 || h1 || (x0 === 0 && y0 === 0)) continue;
+    const d = Math.min(Math.hypot(x1 - x0, y1 - y0), Math.hypot(x1 - x0, y1 + s1 - (y0 + s0)));
+    if (d > 120 && ((y1 > -30 && y1 < H + 30) || (y0 > -30 && y0 < H + 30))) {
+      jumps++;
+      jumpAt.push(Math.round(s1));
+    }
+  }
   let flips = 0;
   let scrollFrames = 0;
   let offScreen = 0;
-  const jumpAt = [];
   for (let i = 1; i < frames.length; i++) {
     const f = frames[i];
     const g = frames[i - 1];
     if (f.out || g.out) continue;
-    // A jump moves him both on screen and on the page: the page carrying a
-    // parked Wessel, or a screen-fixed one over a scrolling page, is neither.
-    const onScreen = (q) => q.y > -30 && q.y < H + 30;
-    const d = Math.min(Math.hypot(f.x - g.x, f.y - g.y), Math.hypot(f.x - g.x, f.y + f.sy - (g.y + g.sy)));
-    if (d > 120 && (onScreen(f) || onScreen(g))) {
-      jumps++;
-      jumpAt.push(Math.round(f.sy));
-    }
-    const free = (m) => m === "park" || m === "follow" || m === "ride";
-    if (free(f.mode) && free(g.mode) && Math.abs(f.ty - g.ty) > 0.3 * H) flips++;
+    // His parked spot is on the page: a flip is that spot moving on the page.
+    if (f.mode === "park" && g.mode === "park" && Math.abs(f.ty + f.sy - (g.ty + g.sy)) > 0.3 * H) flips++;
     if (f.sy !== g.sy) {
       scrollFrames++;
       if (f.y < 0 || f.y > H) offScreen++;
@@ -149,6 +187,7 @@ async function run(b, route, device, motion) {
     rests: rests.length,
     onText: onText.length,
     onTextSamples: onText.slice(0, 4).map((r) => r.on),
+    seen,
     idleTicksPer3s: idleTicks,
     idleModes,
     errors: errors.slice(0, 3),
@@ -164,7 +203,7 @@ for (const route of ROUTES)
       const r = await run(b, route, device, motion);
       results.push(r);
       console.log(
-        `${route.padEnd(14)} ${device.padEnd(7)} ${motion.padEnd(4)}  jumps ${r.jumps}  flips ${r.flips}  off ${r.offScreenPct}%  on text ${r.onText}/${r.rests}  idle ${r.idleTicksPer3s}${r.idleTicksPer3s ? ` (${r.idleModes.join("/")})` : ""}  ${r.onTextSamples.map((s) => JSON.stringify(s)).join(" ")}${r.errors.length ? "  ERR " + r.errors[0] : ""}`,
+        `${route.padEnd(14)} ${device.padEnd(7)} ${motion.padEnd(4)}  jumps ${r.jumps}  flips ${r.flips}  off ${r.offScreenPct}%  on text ${r.onText}/${r.rests}  seen ${r.seen.screen}/${r.seen.marker}/${r.seen.lost}${r.seen.hidden ? ` (hidden ${r.seen.hidden})` : ""}  idle ${r.idleTicksPer3s}${r.idleTicksPer3s ? ` (${r.idleModes.join("/")})` : ""}  ${r.onTextSamples.map((s) => JSON.stringify(s)).join(" ")}${r.errors.length ? "  ERR " + r.errors[0] : ""}`,
       );
     }
 await b.close();

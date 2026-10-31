@@ -10,10 +10,10 @@
 // - beats play in full, once, when ~40% of a section is in view;
 //   on a fast scroll he waits a breath, on a flick past he skips and the
 //   beat replays when you come back
-// - between beats he parks where he worked, then drifts after you a beat
-//   behind: he rides inside a band of the screen (the page drags him at 55%;
-//   on touch he rides the page while your finger scrolls and catches up
-//   after) and re-enters from the edge he left
+// - between beats he parks where he worked, pinned to the page like a
+//   collaborator's cursor in a shared file: your scroll never moves him, the
+//   page carries him away with his work; out of view, a marker at the screen
+//   edge says where he went, and his next job brings him back in from there
 // - he travels like a hand on a mouse: each move is a planned trip on a
 //   slightly round curve, timed by its distance; the spring lands him
 // - at rest he drifts a pixel or so (CSS only, while his loop sleeps)
@@ -24,8 +24,9 @@
 import motionTokens from "../../design/motion-tokens.json";
 import { isCalm, subscribeMotion } from "./motion";
 import { smileySvg } from "./smiley";
-import { bezierAt, clamp, easeInOutCubic, lerp, minJerk } from "./math";
-import { headerHeight, narrow, touch } from "./media";
+import { bezierAt, clamp, cssBezier, easeInOutCubic, lerp, minJerk } from "./math";
+import { headerHeight, narrow } from "./media";
+import { getLenis } from "./scroll";
 
 const { wessel: wesselMotion } = motionTokens;
 const springs = wesselMotion.spring;
@@ -57,12 +58,9 @@ const page = () => document.querySelector<HTMLElement>(".page");
 // you scroll resizes innerHeight, and his spots would jump with it.
 let screenH = 0;
 let screenW = 0;
-/** A touch screen (asked on resize, not per frame). */
-let onTouch = false;
 const screenHeight = () => screenH || (screenH = innerHeight);
 function measureScreen() {
-  onTouch = touch();
-  if (!screenH || !onTouch || innerWidth !== screenW) screenH = innerHeight;
+  if (!screenH || !matchMedia("(hover: none)").matches || innerWidth !== screenW) screenH = innerHeight;
   screenW = innerWidth;
 }
 const overlay = () => document.getElementById("ovl");
@@ -223,17 +221,17 @@ const cursor = {
   lean: false,
   /** The move he's on, while it's still on its curve. end is where it goes (screen px). */
   trip: null as { end: XY } | null,
-  /** Following: his height on screen, kept inside the follow band. */
-  leashY: null as number | null,
 };
 
 // Scroll speed: scrollSpeed now, scrollPeak the recent peak (decays fast).
 // scrollDirection: which way you last scrolled (1 down, -1 up).
 let lastScrollY = 0;
-/** How far the page scrolled this frame (px). */
-let frameScrolled = 0;
 let scrollSpeed = 0;
 let scrollPeak = 0;
+let scrollPeakAt = 0;
+/** The recent scroll peak, decayed to now: it falls off even while his loop
+ *  sleeps (a page change's jump to the top must not hold back every beat). */
+const peakNow = () => scrollPeak * Math.pow(0.2, Math.max(0, performance.now() - scrollPeakAt) / 1000);
 let scrollDirection = 1;
 let raf = 0;
 // Quiet frames in a row (no job, settled, page still). After a few the
@@ -246,12 +244,14 @@ function wake() {
   quietFrames = 0;
   resting(false);
   if (raf || !cursor.el) return;
+  catchUp();
   tick.last = 0;
   raf = requestAnimationFrame(tick);
 }
 
-const PARK_SLACK = 40;
-
+// Top speed for stiff springs (drags, snaps, trips), px/s: faster than any
+// planned path, slow enough that closing a gap never reads as a jump.
+const STIFF_TOP = 4800;
 /** Clamped with a soft knee: the last KNEE px before an edge ease into it,
  *  so a target pressing past the edge doesn't pin him flat against it. */
 const KNEE = 32;
@@ -262,42 +262,25 @@ function softClamp(v: number, lo: number, hi: number) {
   return v;
 }
 
-// Where he goes when he has no job.
+// Where he goes when he has no job: his parked spot, pinned to the page.
+/** How far in from the right edge he parks when he rejoins. */
+const parkInset = () => (narrow() ? 32 : 64);
+
 function home(): XY {
   if (cursor.hold) {
     cursor.parked = true;
     return cursor.hold;
   }
-  if (cursor.anchor) {
-    // He stays where he last worked, like a collaborator in a shared file…
-    // A spot under the sticky header counts as above the screen. Once he's
-    // following, the spot has to come SLACK px into the band before he parks
-    // again, so he doesn't flip between the two on its edge.
-    const y = cursor.anchor[1] - scrollY;
-    const top = header() + 24;
-    const bottom = screenHeight() - 40;
-    const slack = cursor.parked ? 0 : PARK_SLACK;
-    cursor.parked = y > top + slack && y < bottom - slack;
-    if (cursor.parked) {
-      cursor.leashY = null;
-      return offText([cursor.anchor[0] - scrollX, y], `p${cursor.anchor[0]},${cursor.anchor[1]},${innerWidth}`);
-    }
-    // …and once that has scrolled away he wanders after you, a beat behind:
-    // the page carries him (at the follow drag) until he meets the edge of
-    // the band, then he trails from there. No fixed spots to jump between.
-    const { band, drag } = wesselMotion.follow;
-    const bandTop = Math.max(top, screenHeight() * band.top);
-    const bandBottom = Math.min(bottom, screenHeight() * band.bottom);
-    cursor.leashY = clamp((cursor.leashY ?? cursor.y) - frameScrolled * drag, bandTop, bandBottom);
-    return offText([cursor.anchor[0] - scrollX, cursor.leashY], `f${cursor.leashY | 0},${scrollY | 0},${innerWidth}`);
-  }
-  cursor.parked = false;
-  cursor.leashY = null;
-  return offText([innerWidth - (narrow() ? 64 : 120), screenHeight() * 0.74], `r${scrollY | 0},${innerWidth}`);
+  // No spot on this page yet: he takes the resting spot where the page is now.
+  cursor.anchor ??= [innerWidth - (narrow() ? 64 : 120) + scrollX, screenHeight() * 0.74 + scrollY];
+  cursor.parked = true;
+  // A narrower window never leaves his spot off its right edge.
+  const x = Math.min(cursor.anchor[0] - scrollX, innerWidth - 16);
+  return offText([x, cursor.anchor[1] - scrollY], `p${x},${cursor.anchor[1]},${innerWidth}`);
 }
 
 // ---------- keeping off what you read ----------
-// His resting spots (parked, following, the spot he starts on) never sit on
+// His resting spots (parked, after a page change, the spot he starts on) never sit on
 // text: once the page is still, the spot is checked against the lines of text
 // under his arrow and tag (16px clear), and he steps aside to the nearest
 // clear spot. Where no spot is clear (a phone's full-width copy), his tag
@@ -358,6 +341,18 @@ function clearSpot([x, y]: XY): { at: XY; fold: boolean } {
     }
   // Nothing clear at all: the arrow waits in the right margin.
   return { at: [innerWidth - 22, y], fold: true };
+}
+
+/** Moves his tag to the other side of his arrow: it slides across from
+ *  where it was instead of jumping (the label would flick under your eye). */
+function swapSides(el: HTMLElement, flip: boolean) {
+  const lab = el.querySelector<HTMLElement>(".lab");
+  const before = lab?.getBoundingClientRect().left;
+  el.dataset.flip = String(flip);
+  if (!lab || before === undefined || calm()) return;
+  const dx = before - lab.getBoundingClientRect().left;
+  const ui = motionTokens.easing.ui;
+  lab.animate([{ translate: `${dx}px 0` }, { translate: "0 0" }], { duration: ui.ms, easing: cssBezier(ui.bezier) });
 }
 
 function fold(on: boolean) {
@@ -425,6 +420,35 @@ function logFrame(t: number, tx: number, ty: number, mode: string) {
   debug.dot.textContent = mode;
 }
 
+/** Scroll bookkeeping (speed, direction, when it last moved): every frame
+ *  while his loop runs, and from the scroll event while it sleeps, so the
+ *  beats' fast-scroll and look-over rules never read stale values.
+ *  Returns how far the page moved since the last call. */
+function trackScroll(now: number, dt: number) {
+  const scrolled = scrollY - lastScrollY;
+  lastScrollY = scrollY;
+  if (Math.abs(scrolled) > 0.5) {
+    scrollDirection = Math.sign(scrolled);
+    lastScrollAt = now;
+  }
+  // Smoothed the same at 60 and 120 frames a second.
+  scrollSpeed += (Math.abs(scrolled) / dt - scrollSpeed) * (1 - Math.pow(0.8, dt * 60));
+  scrollPeak = Math.max(scrollSpeed, peakNow());
+  scrollPeakAt = performance.now();
+  return scrolled;
+}
+let trackedAt = 0;
+/** Asleep, the page carries him but nothing moves his screen spot: it
+ *  catches up here, before a scroll or a job reads it. A job can wake him
+ *  before the scroll event that moved the page has fired. */
+function catchUp() {
+  if (raf) return;
+  const now = performance.now();
+  const dt = Math.min(0.1, Math.max(0.004, (now - (trackedAt || now - 16)) / 1000));
+  trackedAt = now;
+  cursor.y -= trackScroll(now, dt);
+}
+
 function tick(frameTime: number) {
   const el = cursor.el;
   if (!el) {
@@ -433,29 +457,38 @@ function tick(frameTime: number) {
   }
   const dt = Math.min(0.033, (frameTime - (tick.last || frameTime)) / 1000) || 0.016;
   tick.last = frameTime;
-  const scrolled = (frameScrolled = scrollY - lastScrollY);
-  lastScrollY = scrollY;
-  if (Math.abs(scrolled) > 0.5) {
-    scrollDirection = Math.sign(scrolled);
-    lastScrollAt = frameTime;
-  }
-  // Smoothed the same at 60 and 120 frames a second.
-  scrollSpeed += (Math.abs(scrolled) / dt - scrollSpeed) * (1 - Math.pow(0.8, dt * 60));
-  scrollPeak = Math.max(scrollSpeed, scrollPeak * Math.pow(0.2, dt));
+  // Lenis moves the page in its own frame callback. If that ran after this
+  // one, he'd be drawn for the old scroll and the page would move under him
+  // for a frame (a one-frame hop). Stepping it first settles the scroll for
+  // this frame; its own call later in the frame then has nothing left to do.
+  getLenis()?.raf(frameTime);
+  const scrolled = trackScroll(frameTime, dt);
   const still = calm();
 
   let target = cursor.drive?.() ?? null;
   const driving = !!target;
+  // A job that pauses (the case read panel once the read is behind you)
+  // leaves him parked where it last pointed, not back at an old spot.
+  if (!target && cursor.drive && cursor.aim) cursor.anchor = cursor.aim;
   // A job that scrolls away: he reaches for it from the edge instead of leaving
   // (easing into the edge, so he doesn't press flat against it).
   // Never on the sticky header: his target stays below it.
   // (A trip clamps its own end: its curve may start off screen.)
-  if (target && !cursor.trip) target = [target[0], softClamp(target[1], header() + 24, screenHeight() - 40)];
+  // The page carries him exactly as far as it carried his target this frame:
+  // all the way in the open, not at all while the edge holds it (carried by
+  // a fast scroll and pulled back to the edge, he'd jolt).
+  let carried = -scrolled;
+  if (target && !cursor.trip) {
+    const lo = header() + 24;
+    const hi = screenHeight() - 40;
+    const y = softClamp(target[1], lo, hi);
+    carried = y - softClamp(target[1] + scrolled, lo, hi);
+    target = [target[0], y];
+  }
   restPending = false;
   if (target) {
     fold(false);
     rest.key = "";
-    cursor.leashY = null;
   } else target = home();
   const [tx, ty] = target;
   const parked = !driving && cursor.parked;
@@ -475,26 +508,24 @@ function tick(frameTime: number) {
   lastTargetX = driving ? tx : null;
   // After a page change he holds his spot on screen, like the header.
   const holding = !driving && !!cursor.hold;
-  // On touch, free and mid-scroll, he rides the page under your finger
-  // (the browser carries him, nothing to lag) and catches up once it stops.
-  const fingerScroll = onTouch && frameTime - lastScrollAt < wesselMotion.follow.touchSettleMs;
-  const riding = !driving && !parked && fingerScroll;
-  const drag = driving || parked || riding ? 1 : wesselMotion.follow.drag;
-  // On a trip the curve alone places him: carried by the page and pulled
-  // back by the trip's stiff spring, a fast scroll would jolt him.
-  if (!still && !pinned && !holding && !cursor.trip) cursor.y -= scrolled * drag;
-  const settled = cursor.distance < 0.5 && cursor.speed < 4;
+  // The page carries him like its content. On a trip the curve alone places
+  // him: carried by the page and pulled back by the trip's stiff spring, a
+  // fast scroll would jolt him.
+  if (!still && !pinned && !holding && !cursor.trip) cursor.y += carried;
+  // Settled on this frame's target (a new target, like a job ending, is not).
+  const settled = Math.hypot(cursor.x - tx, cursor.y - ty) < 0.5 && cursor.speed < 4;
   if (still || holding || (parked && settled)) {
     // At rest on his spot: he holds it exactly (the page carries him).
     cursor.x = tx;
     cursor.y = ty;
     cursor.vx = cursor.vy = 0;
-  } else if (riding) {
-    cursor.vx = cursor.vy = 0;
   } else {
-    // Back to his parking spot after wandering: he glides there, no jump.
+    // Landing on his parking spot after a job: he glides there, no jump.
     const spring = driving ? cursor.spring : springs.free;
-    const stiffness = spring.k * Math.min(springs.maxBoost, 1 + scrollSpeed / springs.boostPerPxSec);
+    // A fast scroll stiffens his spring so he keeps up; drags and snaps are
+    // stiff already, and boosted on a flick they'd yank him across the screen.
+    const boost = spring.k < 1000 ? Math.min(springs.maxBoost, 1 + scrollSpeed / springs.boostPerPxSec) : 1;
+    const stiffness = spring.k * boost;
     const stiffnessY = stiffness * springs.yScale;
     // Not on a drag: that path is already eased and must stay on it.
     const hand = spring.k < 1000 ? (narrow() ? wesselMotion.hand.phone : wesselMotion.hand.desktop) : null;
@@ -502,6 +533,7 @@ function tick(frameTime: number) {
     // would otherwise overshoot further each frame and fling him away.
     const steps = Math.ceil((dt * Math.sqrt(stiffnessY)) / 0.25);
     const step = dt / steps;
+    const [x0, y0] = [cursor.x, cursor.y];
     for (let i = 0; i < steps; i++) {
       let ax = -stiffness * (cursor.x - tx) - 2 * spring.z * Math.sqrt(stiffness) * cursor.vx;
       let ay = -stiffnessY * (cursor.y - ty) - 2 * spring.z * Math.sqrt(stiffnessY) * cursor.vy;
@@ -526,6 +558,19 @@ function tick(frameTime: number) {
       cursor.x += cursor.vx * step;
       cursor.y += cursor.vy * step;
     }
+    if (!hand) {
+      // A drag's own path never moves this fast; only a gap does (its target
+      // flung across the screen by a hard flick), and closing that in one
+      // frame reads as a jump. He covers it over a few frames instead.
+      const max = STIFF_TOP * dt;
+      const moved = Math.hypot(cursor.x - x0, cursor.y - y0);
+      if (moved > max) {
+        cursor.x = x0 + ((cursor.x - x0) * max) / moved;
+        cursor.y = y0 + ((cursor.y - y0) * max) / moved;
+        cursor.vx *= max / moved;
+        cursor.vy *= max / moved;
+      }
+    }
   }
   cursor.distance = Math.hypot(cursor.x - tx, cursor.y - ty);
   cursor.speed = Math.hypot(cursor.vx, cursor.vy);
@@ -534,12 +579,12 @@ function tick(frameTime: number) {
   // it doesn't flick back and forth along the edge.
   const room = innerWidth - cursor.x - labelW;
   const flip = cursor.lean || room < (flipped ? 40 : 20);
-  if (flip !== flipped) el.dataset.flip = String((flipped = flip));
+  if (flip !== flipped) swapSides(el, (flipped = flip));
   draw(el);
-  if (debug) logFrame(frameTime, tx, ty, driving ? "job" : still ? "calm" : holding ? "hold" : parked ? "park" : riding ? "ride" : "follow");
+  if (debug) logFrame(frameTime, tx, ty, driving ? "job" : still ? "calm" : holding ? "hold" : "park");
   // A job that holds him still outside a beat (the case read panel resting
   // him beside your layer) counts as quiet too: scroll and the next move wake him.
-  const quiet = (!driving || (targetStill && !busy)) && !restPending && !riding && Math.abs(scrolled) < 0.5 && cursor.distance < 0.5 && cursor.speed < 4;
+  const quiet = (!driving || (targetStill && !busy)) && !restPending && Math.abs(scrolled) < 0.5 && cursor.distance < 0.5 && cursor.speed < 4;
   quietFrames = quiet ? quietFrames + 1 : 0;
   raf = quietFrames > SLEEP_AFTER ? 0 : requestAnimationFrame(tick);
   // Asleep: the CSS drift takes over (components.css), never in calm.
@@ -563,7 +608,11 @@ function plan(to: () => XY | null, k: number) {
   const ms =
     clamp(trips.baseMs + trips.perDoublingMs * Math.log2(distance / trips.from + 1), trips.minMs, trips.maxMs) *
     clamp(Math.sqrt(springs.beat.k / k), 0.7, 1.4);
-  const a: XY = [cursor.x, cursor.y];
+  // The start moves with the end: carried along when the page scrolls the
+  // target, still when the target stays put (a sticky panel), so a scroll
+  // mid-trip neither kinks the curve nor drags him away and back.
+  let a: XY = [cursor.x, cursor.y];
+  let last: XY | null = null;
   const t0 = performance.now();
   const angle = (trips.arcDeg * Math.PI) / 180;
   const along = Math.cos(angle) / 3;
@@ -576,6 +625,8 @@ function plan(to: () => XY | null, k: number) {
     if (!t1) return null;
     const e: XY = [t1[0], softClamp(t1[1], header() + 24, screenHeight() - 40)];
     trip.end = e;
+    if (last) a = [a[0] + e[0] - last[0], a[1] + e[1] - last[1]];
+    last = e;
     const t = (performance.now() - t0) / ms;
     if (t >= 1 || cursor.trip !== trip || calm()) {
       if (cursor.trip === trip) {
@@ -590,7 +641,9 @@ function plan(to: () => XY | null, k: number) {
     const dy = e[1] - a[1];
     const h1 = [a[0] + dx * along + dy * across, a[1] + dy * along - dx * across];
     const h2 = [e[0] - dx * along + dy * across, e[1] - dy * along - dx * across];
-    return bezierAt(minJerk(Math.max(0, t)), a, h1, h2, e);
+    const [x, y] = bezierAt(minJerk(Math.max(0, t)), a, h1, h2, e);
+    // The swing out never takes him past the side of the screen.
+    return [clamp(x, 12, innerWidth - 12), y];
   };
 }
 
@@ -712,8 +765,65 @@ export const wessel = {
   },
 };
 
-/** <CursorLayer> hands over his element; returns the cleanup. */
-export function attachWessel(el: HTMLElement) {
+// ---------- out of view: a marker at the screen edge ----------
+// Parked off screen, he'd be gone without a trace: a small tag at the top or
+// bottom edge, above or below where he is, says where he went. An
+// IntersectionObserver tells when he leaves and which way, so scrolling
+// costs nothing here either.
+function watchEdge(el: HTMLElement, edge: HTMLElement) {
+  let last: { isIntersecting: boolean; boundingClientRect: DOMRectReadOnly } | null = null;
+  const show = (e: { isIntersecting: boolean; boundingClientRect: DOMRectReadOnly }) => {
+    last = e;
+    const r = e.boundingClientRect;
+    // Off to the side (waiting offstage before his entrance) isn't out of
+    // view; calm keeps the page quiet, so no tag there either.
+    const away = !e.isIntersecting && r.right > 0 && r.left < innerWidth && el.dataset.hide !== "true" && !calm();
+    // The side stays put while it fades out, so it never jumps edges on the way.
+    if (away) {
+      edge.dataset.side = r.top < header() ? "up" : "down";
+      // Phones: the arrow alone, in the side gutter nearest him (the copy
+      // runs edge to edge, a tag would sit on it).
+      // Desktop: at his x, kept inside the content column by the CSS.
+      edge.style.setProperty("--x", narrow() ? `${r.left < innerWidth / 2 ? 4 : innerWidth - 22}px` : `${r.left}px`);
+      edge.style.setProperty("--w", `${edge.offsetWidth}px`);
+    }
+    if (edge.dataset.on !== String(away)) edge.dataset.on = String(away);
+  };
+  const io = new IntersectionObserver(([e]) => show(e), { rootMargin: `${-header()}px 0px 0px 0px` });
+  // His arrow decides: tucked under the header with only his name showing,
+  // he's gone as far as you can tell, so the tag shows.
+  const arrow = el.querySelector(".ptr") ?? el;
+  io.observe(arrow);
+  // A resize or a switch to calm changes where (or whether) the tag goes.
+  const again = () => {
+    if (!last) return;
+    const r = arrow.getBoundingClientRect();
+    show({ isIntersecting: r.bottom > header() && r.top < innerHeight, boundingClientRect: r });
+  };
+  // After a resize he re-parks over a few frames: place it again once he has.
+  let settle = 0;
+  const resized = () => {
+    again();
+    clearTimeout(settle);
+    settle = window.setTimeout(again, 600);
+  };
+  addEventListener("resize", resized);
+  const off = subscribeMotion(again);
+  // Hidden (a case page on phones) without leaving the screen: the observer
+  // won't hear of it.
+  const hidden = new MutationObserver(again);
+  hidden.observe(el, { attributes: true, attributeFilter: ["data-hide"] });
+  return () => {
+    io.disconnect();
+    hidden.disconnect();
+    clearTimeout(settle);
+    removeEventListener("resize", resized);
+    off();
+  };
+}
+
+/** <CursorLayer> hands over his element (and the edge marker); returns the cleanup. */
+export function attachWessel(el: HTMLElement, edge?: HTMLElement | null) {
   cursor.el = el;
   cursor.tag = el.querySelector(".tag b");
   measureScreen();
@@ -724,10 +834,78 @@ export function attachWessel(el: HTMLElement) {
   flipped = false;
   el.dataset.hide = "true";
   measureLabel();
-  const wakeOnResize = () => (measureScreen(), wake());
+  const wakeOnResize = () => {
+    measureScreen();
+    // A narrower window makes the page longer or shorter: his parked spot
+    // stays on the page and on screen.
+    if (cursor.anchor) {
+      const end = document.documentElement.scrollHeight - 60;
+      cursor.anchor = [Math.min(cursor.anchor[0], innerWidth - 16 + scrollX), Math.min(cursor.anchor[1], end)];
+    }
+    wake();
+  };
   addEventListener("resize", wakeOnResize);
-  // Scrolling moves his target (parked spot, wandering after you).
-  addEventListener("scroll", wake, { passive: true });
+  // Parked and settled, the page carries him and scrolling needs no frames.
+  // On a job, landing, or holding his screen spot after a page change, it does.
+  const wakeOnScroll = () => {
+    catchUp();
+    if (cursor.drive || cursor.hold || !cursor.parked || cursor.distance >= 0.5 || cursor.speed >= 4) wake();
+  };
+  addEventListener("scroll", wakeOnScroll, { passive: true });
+  // Out of view with no job on the way and the page has come to rest: he
+  // rejoins you, a short trip in from the edge he went out by at his x, and
+  // parks pinned again just inside it. Never while you scroll. In calm he's
+  // simply there (no travel).
+  let rejoinSoon = 0;
+  let rejoinedAt = -Infinity;
+  const rejoin = () => {
+    catchUp();
+    const H = screenHeight();
+    if (cursor.drive || cursor.hold || !cursor.shown || el.dataset.hide === "true") return;
+    // Only once he's well out of view: just tucked under an edge, the tag
+    // says where he is and a hop back at every stop would read as a tic.
+    const top = header();
+    const out = Math.max(top - cursor.y, cursor.y - H);
+    if (out <= 0 || (!calm() && out < (H - top) * wesselMotion.park.rejoinOut)) return;
+    // Not at every stop: once he's caught up, he lets you read a while, then
+    // comes back if you're still there. (In calm he can't travel or show a
+    // tag, so he's always just there.)
+    // Held back, he waits for your next stop, or comes anyway if you've
+    // stayed put a long while (arriving mid-read reads as barging in).
+    const since = performance.now() - rejoinedAt;
+    if (!calm() && since < wesselMotion.park.rejoinCooldownMs) {
+      rejoinSoon = window.setTimeout(rejoin, wesselMotion.park.rejoinFallbackMs - wesselMotion.park.rejoinMs);
+      return;
+    }
+    rejoinedAt = performance.now();
+    // Deep enough in that the next small scroll doesn't tuck him away again.
+    // In calm he doesn't travel, so he can take the far side: the one your
+    // scroll moves him away from last.
+    const fromTop = cursor.y < top;
+    const y = top + (H - top) * (calm() ? (fromTop ? 0.85 : 0.38) : fromTop ? 0.38 : 0.72);
+    // He comes in down the right edge (the margin on desktop), off the work
+    // and the copy; his own x is often the image column.
+    const x = innerWidth - parkInset();
+    if (!calm()) cursor.x = x;
+    cursor.anchor = [x + scrollX, y + scrollY];
+    if (calm()) {
+      // No travel in calm: he fades in at the spot (a fade isn't motion).
+      el.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 240, easing: "ease-out" });
+      return wake();
+    }
+    const trip = wessel.go(() => home(), { timeout: 1600 });
+    const drive = cursor.drive;
+    // A job that starts on the way takes over; otherwise he parks on arrival.
+    trip.then(() => cursor.drive === drive && wessel.free());
+  };
+  const rejoinLater = () => {
+    clearTimeout(rejoinSoon);
+    rejoinSoon = window.setTimeout(rejoin, wesselMotion.park.rejoinMs);
+  };
+  addEventListener("scroll", rejoinLater, { passive: true });
+  // Pause can leave him far off screen mid-beat.
+  const offRejoin = subscribeMotion(rejoinLater);
+  const unwatch = edge ? watchEdge(el, edge) : () => {};
   // A font swap can change his tag's width.
   document.fonts?.ready.then(() => (measureLabel(), wake()));
   raf = 0;
@@ -751,7 +929,11 @@ export function attachWessel(el: HTMLElement) {
     off();
     offWake();
     removeEventListener("resize", wakeOnResize);
-    removeEventListener("scroll", wake);
+    removeEventListener("scroll", wakeOnScroll);
+    removeEventListener("scroll", rejoinLater);
+    offRejoin();
+    clearTimeout(rejoinSoon);
+    unwatch();
     cancelAnimationFrame(raf);
     raf = 0;
     cursor.el = null;
@@ -761,14 +943,17 @@ export function attachWessel(el: HTMLElement) {
 /** A page is about to change: he stays where he is on screen. Taken before
  *  the route swaps, as a shorter new page can clamp the scroll under him. */
 export function holdWessel() {
-  cursor.hold = cursor.el && cursor.el.dataset.hide !== "true" ? [cursor.x, cursor.y] : null;
   wake();
+  cursor.hold = cursor.el && cursor.el.dataset.hide !== "true" ? [cursor.x, cursor.y] : null;
 }
 
 /** A page change: new generation, fresh marks, he forgets his parking spot
  *  but holds still on screen (like the header) until the new page gives him a job. */
 export function newPage() {
   newGeneration();
+  // The jump to the new page's top isn't you scrolling.
+  scrollSpeed = scrollPeak = 0;
+  lastScrollY = scrollY;
   wake();
   cursor.lean = false;
   cursor.anchor = null;
@@ -847,10 +1032,10 @@ function trigger(b: Beat) {
     const g = generation;
     // He always plays his full beat. If you're moving fast he waits a
     // breath; a flick past skips it, and it plays when you come back.
-    for (let i = 0; i < wesselMotion.fastScroll.waitMs / 60 && !calm() && scrollPeak > wesselMotion.fastScroll.waitAbovePxPerSec; i++)
+    for (let i = 0; i < wesselMotion.fastScroll.waitMs / 60 && !calm() && peakNow() > wesselMotion.fastScroll.waitAbovePxPerSec; i++)
       await wait(60);
     if (g !== generation || !beats.has(b) || !b.el.isConnected) return;
-    if (!calm() && (scrollPeak > wesselMotion.fastScroll.skipAbovePxPerSec || !seen(b.el, need))) {
+    if (!calm() && (peakNow() > wesselMotion.fastScroll.skipAbovePxPerSec || !seen(b.el, need))) {
       b.done = false;
       // Flicked past: it plays when you come back, or once you stop here.
       setTimeout(() => trigger(b), 500);
@@ -887,9 +1072,9 @@ function lookAgain(b: Beat, need: number) {
     b.q = false;
     if (b.looked || !beats.has(b) || scrollDirection > 0 || calm() || !seen(b.el, need)) return;
     const g = generation;
-    for (let i = 0; i < fastScroll.waitMs / 60 && scrollPeak > fastScroll.waitAbovePxPerSec; i++) await wait(60);
+    for (let i = 0; i < fastScroll.waitMs / 60 && peakNow() > fastScroll.waitAbovePxPerSec; i++) await wait(60);
     if (g !== generation || !beats.has(b) || !b.el.isConnected) return;
-    if (scrollPeak > fastScroll.skipAbovePxPerSec || !seen(b.el, need)) {
+    if (peakNow() > fastScroll.skipAbovePxPerSec || !seen(b.el, need)) {
       setTimeout(() => trigger(b), 500);
       return;
     }

@@ -636,6 +636,80 @@
   .cur.wes[data-rest="true"] {
     animation: wes-drift 4200ms ease-in-out infinite;
   }
+  /* His spot is out of view (pinned to the page, it scrolled away): a small
+     Wessel at that screen edge, at his x, his arrow pointing the way he
+     went. A cursor, not a button: same arrow and tag as his, smaller. */
+  .wedge {
+    position: fixed;
+    z-index: 39;
+    /* At his x (lib/wessel), inside the content column. */
+    left: clamp(var(--spacing-side), var(--x, 0px), 100% - var(--spacing-side) - var(--w, 0px));
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    pointer-events: none;
+    opacity: 0;
+    transform: translateY(var(--wedge-in, 0px));
+    transition:
+      opacity var(--dur-ui) var(--ease-ui),
+      transform var(--dur-ui) var(--ease-ui);
+  }
+  .wedge .ptr {
+    width: 16px;
+    height: 16px;
+    flex: none;
+    filter: drop-shadow(0 1px 1.5px rgb(0 0 0 / 0.28));
+  }
+  .wedge .ptr path {
+    fill: var(--tang);
+    stroke: var(--canvas);
+    stroke-width: 1.75;
+    stroke-linejoin: round;
+  }
+  .wedge .tag {
+    display: inline-flex;
+    align-items: center;
+    height: 20px;
+    padding: 0 8px;
+    border-radius: var(--radius-pill);
+    background: var(--tang);
+    color: var(--on-tang);
+    white-space: nowrap;
+    scale: 0.92;
+    transform-origin: 0 50%;
+  }
+  .wedge[data-side="up"] {
+    top: calc(var(--spacing-header) + 12px);
+    --wedge-in: -6px;
+  }
+  /* The arrowhead points up-left; turned, it points up or down. */
+  .wedge[data-side="up"] .ptr {
+    rotate: 45deg;
+  }
+  .wedge[data-side="down"] {
+    bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+    --wedge-in: 6px;
+  }
+  .wedge[data-side="down"] .ptr {
+    rotate: 225deg;
+  }
+  /* Phones and tablets: the arrow alone in the side gutter (lib/wessel),
+     and above the Contact pill, never beside it. */
+  @media (width < 900px) {
+    .wedge {
+      left: var(--x, 0px);
+    }
+    .wedge .tag {
+      display: none;
+    }
+    .wedge[data-side="down"] {
+      bottom: calc(var(--spacing-side) + var(--spacing-tap) + 12px + env(safe-area-inset-bottom, 0px));
+    }
+  }
+  .wedge[data-on="true"] {
+    opacity: 1;
+    transform: none;
+  }
   .cur.you {
     --c: var(--grape);
     --on: var(--on-grape);
