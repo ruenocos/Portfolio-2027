@@ -831,10 +831,15 @@ export function attachWessel(el: HTMLElement, edge?: HTMLElement | null) {
     // says where he is and a hop back at every stop would read as a tic.
     const top = header();
     const out = Math.max(top - cursor.y, cursor.y - H);
-    if (!calm() && out < (H - top) * wesselMotion.park.rejoinOut) return;
-    // Not at every stop: once he's caught up, he lets you read a while.
-    // (In calm he can't travel or show a tag, so he's always just there.)
-    if (!calm() && performance.now() - rejoinedAt < wesselMotion.park.rejoinCooldownMs) return;
+    if (out <= 0 || (!calm() && out < (H - top) * wesselMotion.park.rejoinOut)) return;
+    // Not at every stop: once he's caught up, he lets you read a while, then
+    // comes back if you're still there. (In calm he can't travel or show a
+    // tag, so he's always just there.)
+    const wait = rejoinedAt + wesselMotion.park.rejoinCooldownMs - performance.now();
+    if (!calm() && wait > 0) {
+      rejoinSoon = window.setTimeout(rejoin, wait);
+      return;
+    }
     rejoinedAt = performance.now();
     // Deep enough in that the next small scroll doesn't tuck him away again.
     const y = cursor.y < top ? top + (H - top) * 0.38 : top + (H - top) * 0.72;
