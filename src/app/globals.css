@@ -20,6 +20,13 @@
        Contact pill). */
     scroll-padding-top: calc(var(--spacing-header) + 16px);
   }
+  /* Hairline scrollbar: a thin bar in the dot-grid colour on the canvas.
+     Inner scrollers inherit the colours. Site pages only (they have the
+     shell), so Sanity Studio keeps its own. */
+  html:has(#top) {
+    scrollbar-width: thin;
+    scrollbar-color: var(--dot) var(--canvas);
+  }
   @media (width < 900px) {
     html {
       scroll-padding-bottom: 76px;
