@@ -227,6 +227,14 @@
       "lerp": 0.12,
       "wheelMultiplier": 0.9,
       "when": "desktop mouse only"
+    },
+    "toTop": {
+      "minMs": 600,
+      "maxMs": 1200,
+      "msPerPx": 0.1,
+      "baseMs": 500,
+      "easing": "mode",
+      "use": "the header logo on home glides the page back to the top: 500ms + 0.1ms per px, held between 600 and 1200. Lenis on desktop mouse, native smooth on touch, an instant jump when calm"
     }
   },
   "boot": {

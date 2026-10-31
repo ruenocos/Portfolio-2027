@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import { getLenis } from "@/lib/scroll";
+import { getLenis, scrollToTop } from "@/lib/scroll";
 import { ThemeSwitch } from "./ThemeSwitch";
 import { Hop } from "./Hop";
 import { NAV } from "./nav";
@@ -87,6 +87,18 @@ export function Header() {
     if (!(e.target as Element).closest("button")) e.currentTarget.querySelector("button")?.click();
   };
 
+  // On home the logo has nowhere to go, so it takes you back to the top
+  // (and drops a #contact from the address). Other pages route home as usual.
+  const homeClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    if (pathname !== "/" || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+    e.preventDefault();
+    if (location.hash) history.replaceState(history.state, "", "/");
+    if (!open) return scrollToTop();
+    // The open menu locks the page; wait a frame for it to let go.
+    setOpen(false);
+    requestAnimationFrame(scrollToTop);
+  };
+
   const links = [...NAV, { href: "#contact", label: "Contact" }];
 
   return (
@@ -94,7 +106,7 @@ export function Header() {
       <header className="hd frame" data-past={!heroIn}>
         <div className="side" />
         <div className="bar">
-          <Link href="/" className="home" aria-label="Wessel Oud, home">
+          <Link href="/" className="home" aria-label="Wessel Oud, home" onClick={homeClick}>
             <Smiley follow className="logo" />
             <span className="wm" aria-hidden="true">
               Wessel
