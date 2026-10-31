@@ -615,6 +615,27 @@
     /* His own layer: a move is a composite, never a repaint of the page. */
     will-change: transform;
   }
+  /* No clear spot for his tag beside the text you're reading (a phone's
+     full-width copy): it folds toward his tip and only the arrow waits. */
+  .cur.wes .lab {
+    transform-origin: 0 0;
+    transition:
+      opacity var(--dur-ui) var(--ease-ui),
+      transform var(--dur-ui) var(--ease-ui);
+  }
+  .cur.wes[data-flip="true"] .lab {
+    transform-origin: 100% 0;
+  }
+  .cur.wes[data-fold="true"] .lab {
+    opacity: 0;
+    transform: scale(0.6);
+  }
+  /* At rest (his frame loop asleep) he drifts a pixel or so, like a hand
+     resting on a mouse. The translate property adds to the engine's
+     transform, so it costs no frames. Tokens: wessel.drift. */
+  .cur.wes[data-rest="true"] {
+    animation: wes-drift 4200ms ease-in-out infinite;
+  }
   .cur.you {
     --c: var(--grape);
     --on: var(--on-grape);
@@ -908,6 +929,21 @@
   }
 }
 
+@keyframes wes-drift {
+  0%,
+  100% {
+    translate: 0 0;
+  }
+  30% {
+    translate: 1.2px -0.7px;
+  }
+  55% {
+    translate: 0.3px 1.1px;
+  }
+  80% {
+    translate: -1px 0.4px;
+  }
+}
 @keyframes pop {
   from {
     transform: scale(0.5);
