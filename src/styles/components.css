@@ -637,45 +637,70 @@
     animation: wes-drift 4200ms ease-in-out infinite;
   }
   /* His spot is out of view (pinned to the page, it scrolled away): a small
-     tag at that edge, at his x, with an arrow that way. */
+     Wessel at that screen edge, at his x, his arrow pointing the way he
+     went. A cursor, not a button: same arrow and tag as his, smaller. */
   .wedge {
     position: fixed;
     z-index: 39;
-    display: inline-flex;
+    left: 0;
+    display: flex;
     align-items: center;
-    gap: 4px;
-    height: 22px;
-    padding: 0 8px 0 10px;
-    border-radius: var(--radius-pill);
-    background: var(--tang);
-    color: var(--on-tang);
+    gap: 2px;
     pointer-events: none;
-    white-space: nowrap;
     opacity: 0;
-    transform: translateY(var(--wedge-in, 0px)) scale(0.9);
+    transform: translateY(var(--wedge-in, 0px));
     transition:
       opacity var(--dur-ui) var(--ease-ui),
       transform var(--dur-ui) var(--ease-ui);
   }
-  .wedge svg {
-    width: 10px;
-    height: 10px;
-    fill: none;
-    stroke: currentColor;
-    stroke-width: 1.6;
-    stroke-linecap: round;
+  .wedge .ptr {
+    width: 16px;
+    height: 16px;
+    flex: none;
+    filter: drop-shadow(0 1px 1.5px rgb(0 0 0 / 0.28));
+  }
+  .wedge .ptr path {
+    fill: var(--tang);
+    stroke: var(--canvas);
+    stroke-width: 1.75;
     stroke-linejoin: round;
+  }
+  .wedge .tag {
+    display: inline-flex;
+    align-items: center;
+    height: 20px;
+    padding: 0 8px;
+    border-radius: var(--radius-pill);
+    background: var(--tang);
+    color: var(--on-tang);
+    white-space: nowrap;
+    scale: 0.92;
+    transform-origin: 0 50%;
   }
   .wedge[data-side="up"] {
     top: calc(var(--spacing-header) + 12px);
     --wedge-in: -6px;
   }
+  /* The arrowhead points up-left; turned, it points up or down. */
+  .wedge[data-side="up"] .ptr {
+    rotate: 45deg;
+  }
   .wedge[data-side="down"] {
     bottom: calc(16px + env(safe-area-inset-bottom, 0px));
     --wedge-in: 6px;
   }
-  .wedge[data-side="down"] svg {
-    rotate: 180deg;
+  .wedge[data-side="down"] .ptr {
+    rotate: 225deg;
+  }
+  /* Phones and tablets: the arrow alone in the side gutter (lib/wessel),
+     and above the Contact pill, never beside it. */
+  @media (width < 900px) {
+    .wedge .tag {
+      display: none;
+    }
+    .wedge[data-side="down"] {
+      bottom: calc(var(--spacing-side) + var(--spacing-tap) + 12px + env(safe-area-inset-bottom, 0px));
+    }
   }
   .wedge[data-on="true"] {
     opacity: 1;

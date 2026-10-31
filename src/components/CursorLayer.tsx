@@ -3,7 +3,7 @@
 import { usePathname } from "next/navigation";
 import { useEffect, useRef } from "react";
 import { afterIntro } from "@/lib/intro/iris";
-import { TIP, arrive, attachWessel, newPage } from "@/lib/wessel";
+import { POINTER, POINTER_BOX, TIP, arrive, attachWessel, newPage } from "@/lib/wessel";
 import { Cursor } from "./canvas/Cursor";
 import { finePointer } from "@/lib/media";
 
@@ -123,11 +123,13 @@ export function CursorLayer() {
         <Cursor ref={wes} kind="wes" name="Wessel" />
       </div>
       {/* Where Wessel went when his spot is out of view (lib/wessel watchEdge). */}
-      <div ref={edge} className="wedge text-cursor-tag" aria-hidden="true" data-side="up" data-on="false">
-        <b>Wessel</b>
-        <svg viewBox="0 0 10 10" aria-hidden="true">
-          <path d="M5 8.5V1.5M2 4.5l3-3 3 3" />
+      <div ref={edge} className="wedge" aria-hidden="true" data-side="up" data-on="false">
+        <svg className="ptr" viewBox={POINTER_BOX} aria-hidden="true">
+          <path d={POINTER} />
         </svg>
+        <span className="tag text-cursor-tag">
+          <b>Wessel</b>
+        </span>
       </div>
       <Cursor ref={you} kind="you" name="You" fixed />
     </>

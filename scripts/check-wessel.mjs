@@ -90,6 +90,24 @@ async function run(b, route, device, motion) {
   const ctx = await b.newContext({ ...DEVICES[device], reducedMotion: motion === "calm" ? "reduce" : "no-preference" });
   // No first-visit intro: these runs are about scrolling.
   await ctx.addInitScript(() => sessionStorage.setItem("wsl-boot", "1"));
+  // His arrow's box as drawn, every frame, even while his engine sleeps (the
+  // engine's own frames stop then): what a visitor actually sees.
+  await ctx.addInitScript(() => {
+    window.__wesBox = [];
+    // Sampled just after the frame is painted (a task queued from the frame),
+    // so it sees his engine's update for that frame and the same scroll.
+    const look = (t) => {
+      const el = document.querySelector(".cur.wes");
+      const r = el?.querySelector(".ptr")?.getBoundingClientRect();
+      if (r && window.__wesBox.length < 60000)
+        window.__wesBox.push([t, r.left, r.top, scrollY, el.dataset.hide === "true" || el.dataset.tuck === "true"]);
+    };
+    const frame = (t) => {
+      setTimeout(() => look(t), 0);
+      requestAnimationFrame(frame);
+    };
+    requestAnimationFrame(frame);
+  });
   const p = await ctx.newPage();
   const errors = [];
   p.on("pageerror", (e) => errors.push(e.message));
@@ -123,26 +141,32 @@ async function run(b, route, device, motion) {
   await wait(3000);
   const idleTicks = (await p.evaluate(() => window.__wessel?.ticks ?? 0)) - t0;
   const frames = await p.evaluate(() => window.__wessel?.frames ?? []);
+  const boxes = await p.evaluate(() => window.__wesBox ?? []);
   const idleModes = [...new Set(frames.filter((f) => f.t > frames.at(-1).t - 3000).map((f) => f.mode))];
   await ctx.close();
 
+  // Jumps, from what's drawn: he moves more than 120px in a frame both on
+  // screen and on the page, with one end on screen.
   let jumps = 0;
+  const jumpAt = [];
+  for (let i = 1; i < boxes.length; i++) {
+    const [, x1, y1, s1, h1] = boxes[i];
+    const [, x0, y0, s0, h0] = boxes[i - 1];
+    // Hidden, or the first frame before his engine placed him at all.
+    if (h0 || h1 || (x0 === 0 && y0 === 0)) continue;
+    const d = Math.min(Math.hypot(x1 - x0, y1 - y0), Math.hypot(x1 - x0, y1 + s1 - (y0 + s0)));
+    if (d > 120 && ((y1 > -30 && y1 < H + 30) || (y0 > -30 && y0 < H + 30))) {
+      jumps++;
+      jumpAt.push(Math.round(s1));
+    }
+  }
   let flips = 0;
   let scrollFrames = 0;
   let offScreen = 0;
-  const jumpAt = [];
   for (let i = 1; i < frames.length; i++) {
     const f = frames[i];
     const g = frames[i - 1];
     if (f.out || g.out) continue;
-    // A jump moves him both on screen and on the page: the page carrying a
-    // parked Wessel, or a screen-fixed one over a scrolling page, is neither.
-    const onScreen = (q) => q.y > -30 && q.y < H + 30;
-    const d = Math.min(Math.hypot(f.x - g.x, f.y - g.y), Math.hypot(f.x - g.x, f.y + f.sy - (g.y + g.sy)));
-    if (d > 120 && (onScreen(f) || onScreen(g))) {
-      jumps++;
-      jumpAt.push(Math.round(f.sy));
-    }
     // His parked spot is on the page: a flip is that spot moving on the page.
     if (f.mode === "park" && g.mode === "park" && Math.abs(f.ty + f.sy - (g.ty + g.sy)) > 0.3 * H) flips++;
     if (f.sy !== g.sy) {
